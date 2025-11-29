@@ -1,0 +1,80 @@
+{
+  "name": "@repo/data-ops",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./runtimes": {
+      "types": "./dist/runtimes/index.d.ts",
+      "import": "./dist/runtimes/index.js"
+    },
+    "./domains": {
+      "types": "./dist/domains/clients/index.d.ts",
+      "import": "./dist/domains/clients/index.js"
+    },
+    "./layers": {
+      "types": "./dist/layers/index.d.ts",
+      "import": "./dist/layers/index.js"
+    },
+    "./lib": {
+      "types": "./dist/lib/index.d.ts",
+      "import": "./dist/lib/index.js"
+    },
+    "./database": {
+      "types": "./dist/database/index.d.ts",
+      "import": "./dist/database/index.js"
+    },
+    "./domain": {
+      "types": "./dist/domain/index.d.ts",
+      "import": "./dist/domain/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply tally --local --persist-to ../../apps/web/.wrangler/state",
+    "db:migrate:production": "wrangler d1 migrations apply tally --remote",
+    "db:local:drop": "drizzle-kit drop",
+    "db:studio:local": "drizzle-kit studio --config=drizzle.local.config.ts"
+  },
+  "dependencies": {
+    "@better-auth/cli": "^1.3.29",
+    "@effect/opentelemetry": "^0.56.6",
+    "@effect/platform": "^0.90.10",
+    "better-auth": "^1.3.29",
+    "better-sqlite3": "^11.8.1",
+    "drizzle-orm": "^0.44.6",
+    "drizzle-zod": "^0.8.3",
+    "effect": "^3.17.9",
+    "uuid": "^11.1.0",
+    "zod": "^3.25.32"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250517.0",
+    "@effect/language-service": "^0.23.1",
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^20.19.23",
+    "@types/uuid": "^10.0.0",
+    "dotenv": "^16.5.0",
+    "drizzle-kit": "^0.31.5",
+    "typescript": "^5.8.3",
+    "vitest": "^2.1.8",
+    "wrangler": "^4.32.0"
+  },
+  "peerDependencies": {
+    "@cloudflare/workers-types": "*",
+    "drizzle-orm": "*"
+  }
+}
