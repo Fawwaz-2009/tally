@@ -99,7 +99,7 @@ export class KvClient extends Effect.Service<KvClient>()("KvClient", {
   accessors: true,
 }) {}
 
-// Bucket - Filesystem-based storage for Node.js (replaces R2)
+// Bucket - Filesystem-based blob storage
 let bucketPath: string | undefined;
 
 export function initBucket(storagePath?: string) {

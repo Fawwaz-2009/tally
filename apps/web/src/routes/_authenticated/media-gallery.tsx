@@ -118,7 +118,7 @@ function MediaGallery() {
           <CardHeader>
             <CardTitle className="text-2xl">Media Gallery</CardTitle>
             <CardDescription>
-              Upload and manage your media files with R2 storage
+              Upload and manage your media files
             </CardDescription>
           </CardHeader>
           <CardContent>

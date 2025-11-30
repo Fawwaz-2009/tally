@@ -32,6 +32,11 @@ function getEnv(): NodeEnv {
 
 const app = new Hono()
 
+// Health check endpoint for Docker/Kubernetes
+app.get('/health', (c) => {
+  return c.json({ status: 'ok', timestamp: new Date().toISOString() })
+})
+
 // Better Auth routes
 app.all('/api/auth/**', async (c) => {
   const env = getEnv()

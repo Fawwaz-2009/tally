@@ -1,0 +1,50 @@
+# Dependencies - will be installed fresh in Docker
+node_modules
+**/node_modules
+
+# Build outputs - will be rebuilt in Docker
+.output
+**/.output
+dist
+**/dist
+.nitro
+**/.nitro
+.turbo
+**/.turbo
+
+# Development files
+.git
+.gitignore
+*.md
+!README.md
+docs
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+
+# Environment files (secrets should be passed via docker-compose)
+.env
+.env.*
+!.env.example
+
+# Test files
+**/*.test.ts
+**/*.spec.ts
+**/test
+**/tests
+**/__tests__
+coverage
+
+# Local data (will be mounted as volume)
+**/data
+apps/web/data
+
+
+# Misc
+*.log
+*.tgz
+.npmrc

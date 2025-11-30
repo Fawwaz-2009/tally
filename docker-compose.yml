@@ -1,0 +1,24 @@
+# Development docker-compose - builds from source
+# Usage: docker compose -f docker-compose.dev.yml up --build
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOST=0.0.0.0
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - DATABASE_PATH=/app/data/app.db
+      - BUCKET_STORAGE_PATH=/app/data/uploads
+      - BASE_FRONTEND_URL=${BASE_FRONTEND_URL}
+    volumes:
+      - tally-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  tally-data:

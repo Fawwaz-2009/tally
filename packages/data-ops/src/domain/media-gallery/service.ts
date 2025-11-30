@@ -21,7 +21,7 @@ export class MediaGalleryService extends Effect.Service<MediaGalleryService>()("
 
       createMedia: (data: CreateMediaInput) =>
         Effect.gen(function* () {
-          // Upload to R2 bucket
+          // Upload to storage
           const key = `media/${uuid()}-${data.imageName}`;
           yield* bucket.put(key, data.imageBuffer, {
             httpMetadata: data.mimeType ? { contentType: data.mimeType } : undefined,

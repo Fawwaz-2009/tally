@@ -13,10 +13,16 @@ importers:
         version: 1.3.6(@tanstack/query-core@5.90.5)(@tanstack/react-query@5.90.5(react@19.1.0))(better-auth@1.3.29(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@daveyplate/better-auth-ui':
         specifier: ^3.2.6
-        version: 3.2.6(@daveyplate/better-auth-tanstack@1.3.6(@tanstack/query-core@5.90.5)(@tanstack/react-query@5.90.5(react@19.1.0))(better-auth@1.3.29(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@hookform/resolvers@5.2.2(react-hook-form@7.65.0(react@19.1.0)))(@instantdb/react@0.22.33(react@19.1.0))(@marsidev/react-turnstile@1.3.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-avatar@1.1.10(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-checkbox@1.3.3(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-context@1.1.2(@types/react@19.1.0)(react@19.1.0))(@radix-ui/react-dialog@1.1.15(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-dropdown-menu@2.1.16(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-label@2.1.7(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-primitive@2.1.3(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-select@2.2.6(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-separator@1.1.7(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-slot@1.2.3(@types/react@19.1.0)(react@19.1.0))(@radix-ui/react-tabs@1.1.13(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-use-callback-ref@1.1.1(@types/react@19.1.0)(react@19.1.0))(@radix-ui/react-use-layout-effect@1.1.1(@types/react@19.1.0)(react@19.1.0))(@tanstack/react-query@5.90.5(react@19.1.0))(@triplit/client@1.0.50(better-sqlite3@11.10.0)(typescript@5.9.2))(@triplit/react@1.0.51(better-sqlite3@11.10.0)(react@19.1.0)(typescript@5.9.2))(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(better-auth@1.3.29(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(class-variance-authority@0.7.1)(clsx@2.1.1)(input-otp@1.4.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(lucide-react@0.544.0(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react-hook-form@7.65.0(react@19.1.0))(react@19.1.0)(sonner@2.0.7(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(tailwind-merge@3.3.1)(tailwindcss@4.1.15)(zod@4.1.12)
+        version: 3.2.6(@daveyplate/better-auth-tanstack@1.3.6(@tanstack/query-core@5.90.5)(@tanstack/react-query@5.90.5(react@19.1.0))(better-auth@1.3.29(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@hookform/resolvers@5.2.2(react-hook-form@7.65.0(react@19.1.0)))(@instantdb/react@0.22.33(react@19.1.0))(@marsidev/react-turnstile@1.3.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-avatar@1.1.10(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-checkbox@1.3.3(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-context@1.1.2(@types/react@19.1.0)(react@19.1.0))(@radix-ui/react-dialog@1.1.15(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-dropdown-menu@2.1.16(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-label@2.1.7(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-primitive@2.1.3(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-select@2.2.6(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-separator@1.1.7(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-slot@1.2.3(@types/react@19.1.0)(react@19.1.0))(@radix-ui/react-tabs@1.1.13(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-use-callback-ref@1.1.1(@types/react@19.1.0)(react@19.1.0))(@radix-ui/react-use-layout-effect@1.1.1(@types/react@19.1.0)(react@19.1.0))(@tanstack/react-query@5.90.5(react@19.1.0))(@triplit/client@1.0.50(better-sqlite3@12.5.0)(typescript@5.9.2))(@triplit/react@1.0.51(better-sqlite3@12.5.0)(react@19.1.0)(typescript@5.9.2))(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(better-auth@1.3.29(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(class-variance-authority@0.7.1)(clsx@2.1.1)(input-otp@1.4.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(lucide-react@0.544.0(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react-hook-form@7.65.0(react@19.1.0))(react@19.1.0)(sonner@2.0.7(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(tailwind-merge@3.3.1)(tailwindcss@4.1.15)(zod@4.1.12)
       better-auth:
         specifier: ^1.3.29
         version: 1.3.29(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(solid-js@1.9.9)
+      better-sqlite3:
+        specifier: ^12.5.0
+        version: 12.5.0
+      drizzle-orm:
+        specifier: ^0.44.6
+        version: 0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@12.5.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0)
     devDependencies:
       '@turbo/gen':
         specifier: ^2.0.11
@@ -38,7 +44,7 @@ importers:
         version: 1.3.6(@tanstack/query-core@5.90.5)(@tanstack/react-query@5.90.5(react@19.1.0))(better-auth@1.3.29(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@daveyplate/better-auth-ui':
         specifier: ^3.2.6
-        version: 3.2.6(@daveyplate/better-auth-tanstack@1.3.6(@tanstack/query-core@5.90.5)(@tanstack/react-query@5.90.5(react@19.1.0))(better-auth@1.3.29(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@hookform/resolvers@5.2.2(react-hook-form@7.65.0(react@19.1.0)))(@instantdb/react@0.22.33(react@19.1.0))(@marsidev/react-turnstile@1.3.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-avatar@1.1.10(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-checkbox@1.3.3(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-context@1.1.2(@types/react@19.1.0)(react@19.1.0))(@radix-ui/react-dialog@1.1.15(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-dropdown-menu@2.1.16(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-label@2.1.7(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-primitive@2.1.3(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-select@2.2.6(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-separator@1.1.7(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-slot@1.2.3(@types/react@19.1.0)(react@19.1.0))(@radix-ui/react-tabs@1.1.13(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-use-callback-ref@1.1.1(@types/react@19.1.0)(react@19.1.0))(@radix-ui/react-use-layout-effect@1.1.1(@types/react@19.1.0)(react@19.1.0))(@tanstack/react-query@5.90.5(react@19.1.0))(@triplit/client@1.0.50(better-sqlite3@11.10.0)(typescript@5.9.2))(@triplit/react@1.0.51(better-sqlite3@11.10.0)(react@19.1.0)(typescript@5.9.2))(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(better-auth@1.3.29(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(class-variance-authority@0.7.1)(clsx@2.1.1)(input-otp@1.4.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(lucide-react@0.544.0(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react-hook-form@7.65.0(react@19.1.0))(react@19.1.0)(sonner@2.0.7(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(tailwind-merge@3.3.1)(tailwindcss@4.1.15)(zod@4.1.12)
+        version: 3.2.6(@daveyplate/better-auth-tanstack@1.3.6(@tanstack/query-core@5.90.5)(@tanstack/react-query@5.90.5(react@19.1.0))(better-auth@1.3.29(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@hookform/resolvers@5.2.2(react-hook-form@7.65.0(react@19.1.0)))(@instantdb/react@0.22.33(react@19.1.0))(@marsidev/react-turnstile@1.3.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-avatar@1.1.10(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-checkbox@1.3.3(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-context@1.1.2(@types/react@19.1.0)(react@19.1.0))(@radix-ui/react-dialog@1.1.15(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-dropdown-menu@2.1.16(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-label@2.1.7(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-primitive@2.1.3(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-select@2.2.6(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-separator@1.1.7(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-slot@1.2.3(@types/react@19.1.0)(react@19.1.0))(@radix-ui/react-tabs@1.1.13(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-use-callback-ref@1.1.1(@types/react@19.1.0)(react@19.1.0))(@radix-ui/react-use-layout-effect@1.1.1(@types/react@19.1.0)(react@19.1.0))(@tanstack/react-query@5.90.5(react@19.1.0))(@triplit/client@1.0.50(better-sqlite3@12.5.0)(typescript@5.9.2))(@triplit/react@1.0.51(better-sqlite3@12.5.0)(react@19.1.0)(typescript@5.9.2))(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(better-auth@1.3.29(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(class-variance-authority@0.7.1)(clsx@2.1.1)(input-otp@1.4.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(lucide-react@0.544.0(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react-hook-form@7.65.0(react@19.1.0))(react@19.1.0)(sonner@2.0.7(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(tailwind-merge@3.3.1)(tailwindcss@4.1.15)(zod@4.1.12)
       '@hookform/resolvers':
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.65.0(react@19.1.0))
@@ -97,8 +103,8 @@ importers:
         specifier: ^1.3.29
         version: 1.3.29(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(solid-js@1.9.9)
       better-sqlite3:
-        specifier: ^11.8.1
-        version: 11.10.0
+        specifier: ^12.5.0
+        version: 12.5.0
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -116,7 +122,7 @@ importers:
         version: 0.544.0(react@19.1.0)
       nitro:
         specifier: ^3.0.0
-        version: 3.0.0(better-sqlite3@11.10.0)(chokidar@4.0.3)(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@11.10.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0))(lru-cache@11.2.2)(vite@7.1.11(@types/node@22.15.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1))
+        version: 3.0.0(better-sqlite3@12.5.0)(chokidar@4.0.3)(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@12.5.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0))(lru-cache@11.2.2)(vite@7.1.11(@types/node@22.15.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1))
       react:
         specifier: ^19.0.0
         version: 19.1.0
@@ -271,14 +277,14 @@ importers:
         specifier: ^1.3.29
         version: 1.3.29(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(solid-js@1.9.9)
       better-sqlite3:
-        specifier: ^11.8.1
-        version: 11.10.0
+        specifier: ^12.5.0
+        version: 12.5.0
       drizzle-orm:
         specifier: ^0.44.6
-        version: 0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@11.10.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0)
+        version: 0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@12.5.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0)
       drizzle-zod:
         specifier: ^0.8.3
-        version: 0.8.3(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@11.10.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0))(zod@3.25.76)
+        version: 0.8.3(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@12.5.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0))(zod@3.25.76)
       effect:
         specifier: ^3.17.9
         version: 3.18.4
@@ -3202,12 +3208,9 @@ packages:
   better-call@1.0.19:
     resolution: {integrity: sha512-sI3GcA1SCVa3H+CDHl8W8qzhlrckwXOTKhqq3OOPXjgn5aTOMIqGY34zLY/pHA6tRRMjTUC3lz5Mi7EbDA24Kw==}
 
-  better-sqlite3@11.10.0:
-    resolution: {integrity: sha512-EwhOpyXiOEL/lKzHz9AW1msWFNzGc/z+LzeB3/jnFJpxu+th2yqvzsSWas1v9jgs9+xiXJcD5A8CJxAG2TaghQ==}
-
-  better-sqlite3@12.4.1:
-    resolution: {integrity: sha512-3yVdyZhklTiNrtg+4WqHpJpFDd+WHTg2oM7UcR80GqL05AOV0xEJzc6qNvFYoEtE+hRp1n9MpN6/+4yhlGkDXQ==}
-    engines: {node: 20.x || 22.x || 23.x || 24.x}
+  better-sqlite3@12.5.0:
+    resolution: {integrity: sha512-WwCZ/5Diz7rsF29o27o0Gcc1Du+l7Zsv7SYtVPG0X3G/uUI1LqdxrQI7c9Hs2FWpqXXERjW9hp6g3/tH7DlVKg==}
+    engines: {node: 20.x || 22.x || 23.x || 24.x || 25.x}
 
   bidi-js@1.0.3:
     resolution: {integrity: sha512-RKshQI1R3YQ+n9YJz2QQ147P66ELpa1FQEg20Dk8oW9t2KgLbpDLLp9aGZ7y8WHSshDknG0bknqGw5/tyCs5tw==}
@@ -7094,12 +7097,12 @@ snapshots:
       '@types/better-sqlite3': 7.6.13
       '@types/prompts': 2.4.9
       better-auth: 1.3.29(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(solid-js@1.9.9)
-      better-sqlite3: 12.4.1
+      better-sqlite3: 12.5.0
       c12: 3.3.1
       chalk: 5.6.2
       commander: 12.1.0
       dotenv: 17.2.3
-      drizzle-orm: 0.33.0(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(@types/react@19.1.0)(better-sqlite3@12.4.1)(kysely@0.28.8)(prisma@5.22.0)(react@19.1.0)
+      drizzle-orm: 0.33.0(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(@types/react@19.1.0)(better-sqlite3@12.5.0)(kysely@0.28.8)(prisma@5.22.0)(react@19.1.0)
       get-tsconfig: 4.12.0
       jiti: 2.6.1
       open: 10.2.0
@@ -7235,7 +7238,7 @@ snapshots:
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
 
-  ? '@daveyplate/better-auth-ui@3.2.6(@daveyplate/better-auth-tanstack@1.3.6(@tanstack/query-core@5.90.5)(@tanstack/react-query@5.90.5(react@19.1.0))(better-auth@1.3.29(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@hookform/resolvers@5.2.2(react-hook-form@7.65.0(react@19.1.0)))(@instantdb/react@0.22.33(react@19.1.0))(@marsidev/react-turnstile@1.3.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-avatar@1.1.10(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-checkbox@1.3.3(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-context@1.1.2(@types/react@19.1.0)(react@19.1.0))(@radix-ui/react-dialog@1.1.15(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-dropdown-menu@2.1.16(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-label@2.1.7(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-primitive@2.1.3(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-select@2.2.6(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-separator@1.1.7(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-slot@1.2.3(@types/react@19.1.0)(react@19.1.0))(@radix-ui/react-tabs@1.1.13(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-use-callback-ref@1.1.1(@types/react@19.1.0)(react@19.1.0))(@radix-ui/react-use-layout-effect@1.1.1(@types/react@19.1.0)(react@19.1.0))(@tanstack/react-query@5.90.5(react@19.1.0))(@triplit/client@1.0.50(better-sqlite3@11.10.0)(typescript@5.9.2))(@triplit/react@1.0.51(better-sqlite3@11.10.0)(react@19.1.0)(typescript@5.9.2))(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(better-auth@1.3.29(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(class-variance-authority@0.7.1)(clsx@2.1.1)(input-otp@1.4.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(lucide-react@0.544.0(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react-hook-form@7.65.0(react@19.1.0))(react@19.1.0)(sonner@2.0.7(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(tailwind-merge@3.3.1)(tailwindcss@4.1.15)(zod@4.1.12)'
+  ? '@daveyplate/better-auth-ui@3.2.6(@daveyplate/better-auth-tanstack@1.3.6(@tanstack/query-core@5.90.5)(@tanstack/react-query@5.90.5(react@19.1.0))(better-auth@1.3.29(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@hookform/resolvers@5.2.2(react-hook-form@7.65.0(react@19.1.0)))(@instantdb/react@0.22.33(react@19.1.0))(@marsidev/react-turnstile@1.3.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-avatar@1.1.10(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-checkbox@1.3.3(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-context@1.1.2(@types/react@19.1.0)(react@19.1.0))(@radix-ui/react-dialog@1.1.15(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-dropdown-menu@2.1.16(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-label@2.1.7(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-primitive@2.1.3(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-select@2.2.6(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-separator@1.1.7(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-slot@1.2.3(@types/react@19.1.0)(react@19.1.0))(@radix-ui/react-tabs@1.1.13(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@radix-ui/react-use-callback-ref@1.1.1(@types/react@19.1.0)(react@19.1.0))(@radix-ui/react-use-layout-effect@1.1.1(@types/react@19.1.0)(react@19.1.0))(@tanstack/react-query@5.90.5(react@19.1.0))(@triplit/client@1.0.50(better-sqlite3@12.5.0)(typescript@5.9.2))(@triplit/react@1.0.51(better-sqlite3@12.5.0)(react@19.1.0)(typescript@5.9.2))(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(better-auth@1.3.29(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(class-variance-authority@0.7.1)(clsx@2.1.1)(input-otp@1.4.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(lucide-react@0.544.0(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react-hook-form@7.65.0(react@19.1.0))(react@19.1.0)(sonner@2.0.7(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(tailwind-merge@3.3.1)(tailwindcss@4.1.15)(zod@4.1.12)'
   : dependencies:
       '@better-fetch/fetch': 1.1.18
       '@daveyplate/better-auth-tanstack': 1.3.6(@tanstack/query-core@5.90.5)(@tanstack/react-query@5.90.5(react@19.1.0))(better-auth@1.3.29(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -7259,8 +7262,8 @@ snapshots:
       '@radix-ui/react-use-layout-effect': 1.1.1(@types/react@19.1.0)(react@19.1.0)
       '@react-email/components': 0.5.7(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@tanstack/react-query': 5.90.5(react@19.1.0)
-      '@triplit/client': 1.0.50(better-sqlite3@11.10.0)(typescript@5.9.2)
-      '@triplit/react': 1.0.51(better-sqlite3@11.10.0)(react@19.1.0)(typescript@5.9.2)
+      '@triplit/client': 1.0.50(better-sqlite3@12.5.0)(typescript@5.9.2)
+      '@triplit/react': 1.0.51(better-sqlite3@12.5.0)(react@19.1.0)(typescript@5.9.2)
       '@wojtekmaj/react-recaptcha-v3': 0.1.4(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       better-auth: 1.3.29(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(solid-js@1.9.9)
       class-variance-authority: 0.7.1
@@ -9014,9 +9017,9 @@ snapshots:
 
   '@tootallnate/quickjs-emscripten@0.23.0': {}
 
-  '@triplit/client@1.0.50(better-sqlite3@11.10.0)(typescript@5.9.2)':
+  '@triplit/client@1.0.50(better-sqlite3@12.5.0)(typescript@5.9.2)':
     dependencies:
-      '@triplit/db': 1.1.10(better-sqlite3@11.10.0)(typescript@5.9.2)
+      '@triplit/db': 1.1.10(better-sqlite3@12.5.0)(typescript@5.9.2)
       '@triplit/logger': 0.0.3(typescript@5.9.2)
       comlink: 4.4.2
       superjson: 2.2.2
@@ -9027,7 +9030,7 @@ snapshots:
       - typescript
       - uuidv7
 
-  '@triplit/db@1.1.10(better-sqlite3@11.10.0)(typescript@5.9.2)':
+  '@triplit/db@1.1.10(better-sqlite3@12.5.0)(typescript@5.9.2)':
     dependencies:
       '@triplit/logger': 0.0.3(typescript@5.9.2)
       core-js: 3.46.0
@@ -9036,7 +9039,7 @@ snapshots:
       sorted-btree: 1.8.1
       web-worker: 1.5.0
     optionalDependencies:
-      better-sqlite3: 11.10.0
+      better-sqlite3: 12.5.0
     transitivePeerDependencies:
       - typescript
 
@@ -9044,9 +9047,9 @@ snapshots:
     dependencies:
       typescript: 5.9.2
 
-  '@triplit/react@1.0.51(better-sqlite3@11.10.0)(react@19.1.0)(typescript@5.9.2)':
+  '@triplit/react@1.0.51(better-sqlite3@12.5.0)(react@19.1.0)(typescript@5.9.2)':
     dependencies:
-      '@triplit/client': 1.0.50(better-sqlite3@11.10.0)(typescript@5.9.2)
+      '@triplit/client': 1.0.50(better-sqlite3@12.5.0)(typescript@5.9.2)
       react: 19.1.0
     transitivePeerDependencies:
       - better-sqlite3
@@ -9793,12 +9796,7 @@ snapshots:
       set-cookie-parser: 2.7.1
       uncrypto: 0.1.3
 
-  better-sqlite3@11.10.0:
-    dependencies:
-      bindings: 1.5.0
-      prebuild-install: 7.1.3
-
-  better-sqlite3@12.4.1:
+  better-sqlite3@12.5.0:
     dependencies:
       bindings: 1.5.0
       prebuild-install: 7.1.3
@@ -10143,10 +10141,10 @@ snapshots:
       es-errors: 1.3.0
       is-data-view: 1.0.2
 
-  db0@0.3.4(better-sqlite3@11.10.0)(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@11.10.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0)):
+  db0@0.3.4(better-sqlite3@12.5.0)(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@12.5.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0)):
     optionalDependencies:
-      better-sqlite3: 11.10.0
-      drizzle-orm: 0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@11.10.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0)
+      better-sqlite3: 12.5.0
+      drizzle-orm: 0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@12.5.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0)
 
   debug@3.2.7:
     dependencies:
@@ -10279,30 +10277,30 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.33.0(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(@types/react@19.1.0)(better-sqlite3@12.4.1)(kysely@0.28.8)(prisma@5.22.0)(react@19.1.0):
+  drizzle-orm@0.33.0(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(@types/react@19.1.0)(better-sqlite3@12.5.0)(kysely@0.28.8)(prisma@5.22.0)(react@19.1.0):
     optionalDependencies:
       '@cloudflare/workers-types': 4.20251014.0
       '@prisma/client': 5.22.0(prisma@5.22.0)
       '@types/better-sqlite3': 7.6.13
       '@types/react': 19.1.0
-      better-sqlite3: 12.4.1
+      better-sqlite3: 12.5.0
       kysely: 0.28.8
       prisma: 5.22.0
       react: 19.1.0
 
-  drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@11.10.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0):
+  drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@12.5.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0):
     optionalDependencies:
       '@cloudflare/workers-types': 4.20251014.0
       '@prisma/client': 5.22.0(prisma@5.22.0)
       '@types/better-sqlite3': 7.6.13
-      better-sqlite3: 11.10.0
+      better-sqlite3: 12.5.0
       gel: 2.1.1
       kysely: 0.28.8
       prisma: 5.22.0
 
-  drizzle-zod@0.8.3(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@11.10.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0))(zod@3.25.76):
+  drizzle-zod@0.8.3(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@12.5.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0))(zod@3.25.76):
     dependencies:
-      drizzle-orm: 0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@11.10.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0)
+      drizzle-orm: 0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@12.5.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0)
       zod: 3.25.76
 
   dunder-proto@1.0.1:
@@ -11865,12 +11863,12 @@ snapshots:
 
   nf3@0.1.12: {}
 
-  nitro@3.0.0(better-sqlite3@11.10.0)(chokidar@4.0.3)(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@11.10.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0))(lru-cache@11.2.2)(vite@7.1.11(@types/node@22.15.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1)):
+  nitro@3.0.0(better-sqlite3@12.5.0)(chokidar@4.0.3)(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@12.5.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0))(lru-cache@11.2.2)(vite@7.1.11(@types/node@22.15.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1)):
     dependencies:
       consola: 3.4.2
       cookie-es: 2.0.0
       crossws: 0.4.1(srvx@0.8.16)
-      db0: 0.3.4(better-sqlite3@11.10.0)(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@11.10.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0))
+      db0: 0.3.4(better-sqlite3@12.5.0)(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@12.5.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0))
       esbuild: 0.25.11
       fetchdts: 0.1.7
       h3: 2.0.1-rc.2(crossws@0.4.1(srvx@0.8.16))
@@ -11883,7 +11881,7 @@ snapshots:
       srvx: 0.8.16
       undici: 7.16.0
       unenv: 2.0.0-rc.21
-      unstorage: 2.0.0-alpha.3(chokidar@4.0.3)(db0@0.3.4(better-sqlite3@11.10.0)(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@11.10.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0)))(lru-cache@11.2.2)(ofetch@1.5.1)
+      unstorage: 2.0.0-alpha.3(chokidar@4.0.3)(db0@0.3.4(better-sqlite3@12.5.0)(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@12.5.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0)))(lru-cache@11.2.2)(ofetch@1.5.1)
     optionalDependencies:
       vite: 7.1.11(@types/node@22.15.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1)
     transitivePeerDependencies:
@@ -13229,10 +13227,10 @@ snapshots:
       '@unrs/resolver-binding-win32-ia32-msvc': 1.11.1
       '@unrs/resolver-binding-win32-x64-msvc': 1.11.1
 
-  unstorage@2.0.0-alpha.3(chokidar@4.0.3)(db0@0.3.4(better-sqlite3@11.10.0)(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@11.10.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0)))(lru-cache@11.2.2)(ofetch@1.5.1):
+  unstorage@2.0.0-alpha.3(chokidar@4.0.3)(db0@0.3.4(better-sqlite3@12.5.0)(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@12.5.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0)))(lru-cache@11.2.2)(ofetch@1.5.1):
     optionalDependencies:
       chokidar: 4.0.3
-      db0: 0.3.4(better-sqlite3@11.10.0)(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@11.10.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0))
+      db0: 0.3.4(better-sqlite3@12.5.0)(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@12.5.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0))
       lru-cache: 11.2.2
       ofetch: 1.5.1
 

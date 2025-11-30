@@ -22,6 +22,8 @@
   "dependencies": {
     "@daveyplate/better-auth-tanstack": "^1.3.6",
     "@daveyplate/better-auth-ui": "^3.2.6",
-    "better-auth": "^1.3.29"
+    "better-auth": "^1.3.29",
+    "better-sqlite3": "^12.5.0",
+    "drizzle-orm": "^0.44.6"
   }
 }
