@@ -6,7 +6,8 @@ import {
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 
-import Header from '../components/Header'
+import { ThemeProvider } from '../components/theme-provider'
+import { BottomNav } from '../components/layout/BottomNav'
 
 import TanStackQueryDevtools from '../integrations/tanstack-query-devtools'
 
@@ -31,13 +32,22 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
       {
         name: 'viewport',
-        content: 'width=device-width, initial-scale=1',
+        content:
+          'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0',
       },
       {
-        title: 'TanStack Start Starter',
+        title: 'Tally',
+      },
+      {
+        name: 'theme-color',
+        content: '#09090b',
       },
     ],
     links: [
+      {
+        rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Red+Hat+Mono:wght@300;400;500;700&display=swap',
+      },
       {
         rel: 'stylesheet',
         href: appCss,
@@ -54,22 +64,32 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body>
-        <Header />
-        {children}
-        <TanStackDevtools
-          config={{
-            position: 'bottom-right',
-          }}
-          plugins={[
-            {
-              name: 'Tanstack Router',
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-            TanStackQueryDevtools,
-          ]}
-        />
-        <Scripts />
+      <body
+        className="bg-background text-foreground font-sans antialiased min-h-screen selection:bg-primary selection:text-primary-foreground pb-24"
+        style={{ fontFamily: '"Red Hat Mono", monospace' }}
+      >
+        <ThemeProvider defaultTheme="system" storageKey="tally-theme">
+          <style>{`
+            h1, h2, h3, h4, h5, h6, .font-heading {
+              font-family: 'Oswald', sans-serif;
+            }
+          `}</style>
+          {children}
+          <BottomNav />
+          <TanStackDevtools
+            config={{
+              position: 'bottom-right',
+            }}
+            plugins={[
+              {
+                name: 'Tanstack Router',
+                render: <TanStackRouterDevtoolsPanel />,
+              },
+              TanStackQueryDevtools,
+            ]}
+          />
+          <Scripts />
+        </ThemeProvider>
       </body>
     </html>
   )

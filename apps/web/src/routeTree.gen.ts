@@ -9,6 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as AnalysisRouteImport } from './routes/analysis'
+import { Route as AddRouteImport } from './routes/add'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthAuthViewRouteImport } from './routes/auth/$authView'
@@ -17,6 +20,21 @@ import { Route as AuthenticatedTrpcTodoRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedMediaGalleryRouteImport } from './routes/_authenticated/media-gallery'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalysisRoute = AnalysisRouteImport.update({
+  id: '/analysis',
+  path: '/analysis',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AddRoute = AddRouteImport.update({
+  id: '/add',
+  path: '/add',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -55,6 +73,9 @@ const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/add': typeof AddRoute
+  '/analysis': typeof AnalysisRoute
+  '/settings': typeof SettingsRoute
   '/account': typeof AuthenticatedAccountRoute
   '/media-gallery': typeof AuthenticatedMediaGalleryRoute
   '/trpc-todo': typeof AuthenticatedTrpcTodoRoute
@@ -63,6 +84,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/add': typeof AddRoute
+  '/analysis': typeof AnalysisRoute
+  '/settings': typeof SettingsRoute
   '/account': typeof AuthenticatedAccountRoute
   '/media-gallery': typeof AuthenticatedMediaGalleryRoute
   '/trpc-todo': typeof AuthenticatedTrpcTodoRoute
@@ -73,6 +97,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/add': typeof AddRoute
+  '/analysis': typeof AnalysisRoute
+  '/settings': typeof SettingsRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/media-gallery': typeof AuthenticatedMediaGalleryRoute
   '/_authenticated/trpc-todo': typeof AuthenticatedTrpcTodoRoute
@@ -83,6 +110,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/add'
+    | '/analysis'
+    | '/settings'
     | '/account'
     | '/media-gallery'
     | '/trpc-todo'
@@ -91,6 +121,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/add'
+    | '/analysis'
+    | '/settings'
     | '/account'
     | '/media-gallery'
     | '/trpc-todo'
@@ -100,6 +133,9 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/add'
+    | '/analysis'
+    | '/settings'
     | '/_authenticated/account'
     | '/_authenticated/media-gallery'
     | '/_authenticated/trpc-todo'
@@ -110,12 +146,36 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AddRoute: typeof AddRoute
+  AnalysisRoute: typeof AnalysisRoute
+  SettingsRoute: typeof SettingsRoute
   AccountAccountViewRoute: typeof AccountAccountViewRoute
   AuthAuthViewRoute: typeof AuthAuthViewRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analysis': {
+      id: '/analysis'
+      path: '/analysis'
+      fullPath: '/analysis'
+      preLoaderRoute: typeof AnalysisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/add': {
+      id: '/add'
+      path: '/add'
+      fullPath: '/add'
+      preLoaderRoute: typeof AddRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -187,6 +247,9 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AddRoute: AddRoute,
+  AnalysisRoute: AnalysisRoute,
+  SettingsRoute: SettingsRoute,
   AccountAccountViewRoute: AccountAccountViewRoute,
   AuthAuthViewRoute: AuthAuthViewRoute,
 }
