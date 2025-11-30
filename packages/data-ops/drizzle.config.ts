@@ -1,16 +1,18 @@
 import { defineConfig } from "drizzle-kit";
 import * as dotenv from "dotenv";
+import { resolve } from "path";
+
 dotenv.config();
+
+// Default path to the local SQLite database
+const dbPath = process.env.DATABASE_PATH || resolve(process.cwd(), "../../apps/web/data/app.db");
 
 export default defineConfig({
   schema: "./src/db/schema.ts",
   out: "./src/db/migrations",
   dialect: "sqlite",
-  driver: "d1-http",
   dbCredentials: {
-    accountId: process.env.CLOUDFLARE_ACCOUNT_ID!,
-    databaseId: process.env.STAGING_CLOUDFLARE_D1_DB!,
-    token: process.env.CLOUDFLARE_D1_TOKEN!,
+    url: `file:${dbPath}`,
   },
   verbose: true,
   strict: true,

@@ -59,11 +59,17 @@ function extractErrorMessage(error: any): string {
   return messageParts.join(" | ");
 }
 
-export const withDbTryPromise = <T>(promise: Promise<T>) => {
-  return Effect.tryPromise(() => promise).pipe(
+/**
+ * Wraps a database operation (synchronous or async) in an Effect.
+ * better-sqlite3 returns synchronous results, so we handle both cases.
+ */
+export const withDbTryPromise = <T>(result: T | Promise<T>) => {
+  return Effect.try(() => {
+    // For better-sqlite3, the result is already resolved (synchronous)
+    return result as T;
+  }).pipe(
     Effect.catchAll((error: any) => {
       const detailedMessage = extractErrorMessage(error);
-      // console.error("Database operation failed:", detailedMessage);
       return Effect.fail(new DbError({ message: detailedMessage }));
     })
   );

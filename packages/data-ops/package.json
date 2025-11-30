@@ -43,10 +43,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "db:generate": "drizzle-kit generate",
-    "db:migrate:local": "wrangler d1 migrations apply tally --local --persist-to ../../apps/web/.wrangler/state",
-    "db:migrate:production": "wrangler d1 migrations apply tally --remote",
-    "db:local:drop": "drizzle-kit drop",
-    "db:studio:local": "drizzle-kit studio --config=drizzle.local.config.ts"
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:reset": "rm -rf ../../apps/web/data && mkdir -p ../../apps/web/data && drizzle-kit push"
   },
   "dependencies": {
     "@better-auth/cli": "^1.3.29",
@@ -61,20 +61,18 @@
     "zod": "^3.25.32"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250517.0",
     "@effect/language-service": "^0.23.1",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
+    "@types/better-sqlite3": "^7.6.11",
     "@types/node": "^20.19.23",
     "@types/uuid": "^10.0.0",
     "dotenv": "^16.5.0",
     "drizzle-kit": "^0.31.5",
     "typescript": "^5.8.3",
-    "vitest": "^2.1.8",
-    "wrangler": "^4.32.0"
+    "vitest": "^2.1.8"
   },
   "peerDependencies": {
-    "@cloudflare/workers-types": "*",
     "drizzle-orm": "*"
   }
 }

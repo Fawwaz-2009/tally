@@ -1,11 +1,12 @@
 // Server-side tRPC client - uses localLink to call router directly
-// This file should only be imported in server contexts (worker/server.ts)
+// This file should only be imported in server contexts (server/server.ts)
 import superjson from 'superjson'
 import { createTRPCClient, unstable_localLink } from '@trpc/client'
 
-import type { TRPCRouter } from '@worker/trpc/router'
-import { trpcRouter } from '@worker/trpc/router'
+import type { TRPCRouter } from '@server/trpc/router'
+import { trpcRouter } from '@server/trpc/router'
 import { getFullEnv } from '@repo/data-ops/layers'
+import type { NodeEnv } from '@server/hono'
 
 export function createServerTRPCClient() {
   return createTRPCClient<TRPCRouter>({
@@ -15,7 +16,7 @@ export function createServerTRPCClient() {
         transformer: superjson,
         createContext: async () => {
           // Get the env from the global store (set in server.ts at request start)
-          const env = getFullEnv<Env>()
+          const env = getFullEnv<NodeEnv>()
           return { env, session: null }
         },
       }),

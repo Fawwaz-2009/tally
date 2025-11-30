@@ -2,11 +2,11 @@ import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 import { authClient } from '@/lib/auth-client'
 import { createIsomorphicFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
+import { env } from '@/env'
 
 const getSession = createIsomorphicFn()
   .server(async () => {
     // Dynamic imports to ensure server-only code doesn't leak to client bundle
-    const { env } = await import('cloudflare:workers')
     const { getAuth } = await import('@repo/data-ops/lib')
 
     const request = getRequest()
@@ -18,7 +18,7 @@ const getSession = createIsomorphicFn()
   .client(async () => authClient.getSession())
 
 export const Route = createFileRoute('/_authenticated')({
-  beforeLoad: async ({}) => {
+  beforeLoad: async () => {
     const session = await getSession()
     if (!session.data) {
       throw redirect({ to: '/auth/$authView', params: { authView: 'sign-in' } })

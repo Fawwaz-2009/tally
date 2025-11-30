@@ -10,12 +10,11 @@ import {
 import { createTRPCOptionsProxy } from '@trpc/tanstack-react-query'
 import { AuthQueryProvider } from '@daveyplate/better-auth-tanstack'
 import { AuthUIProviderTanstack } from '@daveyplate/better-auth-ui/tanstack'
-import { useRouter } from '@tanstack/react-router'
 import { Link } from '@tanstack/react-router'
 
 import { TRPCProvider } from '@/integrations/trpc-react'
 import { authClient } from '@/lib/auth-client'
-import type { TRPCRouter } from '@worker/trpc/router'
+import type { TRPCRouter } from '@server/trpc/router'
 
 // Client-side tRPC client - uses HTTP links
 function createHttpTRPCClient() {

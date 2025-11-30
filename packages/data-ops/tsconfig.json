@@ -15,7 +15,7 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "types": ["@cloudflare/workers-types", "node"],
+    "types": ["node"],
     "plugins": [
       // ... other LSPs (if any) and as last
       {

@@ -3,7 +3,11 @@ import { z } from 'zod'
 
 export const env = createEnv({
   server: {
-    SERVER_URL: z.url().optional(),
+    BETTER_AUTH_SECRET: z.string().min(1),
+    DATABASE_PATH: z.string().optional(),
+    BUCKET_STORAGE_PATH: z.string().optional(),
+    BASE_FRONTEND_URL: z.string().url().optional(),
+    NODE_ENV: z.enum(['development', 'production', 'test']).optional(),
   },
 
   /**
@@ -14,14 +18,24 @@ export const env = createEnv({
 
   client: {
     VITE_APP_TITLE: z.string().min(1).optional(),
-    VITE_BASE_FRONTEND_URL: z.url().optional(),
+    VITE_BASE_FRONTEND_URL: z.string().url().optional(),
   },
 
   /**
-   * What object holds the environment variables at runtime. This is usually
-   * `process.env` or `import.meta.env`.
+   * What object holds the environment variables at runtime.
+   * Server variables use process.env, client variables use import.meta.env
    */
-  runtimeEnv: import.meta.env,
+  runtimeEnv: {
+    // Server variables (from process.env)
+    BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
+    DATABASE_PATH: process.env.DATABASE_PATH,
+    BUCKET_STORAGE_PATH: process.env.BUCKET_STORAGE_PATH,
+    BASE_FRONTEND_URL: process.env.BASE_FRONTEND_URL,
+    NODE_ENV: process.env.NODE_ENV,
+    // Client variables (from import.meta.env)
+    VITE_APP_TITLE: import.meta.env.VITE_APP_TITLE,
+    VITE_BASE_FRONTEND_URL: import.meta.env.VITE_BASE_FRONTEND_URL,
+  },
 
   /**
    * By default, this library will feed the environment variables directly to
@@ -37,4 +51,9 @@ export const env = createEnv({
    * explicitly specify this option as true.
    */
   emptyStringAsUndefined: true,
+
+  /**
+   * Skip validation in client-side code where server env vars aren't available
+   */
+  skipValidation: typeof window !== 'undefined',
 })
