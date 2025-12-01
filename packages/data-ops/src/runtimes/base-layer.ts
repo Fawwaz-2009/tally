@@ -1,6 +1,13 @@
 import { Layer } from "effect";
-import { BucketClient, DbClient, KvClient, RuntimeEnvs } from "../layers";
-import { TodoRepo, TodoService, MediaGalleryRepo, MediaGalleryService } from "../domain";
+import { BucketClient, DbClient, RuntimeEnvs } from "../layers";
+import {
+  UserRepo,
+  UserService,
+  SettingsRepo,
+  SettingsService,
+  ExpenseRepo,
+  ExpenseService,
+} from "../domain";
 
 /**
  * Base layer containing all core services for the application.
@@ -8,11 +15,12 @@ import { TodoRepo, TodoService, MediaGalleryRepo, MediaGalleryService } from "..
  */
 export const BaseLayer = Layer.mergeAll(
   BucketClient.Default,
-  // KvClient.Default,
   DbClient.Default,
   RuntimeEnvs.Default,
-  TodoRepo.Default,
-  TodoService.Default,
-  MediaGalleryRepo.Default,
-  MediaGalleryService.Default
+  UserRepo.Default,
+  UserService.Default,
+  SettingsRepo.Default,
+  SettingsService.Default,
+  ExpenseRepo.Default,
+  ExpenseService.Default
 );

@@ -18,8 +18,6 @@ import { Route as AccountAccountViewRouteImport } from './routes/account/$accoun
 import { Route as MainSettingsRouteImport } from './routes/_main/settings'
 import { Route as MainAnalysisRouteImport } from './routes/_main/analysis'
 import { Route as MainAddRouteImport } from './routes/_main/add'
-import { Route as AuthenticatedTrpcTodoRouteImport } from './routes/_authenticated/trpc-todo'
-import { Route as AuthenticatedMediaGalleryRouteImport } from './routes/_authenticated/media-gallery'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -65,17 +63,6 @@ const MainAddRoute = MainAddRouteImport.update({
   path: '/add',
   getParentRoute: () => MainRouteRoute,
 } as any)
-const AuthenticatedTrpcTodoRoute = AuthenticatedTrpcTodoRouteImport.update({
-  id: '/trpc-todo',
-  path: '/trpc-todo',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedMediaGalleryRoute =
-  AuthenticatedMediaGalleryRouteImport.update({
-    id: '/media-gallery',
-    path: '/media-gallery',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
   id: '/account',
   path: '/account',
@@ -84,8 +71,6 @@ const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/account': typeof AuthenticatedAccountRoute
-  '/media-gallery': typeof AuthenticatedMediaGalleryRoute
-  '/trpc-todo': typeof AuthenticatedTrpcTodoRoute
   '/add': typeof MainAddRoute
   '/analysis': typeof MainAnalysisRoute
   '/settings': typeof MainSettingsRoute
@@ -96,8 +81,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/account': typeof AuthenticatedAccountRoute
-  '/media-gallery': typeof AuthenticatedMediaGalleryRoute
-  '/trpc-todo': typeof AuthenticatedTrpcTodoRoute
   '/add': typeof MainAddRoute
   '/analysis': typeof MainAnalysisRoute
   '/settings': typeof MainSettingsRoute
@@ -111,8 +94,6 @@ export interface FileRoutesById {
   '/_main': typeof MainRouteRouteWithChildren
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/_authenticated/account': typeof AuthenticatedAccountRoute
-  '/_authenticated/media-gallery': typeof AuthenticatedMediaGalleryRoute
-  '/_authenticated/trpc-todo': typeof AuthenticatedTrpcTodoRoute
   '/_main/add': typeof MainAddRoute
   '/_main/analysis': typeof MainAnalysisRoute
   '/_main/settings': typeof MainSettingsRoute
@@ -125,8 +106,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/account'
-    | '/media-gallery'
-    | '/trpc-todo'
     | '/add'
     | '/analysis'
     | '/settings'
@@ -137,8 +116,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/account'
-    | '/media-gallery'
-    | '/trpc-todo'
     | '/add'
     | '/analysis'
     | '/settings'
@@ -151,8 +128,6 @@ export interface FileRouteTypes {
     | '/_main'
     | '/_authenticated'
     | '/_authenticated/account'
-    | '/_authenticated/media-gallery'
-    | '/_authenticated/trpc-todo'
     | '/_main/add'
     | '/_main/analysis'
     | '/_main/settings'
@@ -235,20 +210,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainAddRouteImport
       parentRoute: typeof MainRouteRoute
     }
-    '/_authenticated/trpc-todo': {
-      id: '/_authenticated/trpc-todo'
-      path: '/trpc-todo'
-      fullPath: '/trpc-todo'
-      preLoaderRoute: typeof AuthenticatedTrpcTodoRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/media-gallery': {
-      id: '/_authenticated/media-gallery'
-      path: '/media-gallery'
-      fullPath: '/media-gallery'
-      preLoaderRoute: typeof AuthenticatedMediaGalleryRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/account': {
       id: '/_authenticated/account'
       path: '/account'
@@ -279,14 +240,10 @@ const MainRouteRouteWithChildren = MainRouteRoute._addFileChildren(
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
-  AuthenticatedMediaGalleryRoute: typeof AuthenticatedMediaGalleryRoute
-  AuthenticatedTrpcTodoRoute: typeof AuthenticatedTrpcTodoRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
-  AuthenticatedMediaGalleryRoute: AuthenticatedMediaGalleryRoute,
-  AuthenticatedTrpcTodoRoute: AuthenticatedTrpcTodoRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
