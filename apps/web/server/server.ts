@@ -12,13 +12,7 @@ import { initTRPCClient } from '@/integrations/root-provider'
 
 import type { NodeEnv } from './hono'
 
-// Initialize environment
-if (!process.env.BETTER_AUTH_SECRET) {
-  throw new Error('BETTER_AUTH_SECRET environment variable is required')
-}
-
 const env: NodeEnv = {
-  BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
   DATABASE_PATH: process.env.DATABASE_PATH || './data/app.db',
   BUCKET_STORAGE_PATH: process.env.BUCKET_STORAGE_PATH || './data/uploads',
   BASE_FRONTEND_URL: process.env.BASE_FRONTEND_URL || 'http://localhost:3000',

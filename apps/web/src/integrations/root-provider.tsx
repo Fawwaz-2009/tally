@@ -8,12 +8,8 @@ import {
   splitLink,
 } from '@trpc/client'
 import { createTRPCOptionsProxy } from '@trpc/tanstack-react-query'
-import { AuthQueryProvider } from '@daveyplate/better-auth-tanstack'
-import { AuthUIProviderTanstack } from '@daveyplate/better-auth-ui/tanstack'
-import { Link } from '@tanstack/react-router'
 
 import { TRPCProvider } from '@/integrations/trpc-react'
-import { authClient } from '@/lib/auth-client'
 import type { TRPCRouter } from '@server/trpc/router'
 
 // Client-side tRPC client - uses HTTP links
@@ -75,33 +71,6 @@ export function getContext() {
   }
 }
 
-const LinkAdapter = ({
-  href,
-  ...props
-}: {
-  href: string
-  className?: string
-  children: React.ReactNode
-}) => <Link to={href as any} {...props} />
-
-function ProviderContent({
-  children,
-  queryClient,
-}: {
-  children: React.ReactNode
-  queryClient: QueryClient
-}) {
-  return (
-    <AuthQueryProvider>
-      <AuthUIProviderTanstack authClient={authClient} Link={LinkAdapter}>
-        <TRPCProvider trpcClient={getTRPCClient()} queryClient={queryClient}>
-          {children}
-        </TRPCProvider>
-      </AuthUIProviderTanstack>
-    </AuthQueryProvider>
-  )
-}
-
 export function Provider({
   children,
   queryClient,
@@ -109,5 +78,9 @@ export function Provider({
   children: React.ReactNode
   queryClient: QueryClient
 }) {
-  return <ProviderContent queryClient={queryClient}>{children}</ProviderContent>
+  return (
+    <TRPCProvider trpcClient={getTRPCClient()} queryClient={queryClient}>
+      {children}
+    </TRPCProvider>
+  )
 }

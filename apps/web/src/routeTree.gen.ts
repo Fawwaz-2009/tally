@@ -9,21 +9,13 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as MainRouteRouteImport } from './routes/_main/route'
 import { Route as SetupIndexRouteImport } from './routes/setup/index'
 import { Route as MainIndexRouteImport } from './routes/_main/index'
-import { Route as AuthAuthViewRouteImport } from './routes/auth/$authView'
-import { Route as AccountAccountViewRouteImport } from './routes/account/$accountView'
 import { Route as MainSettingsRouteImport } from './routes/_main/settings'
 import { Route as MainAnalysisRouteImport } from './routes/_main/analysis'
 import { Route as MainAddRouteImport } from './routes/_main/add'
-import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: '/_authenticated',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const MainRouteRoute = MainRouteRouteImport.update({
   id: '/_main',
   getParentRoute: () => rootRouteImport,
@@ -37,16 +29,6 @@ const MainIndexRoute = MainIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => MainRouteRoute,
-} as any)
-const AuthAuthViewRoute = AuthAuthViewRouteImport.update({
-  id: '/auth/$authView',
-  path: '/auth/$authView',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AccountAccountViewRoute = AccountAccountViewRouteImport.update({
-  id: '/account/$accountView',
-  path: '/account/$accountView',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const MainSettingsRoute = MainSettingsRouteImport.update({
   id: '/settings',
@@ -63,97 +45,52 @@ const MainAddRoute = MainAddRouteImport.update({
   path: '/add',
   getParentRoute: () => MainRouteRoute,
 } as any)
-const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
-  id: '/account',
-  path: '/account',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
-  '/account': typeof AuthenticatedAccountRoute
   '/add': typeof MainAddRoute
   '/analysis': typeof MainAnalysisRoute
   '/settings': typeof MainSettingsRoute
-  '/account/$accountView': typeof AccountAccountViewRoute
-  '/auth/$authView': typeof AuthAuthViewRoute
   '/': typeof MainIndexRoute
   '/setup': typeof SetupIndexRoute
 }
 export interface FileRoutesByTo {
-  '/account': typeof AuthenticatedAccountRoute
   '/add': typeof MainAddRoute
   '/analysis': typeof MainAnalysisRoute
   '/settings': typeof MainSettingsRoute
-  '/account/$accountView': typeof AccountAccountViewRoute
-  '/auth/$authView': typeof AuthAuthViewRoute
   '/': typeof MainIndexRoute
   '/setup': typeof SetupIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_main': typeof MainRouteRouteWithChildren
-  '/_authenticated': typeof AuthenticatedRouteWithChildren
-  '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_main/add': typeof MainAddRoute
   '/_main/analysis': typeof MainAnalysisRoute
   '/_main/settings': typeof MainSettingsRoute
-  '/account/$accountView': typeof AccountAccountViewRoute
-  '/auth/$authView': typeof AuthAuthViewRoute
   '/_main/': typeof MainIndexRoute
   '/setup/': typeof SetupIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/account'
-    | '/add'
-    | '/analysis'
-    | '/settings'
-    | '/account/$accountView'
-    | '/auth/$authView'
-    | '/'
-    | '/setup'
+  fullPaths: '/add' | '/analysis' | '/settings' | '/' | '/setup'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/account'
-    | '/add'
-    | '/analysis'
-    | '/settings'
-    | '/account/$accountView'
-    | '/auth/$authView'
-    | '/'
-    | '/setup'
+  to: '/add' | '/analysis' | '/settings' | '/' | '/setup'
   id:
     | '__root__'
     | '/_main'
-    | '/_authenticated'
-    | '/_authenticated/account'
     | '/_main/add'
     | '/_main/analysis'
     | '/_main/settings'
-    | '/account/$accountView'
-    | '/auth/$authView'
     | '/_main/'
     | '/setup/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   MainRouteRoute: typeof MainRouteRouteWithChildren
-  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
-  AccountAccountViewRoute: typeof AccountAccountViewRoute
-  AuthAuthViewRoute: typeof AuthAuthViewRoute
   SetupIndexRoute: typeof SetupIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof AuthenticatedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_main': {
       id: '/_main'
       path: ''
@@ -174,20 +111,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof MainIndexRouteImport
       parentRoute: typeof MainRouteRoute
-    }
-    '/auth/$authView': {
-      id: '/auth/$authView'
-      path: '/auth/$authView'
-      fullPath: '/auth/$authView'
-      preLoaderRoute: typeof AuthAuthViewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/account/$accountView': {
-      id: '/account/$accountView'
-      path: '/account/$accountView'
-      fullPath: '/account/$accountView'
-      preLoaderRoute: typeof AccountAccountViewRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/_main/settings': {
       id: '/_main/settings'
@@ -210,13 +133,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainAddRouteImport
       parentRoute: typeof MainRouteRoute
     }
-    '/_authenticated/account': {
-      id: '/_authenticated/account'
-      path: '/account'
-      fullPath: '/account'
-      preLoaderRoute: typeof AuthenticatedAccountRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
   }
 }
 
@@ -238,23 +154,8 @@ const MainRouteRouteWithChildren = MainRouteRoute._addFileChildren(
   MainRouteRouteChildren,
 )
 
-interface AuthenticatedRouteChildren {
-  AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
-}
-
-const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedAccountRoute: AuthenticatedAccountRoute,
-}
-
-const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
-  AuthenticatedRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   MainRouteRoute: MainRouteRouteWithChildren,
-  AuthenticatedRoute: AuthenticatedRouteWithChildren,
-  AccountAccountViewRoute: AccountAccountViewRoute,
-  AuthAuthViewRoute: AuthAuthViewRoute,
   SetupIndexRoute: SetupIndexRoute,
 }
 export const routeTree = rootRouteImport

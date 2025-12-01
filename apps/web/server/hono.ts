@@ -1,7 +1,6 @@
 import { Hono } from 'hono'
 import handler from '@tanstack/react-start/server-entry'
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch'
-import { getAuth } from '@repo/data-ops/lib'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 
@@ -9,7 +8,6 @@ import { trpcRouter } from './trpc/router/index'
 
 // Environment type for Node.js
 export interface NodeEnv {
-  BETTER_AUTH_SECRET: string
   DATABASE_PATH: string
   BUCKET_STORAGE_PATH: string
   BASE_FRONTEND_URL: string
@@ -18,11 +16,7 @@ export interface NodeEnv {
 
 // Get environment from process.env
 function getEnv(): NodeEnv {
-  if (!process.env.BETTER_AUTH_SECRET) {
-    throw new Error('BETTER_AUTH_SECRET environment variable is required')
-  }
   return {
-    BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     DATABASE_PATH: process.env.DATABASE_PATH || './data/app.db',
     BUCKET_STORAGE_PATH: process.env.BUCKET_STORAGE_PATH || './data/uploads',
     BASE_FRONTEND_URL: process.env.BASE_FRONTEND_URL || 'http://localhost:3000',
@@ -35,13 +29,6 @@ const app = new Hono()
 // Health check endpoint for Docker/Kubernetes
 app.get('/health', (c) => {
   return c.json({ status: 'ok', timestamp: new Date().toISOString() })
-})
-
-// Better Auth routes
-app.all('/api/auth/**', async (c) => {
-  const env = getEnv()
-  const auth = getAuth({ BETTER_AUTH_SECRET: env.BETTER_AUTH_SECRET })
-  return auth.handler(c.req.raw)
 })
 
 // File serving endpoint for local filesystem storage
@@ -84,27 +71,23 @@ app.get('/api/files/:key{.+}', async (c) => {
 
 app.all('/api/trpc', async (c) => {
   const env = getEnv()
-  const auth = getAuth({ BETTER_AUTH_SECRET: env.BETTER_AUTH_SECRET })
-  const session = await auth.api.getSession({ headers: c.req.raw.headers })
 
   return fetchRequestHandler({
     endpoint: '/api/trpc',
     req: c.req.raw,
     router: trpcRouter,
-    createContext: () => ({ env, session: session ?? null }),
+    createContext: () => ({ env }),
   })
 })
 
 app.all('/api/trpc/*', async (c) => {
   const env = getEnv()
-  const auth = getAuth({ BETTER_AUTH_SECRET: env.BETTER_AUTH_SECRET })
-  const session = await auth.api.getSession({ headers: c.req.raw.headers })
 
   return fetchRequestHandler({
     endpoint: '/api/trpc',
     req: c.req.raw,
     router: trpcRouter,
-    createContext: () => ({ env, session: session ?? null }),
+    createContext: () => ({ env }),
   })
 })
 

@@ -3,7 +3,6 @@ import { z } from 'zod'
 
 export const env = createEnv({
   server: {
-    BETTER_AUTH_SECRET: z.string().min(1),
     DATABASE_PATH: z.string().optional(),
     BUCKET_STORAGE_PATH: z.string().optional(),
     BASE_FRONTEND_URL: z.string().url().optional(),
@@ -27,7 +26,6 @@ export const env = createEnv({
    */
   runtimeEnv: {
     // Server variables (from process.env)
-    BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     DATABASE_PATH: process.env.DATABASE_PATH,
     BUCKET_STORAGE_PATH: process.env.BUCKET_STORAGE_PATH,
     BASE_FRONTEND_URL: process.env.BASE_FRONTEND_URL,

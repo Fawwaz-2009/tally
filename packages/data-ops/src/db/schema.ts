@@ -1,6 +1,5 @@
 import { relations } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
-export * from "./auth-schema";
 
 // Tally: Users table
 export const usersTable = sqliteTable("users", {

@@ -51,9 +51,7 @@ const config = defineConfig(({ mode }) => {
     ssr: {
       external: [...nodeBuiltins, 'better-sqlite3'],
     },
-    // Resolve alias for 'crypto' - required because better-auth (or its dependencies)
-    // imports 'crypto' without the 'node:' prefix. This is a workaround for a
-    // third-party dependency issue, not our code.
+    // Resolve alias for 'crypto' - react-dom imports 'crypto' without the 'node:' prefix
     resolve: {
       alias: {
         crypto: 'node:crypto',

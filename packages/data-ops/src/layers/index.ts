@@ -3,12 +3,11 @@ import { Effect } from "effect";
 import { drizzle as drizzleBetterSqlite, BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
 import * as appSchemas from "../db/schema";
-import * as authSchemas from "../db/auth-schema";
 import { BlobStorageError } from "../errors";
 import * as fs from "node:fs";
 import * as path from "node:path";
 
-const schema = { ...appSchemas, ...authSchemas };
+const schema = { ...appSchemas };
 type DrizzleDB = BetterSQLite3Database<typeof schema>;
 
 let db: DrizzleDB | undefined;

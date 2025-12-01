@@ -2,13 +2,10 @@ import { drizzle as drizzleBetterSqlite, BetterSQLite3Database } from "drizzle-o
 import Database from "better-sqlite3";
 
 import * as appSchemas from "./schema";
-import * as authSchemas from "./auth-schema";
 export * from "./schema";
-export * from "./auth-schema";
 
 export const schema = {
   ...appSchemas,
-  ...authSchemas,
 };
 
 // eslint-disable-next-line import/no-unused-modules

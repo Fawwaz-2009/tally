@@ -12,7 +12,6 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - HOST=0.0.0.0
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - DATABASE_PATH=/app/data/app.db
       - BUCKET_STORAGE_PATH=/app/data/uploads
       - BASE_FRONTEND_URL=${BASE_FRONTEND_URL}
