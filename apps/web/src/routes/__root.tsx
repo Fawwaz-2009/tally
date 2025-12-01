@@ -1,5 +1,6 @@
 import {
   HeadContent,
+  Outlet,
   Scripts,
   createRootRouteWithContext,
 } from '@tanstack/react-router'
@@ -7,7 +8,6 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 
 import { ThemeProvider } from '../components/theme-provider'
-import { BottomNav } from '../components/layout/BottomNav'
 
 import TanStackQueryDevtools from '../integrations/tanstack-query-devtools'
 
@@ -16,7 +16,7 @@ import appCss from '../styles.css?url'
 import type { QueryClient } from '@tanstack/react-query'
 
 import type { TRPCOptionsProxy } from '@trpc/tanstack-react-query'
-import { TRPCRouter } from '@worker/trpc/router'
+import type { TRPCRouter } from '@server/trpc/router'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -54,9 +54,13 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
     ],
   }),
-
+  component: RootComponent,
   shellComponent: RootDocument,
 })
+
+function RootComponent() {
+  return <Outlet />
+}
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
@@ -75,7 +79,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             }
           `}</style>
           {children}
-          <BottomNav />
           <TanStackDevtools
             config={{
               position: 'bottom-right',

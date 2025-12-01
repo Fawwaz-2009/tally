@@ -1,6 +1,16 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/')({ component: Dashboard })
+export const Route = createFileRoute('/_main/')({
+  component: Dashboard,
+  beforeLoad: async ({ context }) => {
+    const isSetupComplete = await context.queryClient.fetchQuery(
+      context.trpc.settings.isSetupComplete.queryOptions(),
+    )
+    if (!isSetupComplete) {
+      throw redirect({ to: '/setup' })
+    }
+  },
+})
 
 function Dashboard() {
   return (
