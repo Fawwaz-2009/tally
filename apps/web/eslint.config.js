@@ -6,10 +6,10 @@ export default [
   ...tanstackConfig,
   {
     rules: {
-        '@typescript-eslint/array-type': 'off',
+      '@typescript-eslint/array-type': 'off',
       'import/consistent-type-specifier-style': 'warn',
       'sort-imports': 'warn',
-      'import/order': 'warn'
+      'import/order': 'warn',
     },
   },
 ]
