@@ -22,6 +22,7 @@ export {
   ImagePreviewDialog,
   ImagePreviewThumbnail,
 } from './image-preview-dialog'
+export { ReceiptPreview } from './receipt-preview'
 export {
   StatusBadge,
   getStatusLabel,

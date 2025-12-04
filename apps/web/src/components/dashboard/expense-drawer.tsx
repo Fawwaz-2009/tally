@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
-import { Receipt, Pencil, Trash2, Loader2 } from 'lucide-react'
+import { Pencil, Trash2, Loader2 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { useTRPC } from '@/integrations/trpc-react'
@@ -25,6 +25,7 @@ import {
   getScreenshotUrl,
   ExpenseForm,
   AmountDisplay,
+  ReceiptPreview,
   type ExpenseFormData,
 } from '@/components/expense'
 
@@ -111,27 +112,10 @@ export function ExpenseDrawer({
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent className="bg-background border-border text-foreground max-h-[95vh] flex flex-col">
           <div className="mx-auto w-full max-w-sm flex-1 overflow-auto">
-            {/* Receipt Image Preview */}
-            {screenshotUrl ? (
-              <div className="relative h-48 w-full bg-muted overflow-hidden shrink-0">
-                <img
-                  src={screenshotUrl}
-                  alt="Receipt"
-                  className="w-full h-full object-cover opacity-70"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
-                <div className="absolute top-4 right-4 bg-background/50 backdrop-blur-md rounded-full px-3 py-1 flex items-center gap-2">
-                  <Receipt className="w-3 h-3 text-foreground" />
-                  <span className="text-[10px] font-mono text-foreground uppercase tracking-wider">
-                    Receipt
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <div className="h-24 w-full bg-muted flex items-center justify-center">
-                <Receipt className="w-8 h-8 text-muted-foreground" />
-              </div>
-            )}
+            <ReceiptPreview
+              imageUrl={screenshotUrl}
+              merchantName={expense.merchant}
+            />
 
             <DrawerHeader className="text-left pt-6 relative z-10 -mt-8">
               {isEditing ? (
