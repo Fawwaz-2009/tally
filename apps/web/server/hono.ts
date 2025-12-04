@@ -61,7 +61,7 @@ app.get('/api/files/:key{.+}', async (c) => {
     // No metadata file, use default content type
   }
 
-  return new Response(fileBuffer, {
+  return new Response(new Uint8Array(fileBuffer), {
     headers: {
       'content-type': contentType,
       'cache-control': 'public, max-age=31536000',

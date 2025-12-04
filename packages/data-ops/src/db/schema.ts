@@ -60,6 +60,7 @@ export const expensesTable = sqliteTable("expenses", {
     .$defaultFn(() => new Date())
     .notNull(),
   processedAt: integer("processed_at", { mode: "timestamp" }),
+  expenseDate: integer("expense_date", { mode: "timestamp" }), // Actual date of the transaction from receipt
 });
 
 // Tally: Relations

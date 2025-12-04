@@ -136,6 +136,7 @@ export class ExpenseRepo extends Effect.Service<ExpenseRepo>()("ExpenseRepo", {
           baseCurrency?: string;
           merchant?: string;
           categories?: string[];
+          expenseDate?: Date;
         }
       ) {
         return yield* withDbTryPromise(
@@ -149,6 +150,7 @@ export class ExpenseRepo extends Effect.Service<ExpenseRepo>()("ExpenseRepo", {
               baseCurrency: data.baseCurrency,
               merchant: data.merchant,
               categories: data.categories,
+              expenseDate: data.expenseDate,
               processedAt: new Date(),
             })
             .where(eq(expensesTable.id, id))

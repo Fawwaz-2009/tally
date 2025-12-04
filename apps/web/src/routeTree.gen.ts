@@ -13,8 +13,10 @@ import { Route as MainRouteRouteImport } from './routes/_main/route'
 import { Route as SetupIndexRouteImport } from './routes/setup/index'
 import { Route as MainIndexRouteImport } from './routes/_main/index'
 import { Route as MainSettingsRouteImport } from './routes/_main/settings'
-import { Route as MainAnalysisRouteImport } from './routes/_main/analysis'
-import { Route as MainAddRouteImport } from './routes/_main/add'
+import { Route as MainReviewRouteImport } from './routes/_main/review'
+import { Route as MainAnalysisIndexRouteImport } from './routes/_main/analysis/index'
+import { Route as MainAddIndexRouteImport } from './routes/_main/add/index'
+import { Route as MainExpensesIdRouteImport } from './routes/_main/expenses/$id'
 
 const MainRouteRoute = MainRouteRouteImport.update({
   id: '/_main',
@@ -35,53 +37,85 @@ const MainSettingsRoute = MainSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => MainRouteRoute,
 } as any)
-const MainAnalysisRoute = MainAnalysisRouteImport.update({
-  id: '/analysis',
-  path: '/analysis',
+const MainReviewRoute = MainReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
   getParentRoute: () => MainRouteRoute,
 } as any)
-const MainAddRoute = MainAddRouteImport.update({
-  id: '/add',
-  path: '/add',
+const MainAnalysisIndexRoute = MainAnalysisIndexRouteImport.update({
+  id: '/analysis/',
+  path: '/analysis/',
+  getParentRoute: () => MainRouteRoute,
+} as any)
+const MainAddIndexRoute = MainAddIndexRouteImport.update({
+  id: '/add/',
+  path: '/add/',
+  getParentRoute: () => MainRouteRoute,
+} as any)
+const MainExpensesIdRoute = MainExpensesIdRouteImport.update({
+  id: '/expenses/$id',
+  path: '/expenses/$id',
   getParentRoute: () => MainRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/add': typeof MainAddRoute
-  '/analysis': typeof MainAnalysisRoute
+  '/review': typeof MainReviewRoute
   '/settings': typeof MainSettingsRoute
   '/': typeof MainIndexRoute
   '/setup': typeof SetupIndexRoute
+  '/expenses/$id': typeof MainExpensesIdRoute
+  '/add': typeof MainAddIndexRoute
+  '/analysis': typeof MainAnalysisIndexRoute
 }
 export interface FileRoutesByTo {
-  '/add': typeof MainAddRoute
-  '/analysis': typeof MainAnalysisRoute
+  '/review': typeof MainReviewRoute
   '/settings': typeof MainSettingsRoute
   '/': typeof MainIndexRoute
   '/setup': typeof SetupIndexRoute
+  '/expenses/$id': typeof MainExpensesIdRoute
+  '/add': typeof MainAddIndexRoute
+  '/analysis': typeof MainAnalysisIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_main': typeof MainRouteRouteWithChildren
-  '/_main/add': typeof MainAddRoute
-  '/_main/analysis': typeof MainAnalysisRoute
+  '/_main/review': typeof MainReviewRoute
   '/_main/settings': typeof MainSettingsRoute
   '/_main/': typeof MainIndexRoute
   '/setup/': typeof SetupIndexRoute
+  '/_main/expenses/$id': typeof MainExpensesIdRoute
+  '/_main/add/': typeof MainAddIndexRoute
+  '/_main/analysis/': typeof MainAnalysisIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/add' | '/analysis' | '/settings' | '/' | '/setup'
+  fullPaths:
+    | '/review'
+    | '/settings'
+    | '/'
+    | '/setup'
+    | '/expenses/$id'
+    | '/add'
+    | '/analysis'
   fileRoutesByTo: FileRoutesByTo
-  to: '/add' | '/analysis' | '/settings' | '/' | '/setup'
+  to:
+    | '/review'
+    | '/settings'
+    | '/'
+    | '/setup'
+    | '/expenses/$id'
+    | '/add'
+    | '/analysis'
   id:
     | '__root__'
     | '/_main'
-    | '/_main/add'
-    | '/_main/analysis'
+    | '/_main/review'
     | '/_main/settings'
     | '/_main/'
     | '/setup/'
+    | '/_main/expenses/$id'
+    | '/_main/add/'
+    | '/_main/analysis/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,35 +153,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainSettingsRouteImport
       parentRoute: typeof MainRouteRoute
     }
-    '/_main/analysis': {
-      id: '/_main/analysis'
-      path: '/analysis'
-      fullPath: '/analysis'
-      preLoaderRoute: typeof MainAnalysisRouteImport
+    '/_main/review': {
+      id: '/_main/review'
+      path: '/review'
+      fullPath: '/review'
+      preLoaderRoute: typeof MainReviewRouteImport
       parentRoute: typeof MainRouteRoute
     }
-    '/_main/add': {
-      id: '/_main/add'
+    '/_main/analysis/': {
+      id: '/_main/analysis/'
+      path: '/analysis'
+      fullPath: '/analysis'
+      preLoaderRoute: typeof MainAnalysisIndexRouteImport
+      parentRoute: typeof MainRouteRoute
+    }
+    '/_main/add/': {
+      id: '/_main/add/'
       path: '/add'
       fullPath: '/add'
-      preLoaderRoute: typeof MainAddRouteImport
+      preLoaderRoute: typeof MainAddIndexRouteImport
+      parentRoute: typeof MainRouteRoute
+    }
+    '/_main/expenses/$id': {
+      id: '/_main/expenses/$id'
+      path: '/expenses/$id'
+      fullPath: '/expenses/$id'
+      preLoaderRoute: typeof MainExpensesIdRouteImport
       parentRoute: typeof MainRouteRoute
     }
   }
 }
 
 interface MainRouteRouteChildren {
-  MainAddRoute: typeof MainAddRoute
-  MainAnalysisRoute: typeof MainAnalysisRoute
+  MainReviewRoute: typeof MainReviewRoute
   MainSettingsRoute: typeof MainSettingsRoute
   MainIndexRoute: typeof MainIndexRoute
+  MainExpensesIdRoute: typeof MainExpensesIdRoute
+  MainAddIndexRoute: typeof MainAddIndexRoute
+  MainAnalysisIndexRoute: typeof MainAnalysisIndexRoute
 }
 
 const MainRouteRouteChildren: MainRouteRouteChildren = {
-  MainAddRoute: MainAddRoute,
-  MainAnalysisRoute: MainAnalysisRoute,
+  MainReviewRoute: MainReviewRoute,
   MainSettingsRoute: MainSettingsRoute,
   MainIndexRoute: MainIndexRoute,
+  MainExpensesIdRoute: MainExpensesIdRoute,
+  MainAddIndexRoute: MainAddIndexRoute,
+  MainAnalysisIndexRoute: MainAnalysisIndexRoute,
 }
 
 const MainRouteRouteWithChildren = MainRouteRoute._addFileChildren(

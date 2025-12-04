@@ -7,6 +7,8 @@ import {
   SettingsService,
   ExpenseRepo,
   ExpenseService,
+  ExtractionService,
+  CurrencyService,
 } from "../domain";
 
 /**
@@ -22,5 +24,7 @@ export const BaseLayer = Layer.mergeAll(
   SettingsRepo.Default,
   SettingsService.Default,
   ExpenseRepo.Default,
-  ExpenseService.Default
+  ExpenseService.Default,
+  ExtractionService.Default,
+  CurrencyService.Default
 );

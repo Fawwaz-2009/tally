@@ -131,11 +131,12 @@ export function SetupForm() {
                           role="combobox"
                           className={cn(
                             'w-full justify-between',
-                            !field.value && 'text-muted-foreground'
+                            !field.value && 'text-muted-foreground',
                           )}
                         >
                           {field.value
-                            ? currencies.find((c) => c.value === field.value)?.label
+                            ? currencies.find((c) => c.value === field.value)
+                                ?.label
                             : 'Search currencies...'}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
@@ -149,7 +150,9 @@ export function SetupForm() {
                           const valueLower = value.toLowerCase()
 
                           // Check if the currency code (first 3 chars) starts with search
-                          const codeMatch = valueLower.slice(0, 3).startsWith(searchLower)
+                          const codeMatch = valueLower
+                            .slice(0, 3)
+                            .startsWith(searchLower)
                           if (codeMatch) return 1
 
                           // Fall back to checking if search appears anywhere in value
@@ -175,7 +178,7 @@ export function SetupForm() {
                                     'mr-2 h-4 w-4',
                                     field.value === currency.value
                                       ? 'opacity-100'
-                                      : 'opacity-0'
+                                      : 'opacity-0',
                                   )}
                                 />
                                 {currency.label}

@@ -33,6 +33,7 @@ export const UpdateExpenseSchema = z.object({
   categories: z.array(z.string()).optional(),
   errorMessage: z.string().optional(),
   processedAt: z.date().optional(),
+  expenseDate: z.date().optional(), // Actual date of the transaction from receipt
 });
 export type UpdateExpense = z.infer<typeof UpdateExpenseSchema>;
 
