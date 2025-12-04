@@ -11,7 +11,7 @@ import {
   FilterBar,
   ExpenseList,
   type ExpenseCardData,
-} from '@/components/dashboard'
+} from './-components'
 
 const dashboardSearchSchema = z.object({
   dateRange: z

@@ -1,23 +1,21 @@
+import { useState } from 'react'
+import { AnimatePresence } from 'motion/react'
+
 import { Button } from '@/components/ui/button'
 import { EmptyState, LoadingState, ErrorState } from '@/components/expense'
 
-import { ExpenseRow } from './expense-row'
+import { ExpenseCard, type ExpenseCardData } from './expense-card'
+import { ExpenseDrawer } from './expense-drawer'
 
-interface Expense {
+interface User {
   id: string
-  status: string
-  amount: number | null
-  currency: string | null
-  baseAmount: number | null
-  baseCurrency: string | null
-  merchant: string | null
-  createdAt: Date
-  expenseDate: Date | null
+  name: string
 }
 
 interface ExpenseListProps {
-  expenses: Expense[]
+  expenses: ExpenseCardData[]
   baseCurrency: string
+  users?: User[]
   isLoading: boolean
   isError: boolean
   errorMessage?: string
@@ -28,20 +26,36 @@ interface ExpenseListProps {
 export function ExpenseList({
   expenses,
   baseCurrency,
+  users,
   isLoading,
   isError,
   errorMessage,
   hasActiveFilters,
   onClearFilters,
 }: ExpenseListProps) {
+  const [selectedExpense, setSelectedExpense] = useState<ExpenseCardData | null>(
+    null,
+  )
+  const [drawerOpen, setDrawerOpen] = useState(false)
+
+  const handleExpenseClick = (expense: ExpenseCardData) => {
+    setSelectedExpense(expense)
+    setDrawerOpen(true)
+  }
+
+  const getUserName = (userId: string | null): string | undefined => {
+    if (!userId || !users) return undefined
+    return users.find((u) => u.id === userId)?.name
+  }
+
   return (
-    <div>
-      <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-4">
-        {hasActiveFilters ? 'Filtered Expenses' : 'Recent Expenses'}
+    <div className="px-4">
+      <div className="px-2 py-2 text-xs font-mono text-muted-foreground uppercase tracking-widest">
+        {hasActiveFilters ? 'Filtered Expenses' : 'Recent Activity'}
         {!isLoading && expenses.length > 0 && (
-          <span className="ml-2 text-xs">({expenses.length})</span>
+          <span className="ml-2">({expenses.length})</span>
         )}
-      </h2>
+      </div>
 
       {isLoading ? (
         <LoadingState />
@@ -64,16 +78,29 @@ export function ExpenseList({
           />
         )
       ) : (
-        <div className="divide-y divide-border/50">
-          {expenses.map((expense) => (
-            <ExpenseRow
-              key={expense.id}
-              expense={expense}
-              baseCurrency={baseCurrency}
-            />
-          ))}
+        <div className="space-y-1 pb-4">
+          <AnimatePresence mode="popLayout">
+            {expenses.map((expense, index) => (
+              <ExpenseCard
+                key={expense.id}
+                expense={expense}
+                baseCurrency={baseCurrency}
+                onClick={() => handleExpenseClick(expense)}
+                index={index}
+                userName={getUserName(expense.userId)}
+              />
+            ))}
+          </AnimatePresence>
         </div>
       )}
+
+      <ExpenseDrawer
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        expense={selectedExpense}
+        baseCurrency={baseCurrency}
+        userName={selectedExpense ? getUserName(selectedExpense.userId) : undefined}
+      />
     </div>
   )
 }
