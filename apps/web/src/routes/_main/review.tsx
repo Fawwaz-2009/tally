@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, ChevronRight, ImageOff } from 'lucide-react'
+import { ChevronRight, ImageOff } from 'lucide-react'
 
 import { useTRPC } from '@/integrations/trpc-react'
-import { Button } from '@/components/ui/button'
+import { PageHeader } from '@/components/layout/page-header'
 import {
   formatDate,
   getScreenshotUrl,
@@ -105,28 +105,15 @@ function ReviewPage() {
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       ) || []
 
+  const expenseCount = needsAttentionQuery.data?.length ?? 0
+  const subtitle =
+    expenseCount > 0
+      ? `${expenseCount} ${expenseCount === 1 ? 'expense needs' : 'expenses need'} attention`
+      : undefined
+
   return (
-    <div className="px-6 pt-6 pb-24">
-      {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" size="icon" asChild>
-          <Link to="/">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold tracking-tight">Review Queue</h1>
-          {needsAttentionQuery.data && needsAttentionQuery.data.length > 0 && (
-            <p className="text-sm text-muted-foreground">
-              {needsAttentionQuery.data.length}{' '}
-              {needsAttentionQuery.data.length === 1
-                ? 'expense needs'
-                : 'expenses need'}{' '}
-              attention
-            </p>
-          )}
-        </div>
-      </div>
+    <div className="px-4 pt-12 pb-24">
+      <PageHeader title="Review" subtitle={subtitle} />
 
       {/* Content */}
       {needsAttentionQuery.isLoading ? (

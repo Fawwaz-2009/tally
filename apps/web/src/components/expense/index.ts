@@ -36,3 +36,4 @@ export {
   AnalyticsEmptyState,
 } from './states'
 export { ExpenseForm, type ExpenseFormData } from './expense-form'
+export { AmountDisplay } from './amount-display'

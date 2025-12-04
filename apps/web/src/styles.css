@@ -133,3 +133,17 @@ code {
     @apply bg-background text-foreground;
   }
 }
+
+/* Utility for hiding scrollbars */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Font heading class for Oswald */
+.font-heading {
+  font-family: 'Oswald', sans-serif;
+}

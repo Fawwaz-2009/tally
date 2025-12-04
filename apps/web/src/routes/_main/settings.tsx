@@ -10,14 +10,18 @@ import {
   Copy,
   Check,
   ExternalLink,
-  Settings2,
   Download,
   FileJson,
   FileSpreadsheet,
   Tag,
+  Sun,
+  Moon,
+  Monitor,
 } from 'lucide-react'
 
 import { useTRPC } from '@/integrations/trpc-react'
+import { useTheme } from '@/components/theme-provider'
+import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -73,6 +77,7 @@ type ExportFormat = 'csv' | 'json'
 function Settings() {
   const trpc = useTRPC()
   const queryClient = useQueryClient()
+  const { theme, setTheme } = useTheme()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
 
@@ -130,13 +135,47 @@ function Settings() {
   }
 
   return (
-    <div className="px-6 pt-12 pb-6 max-w-2xl mx-auto">
-      <div className="flex items-center gap-3 mb-8">
-        <Settings2 className="w-8 h-8" />
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-      </div>
+    <div className="px-4 pt-12 pb-24 max-w-2xl mx-auto">
+      <PageHeader title="Settings" />
 
       <div className="space-y-6">
+        {/* Appearance Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Appearance</CardTitle>
+            <CardDescription>
+              Customize how Tally looks on your device
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-muted rounded-xl p-1 flex">
+              <Button
+                variant="ghost"
+                onClick={() => setTheme('light')}
+                className={`flex-1 rounded-lg gap-2 h-10 ${theme === 'light' ? 'bg-background shadow-sm font-bold' : 'text-muted-foreground'}`}
+              >
+                <Sun className="w-4 h-4" />
+                Light
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => setTheme('dark')}
+                className={`flex-1 rounded-lg gap-2 h-10 ${theme === 'dark' ? 'bg-background shadow-sm font-bold' : 'text-muted-foreground'}`}
+              >
+                <Moon className="w-4 h-4" />
+                Dark
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => setTheme('system')}
+                className={`flex-1 rounded-lg gap-2 h-10 ${theme === 'system' ? 'bg-background shadow-sm font-bold' : 'text-muted-foreground'}`}
+              >
+                <Monitor className="w-4 h-4" />
+                System
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
         {/* Base Currency Section */}
         <Card>
           <CardHeader>

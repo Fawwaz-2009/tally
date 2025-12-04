@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
-import { Users, Store, Tag, Calendar } from 'lucide-react'
+import { Users, Store, Tag } from 'lucide-react'
 
 import { useTRPC } from '@/integrations/trpc-react'
+import { PageHeader } from '@/components/layout/page-header'
 import {
   Select,
   SelectContent,
@@ -69,22 +70,20 @@ function Analysis() {
     expensesQuery.error?.message || usersQuery.error?.message || 'Unknown error'
 
   return (
-    <div className="px-6 pt-12 pb-24">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">Analysis</h1>
+    <div className="px-4 pt-12 pb-24">
+      <PageHeader title="Analysis">
         <Select value={dateRange} onValueChange={handleDateRangeChange}>
-          <SelectTrigger className="w-[140px]" size="sm">
-            <Calendar className="w-4 h-4 mr-2" />
+          <SelectTrigger className="h-8 w-auto border-border bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full text-xs font-mono uppercase tracking-wider px-3">
             <SelectValue placeholder="Date range" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="last-7-days">Last 7 days</SelectItem>
-            <SelectItem value="this-month">This month</SelectItem>
-            <SelectItem value="last-month">Last month</SelectItem>
-            <SelectItem value="all-time">All time</SelectItem>
+            <SelectItem value="last-7-days">Last 7 Days</SelectItem>
+            <SelectItem value="this-month">This Month</SelectItem>
+            <SelectItem value="last-month">Last Month</SelectItem>
+            <SelectItem value="all-time">All Time</SelectItem>
           </SelectContent>
         </Select>
-      </div>
+      </PageHeader>
 
       {isLoading ? (
         <LoadingState />

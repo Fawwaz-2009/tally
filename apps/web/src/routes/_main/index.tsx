@@ -1,25 +1,17 @@
-import {
-  createFileRoute,
-  redirect,
-  Link,
-  useNavigate,
-} from '@tanstack/react-router'
+import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { Plus } from 'lucide-react'
 import { z } from 'zod'
 import { useMemo } from 'react'
 
 import { useTRPC } from '@/integrations/trpc-react'
-import { Button } from '@/components/ui/button'
 import { getDateRangeBounds, type DateRange } from '@/components/expense'
-
 import {
-  ReviewBanner,
-  FilterControls,
-  TotalSpent,
+  OverviewHeader,
+  StatusBanners,
+  FilterBar,
   ExpenseList,
-  type DashboardFilters,
-} from './-components'
+  type ExpenseCardData,
+} from '@/components/dashboard'
 
 const dashboardSearchSchema = z.object({
   dateRange: z
@@ -54,15 +46,6 @@ function Dashboard() {
     trpc.settings.getBaseCurrency.queryOptions(),
   )
 
-  const allCategories = useMemo(() => {
-    if (!expensesQuery.data) return []
-    const categorySet = new Set<string>()
-    expensesQuery.data.forEach((expense) => {
-      expense.categories?.forEach((cat) => categorySet.add(cat))
-    })
-    return Array.from(categorySet).sort()
-  }, [expensesQuery.data])
-
   const hasActiveFilters = Boolean(
     (filters.dateRange && filters.dateRange !== 'this-month') ||
       filters.userId ||
@@ -70,12 +53,16 @@ function Dashboard() {
       filters.search,
   )
 
-  const handleFilterChange = (
-    key: keyof DashboardFilters,
-    value: string | undefined,
-  ) => {
+  const handleDateRangeChange = (dateRange: DateRange) => {
     navigate({
-      search: (prev) => ({ ...prev, [key]: value }),
+      search: (prev) => ({ ...prev, dateRange }),
+      replace: true,
+    })
+  }
+
+  const handleUserFilterChange = (userId: string | undefined) => {
+    navigate({
+      search: (prev) => ({ ...prev, userId }),
       replace: true,
     })
   }
@@ -136,18 +123,36 @@ function Dashboard() {
     filters.search,
   ])
 
-  const displayExpenses = useMemo(() => {
-    return filteredExpenses.filter((expense) => expense.status === 'success')
+  const displayExpenses = useMemo((): ExpenseCardData[] => {
+    return filteredExpenses
+      .filter((expense) => expense.status === 'success')
+      .map((expense) => ({
+        id: expense.id,
+        status: expense.status,
+        amount: expense.amount,
+        currency: expense.currency,
+        baseAmount: expense.baseAmount,
+        baseCurrency: expense.baseCurrency,
+        merchant: expense.merchant,
+        categories: expense.categories,
+        userId: expense.userId,
+        createdAt: expense.createdAt,
+        expenseDate: expense.expenseDate,
+        screenshotPath: expense.screenshotPath,
+      }))
   }, [filteredExpenses])
 
-  const needsAttentionCount = useMemo(() => {
-    if (!expensesQuery.data) return 0
-    return expensesQuery.data.filter(
-      (expense) =>
-        expense.status === 'processing' ||
-        expense.status === 'submitted' ||
-        expense.status === 'needs-review',
-    ).length
+  const { needsReviewCount, processingCount } = useMemo(() => {
+    if (!expensesQuery.data) return { needsReviewCount: 0, processingCount: 0 }
+    return {
+      needsReviewCount: expensesQuery.data.filter(
+        (expense) => expense.status === 'needs-review',
+      ).length,
+      processingCount: expensesQuery.data.filter(
+        (expense) =>
+          expense.status === 'processing' || expense.status === 'submitted',
+      ).length,
+    }
   }, [expensesQuery.data])
 
   const totalSpent = useMemo(() => {
@@ -160,39 +165,31 @@ function Dashboard() {
   const baseCurrency = baseCurrencyQuery.data ?? 'USD'
 
   return (
-    <div className="px-6 pt-12 pb-24">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
-        <Button size="sm" variant="outline" asChild>
-          <Link to="/add">
-            <Plus className="w-4 h-4 mr-1" />
-            Add
-          </Link>
-        </Button>
-      </div>
-
-      <ReviewBanner count={needsAttentionCount} />
-
-      <FilterControls
-        filters={filters}
-        users={usersQuery.data}
-        categories={allCategories}
-        onFilterChange={handleFilterChange}
-        onClearFilters={handleClearFilters}
-        hasActiveFilters={hasActiveFilters}
+    <div className="pb-24">
+      <OverviewHeader
+        totalSpent={totalSpent}
+        baseCurrency={baseCurrency}
+        expenseCount={displayExpenses.length}
+        dateRange={filters.dateRange}
+        onDateRangeChange={handleDateRangeChange}
+        isLoading={expensesQuery.isLoading}
       />
 
-      <TotalSpent
-        amount={totalSpent}
-        currency={baseCurrency}
-        dateRange={filters.dateRange as DateRange}
-        expenseCount={displayExpenses.length}
-        isLoading={expensesQuery.isLoading}
+      <StatusBanners
+        needsReviewCount={needsReviewCount}
+        processingCount={processingCount}
+      />
+
+      <FilterBar
+        selectedUserId={filters.userId}
+        onUserFilterChange={handleUserFilterChange}
+        users={usersQuery.data}
       />
 
       <ExpenseList
         expenses={displayExpenses}
         baseCurrency={baseCurrency}
+        users={usersQuery.data}
         isLoading={expensesQuery.isLoading}
         isError={expensesQuery.isError}
         errorMessage={expensesQuery.error?.message}
