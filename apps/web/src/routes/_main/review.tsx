@@ -24,15 +24,16 @@ function ReviewItem({
 }: {
   expense: {
     id: string
-    status: string
+    state: string
+    extractionStatus: string
     merchant: string | null
-    errorMessage: string | null
+    extractionError: string | null
     createdAt: Date
-    screenshotPath: string | null
+    receiptImageKey: string | null
   }
 }) {
-  const statusStyle = getStatusStyle(expense.status)
-  const screenshotUrl = getScreenshotUrl(expense.screenshotPath)
+  const statusStyle = getStatusStyle(expense.state, expense.extractionStatus)
+  const screenshotUrl = getScreenshotUrl(expense.receiptImageKey)
 
   return (
     <div
@@ -69,9 +70,9 @@ function ReviewItem({
           <div className="text-sm text-muted-foreground mb-2">
             {formatDate(expense.createdAt)}
           </div>
-          {expense.errorMessage && (
+          {expense.extractionError && (
             <div className="text-xs text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded">
-              {expense.errorMessage}
+              {expense.extractionError}
             </div>
           )}
         </div>
@@ -81,7 +82,7 @@ function ReviewItem({
           <span
             className={`text-xs font-semibold ${statusStyle.textColor} ${statusStyle.badgeBg} px-2 py-1 rounded-full`}
           >
-            {getStatusLabel(expense.status)}
+            {getStatusLabel(expense.state, expense.extractionStatus)}
           </span>
           <ChevronRight className={`w-5 h-5 ${statusStyle.textColor}`} />
         </div>
@@ -93,19 +94,20 @@ function ReviewItem({
 function ReviewPage() {
   const trpc = useTRPC()
 
-  const needsAttentionQuery = useQuery(
-    trpc.expenses.getNeedsAttention.queryOptions(),
+  // Use the new getPendingReview query
+  const pendingReviewQuery = useQuery(
+    trpc.expenses.getPendingReview.queryOptions(),
   )
 
   const sortedExpenses =
-    needsAttentionQuery.data
+    pendingReviewQuery.data
       ?.slice()
       .sort(
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       ) || []
 
-  const expenseCount = needsAttentionQuery.data?.length ?? 0
+  const expenseCount = pendingReviewQuery.data?.length ?? 0
   const subtitle =
     expenseCount > 0
       ? `${expenseCount} ${expenseCount === 1 ? 'expense needs' : 'expenses need'} attention`
@@ -116,10 +118,10 @@ function ReviewPage() {
       <PageHeader title="Review" subtitle={subtitle} />
 
       {/* Content */}
-      {needsAttentionQuery.isLoading ? (
+      {pendingReviewQuery.isLoading ? (
         <LoadingState />
-      ) : needsAttentionQuery.isError ? (
-        <ErrorState message={needsAttentionQuery.error.message} />
+      ) : pendingReviewQuery.isError ? (
+        <ErrorState message={pendingReviewQuery.error.message} />
       ) : sortedExpenses.length === 0 ? (
         <SuccessState
           title="All caught up!"

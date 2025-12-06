@@ -13,16 +13,18 @@ type DrizzleDB = BetterSQLite3Database<typeof schema>;
 let db: DrizzleDB | undefined;
 let sqliteDb: Database.Database | undefined;
 
-export function initDatabase(dbPath?: string) {
-  const resolvedPath = dbPath || process.env.DATABASE_PATH || "./data/app.db";
+export function initDatabase(dbPath: string) {
+  if (!dbPath) {
+    throw new Error("initDatabase requires a database path");
+  }
 
   // Ensure the directory exists
-  const dir = path.dirname(resolvedPath);
+  const dir = path.dirname(dbPath);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
 
-  sqliteDb = new Database(resolvedPath);
+  sqliteDb = new Database(dbPath);
   db = drizzleBetterSqlite(sqliteDb, { schema });
 }
 
@@ -46,8 +48,11 @@ export class DbClient extends Effect.Service<DbClient>()("DbClient", {
 // CACHE - Filesystem-based KV store for Node.js
 let kvPath: string | undefined;
 
-export function initKv(storagePath?: string) {
-  kvPath = storagePath || process.env.KV_STORAGE_PATH || "./data/kv";
+export function initKv(storagePath: string) {
+  if (!storagePath) {
+    throw new Error("initKv requires a storage path");
+  }
+  kvPath = storagePath;
   if (!fs.existsSync(kvPath)) {
     fs.mkdirSync(kvPath, { recursive: true });
   }
@@ -101,8 +106,11 @@ export class KvClient extends Effect.Service<KvClient>()("KvClient", {
 // Bucket - Filesystem-based blob storage
 let bucketPath: string | undefined;
 
-export function initBucket(storagePath?: string) {
-  bucketPath = storagePath || process.env.BUCKET_STORAGE_PATH || "./data/uploads";
+export function initBucket(storagePath: string) {
+  if (!storagePath) {
+    throw new Error("initBucket requires a storage path");
+  }
+  bucketPath = storagePath;
   if (!fs.existsSync(bucketPath)) {
     fs.mkdirSync(bucketPath, { recursive: true });
   }
@@ -240,6 +248,10 @@ export class BucketClient extends Effect.Service<BucketClient>()("BucketClient",
 export type RUNTIME_ENVS = {
   BASE_FRONTEND_URL: string;
   NODE_ENV: string;
+  // Ollama config for AI extraction
+  OLLAMA_HOST: string;
+  OLLAMA_MODEL: string;
+  // Telemetry
   ENABLE_TELEMETRY?: string;
   SIGNOZ_ACCESS_TOKEN?: string;
   SIGNOZ_ENDPOINT?: string;

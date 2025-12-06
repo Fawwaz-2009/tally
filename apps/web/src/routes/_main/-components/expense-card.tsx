@@ -6,7 +6,8 @@ import { AmountDisplay } from '@/components/expense'
 
 export interface ExpenseCardData {
   id: string
-  status: string
+  state: string
+  extractionStatus: string
   amount: number | null
   currency: string | null
   baseAmount: number | null
@@ -16,7 +17,7 @@ export interface ExpenseCardData {
   userId: string | null
   createdAt: Date
   expenseDate: Date | null
-  screenshotPath: string | null
+  receiptImageKey: string | null
 }
 
 interface ExpenseCardProps {
@@ -35,7 +36,8 @@ export function ExpenseCard({
   userName,
 }: ExpenseCardProps) {
   const displayDate = expense.expenseDate || expense.createdAt
-  const isNeedReview = expense.status === 'needs-review'
+  const needsReview =
+    expense.state === 'draft' && expense.extractionStatus === 'done'
   const displayAmount = expense.baseAmount ?? expense.amount
   const isDifferentCurrency =
     expense.currency && expense.currency !== baseCurrency
@@ -73,7 +75,7 @@ export function ExpenseCard({
             <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
               {format(new Date(displayDate), 'MMM dd • HH:mm')}
             </span>
-            {isNeedReview && (
+            {needsReview && (
               <Badge
                 variant="destructive"
                 className="h-4 px-1 text-[9px] uppercase"

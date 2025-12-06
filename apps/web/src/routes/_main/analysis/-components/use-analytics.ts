@@ -5,12 +5,12 @@ import { getDateRangeBounds, type DateRange } from '@/components/expense'
 interface Expense {
   id: string
   userId: string
-  status: string
+  state: 'draft' | 'complete'
   amount: number | null
   baseAmount: number | null
   merchant: string | null
   categories: string[] | null
-  createdAt: Date
+  receiptCapturedAt: Date
   expenseDate: Date | null
 }
 
@@ -50,13 +50,13 @@ export function useAnalytics(
 
     let filteredExpenses = expenses.filter(
       (e) =>
-        e.status === 'success' && (e.baseAmount !== null || e.amount !== null),
+        e.state === 'complete' && (e.baseAmount !== null || e.amount !== null),
     )
 
     const bounds = getDateRangeBounds(dateRange)
     if (bounds) {
       filteredExpenses = filteredExpenses.filter((expense) => {
-        const dateToCheck = new Date(expense.expenseDate || expense.createdAt)
+        const dateToCheck = new Date(expense.expenseDate || expense.receiptCapturedAt)
         return dateToCheck >= bounds.start && dateToCheck <= bounds.end
       })
     }

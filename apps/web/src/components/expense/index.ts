@@ -27,7 +27,8 @@ export {
   StatusBadge,
   getStatusLabel,
   getStatusStyle,
-  type ExpenseStatus,
+  type ExpenseState,
+  type ExtractionStatus,
 } from './status-badge'
 export {
   EmptyState,
@@ -38,3 +39,10 @@ export {
 } from './states'
 export { ExpenseForm, type ExpenseFormData } from './expense-form'
 export { AmountDisplay } from './amount-display'
+
+// Capture flow components
+export { type ProcessingStage, type ExtractedData, type TimingData } from './capture-types'
+export { OllamaStatus } from './ollama-status'
+export { UploadArea } from './upload-area'
+export { ReviewForm } from './review-form'
+export { SuccessView } from './success-view'

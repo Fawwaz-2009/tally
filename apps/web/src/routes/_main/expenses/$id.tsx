@@ -30,12 +30,12 @@ function ExpenseDetail() {
   } | null>(null)
 
   const expenseQuery = useQuery(trpc.expenses.getById.queryOptions({ id }))
-  const needsAttentionQuery = useQuery(
-    trpc.expenses.getNeedsAttention.queryOptions(),
+  const pendingReviewQuery = useQuery(
+    trpc.expenses.getPendingReview.queryOptions(),
   )
 
   const getNextExpenseId = (): string | null => {
-    const expenses = needsAttentionQuery.data || []
+    const expenses = pendingReviewQuery.data || []
     const otherExpenses = expenses.filter((e) => e.id !== id)
     return otherExpenses.length > 0 ? otherExpenses[0].id : null
   }
@@ -49,6 +49,42 @@ function ExpenseDetail() {
     }
   }
 
+  // Use complete mutation for draft expenses, update for complete expenses
+  const completeMutation = useMutation({
+    ...trpc.expenses.complete.mutationOptions(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: trpc.expenses.getById.queryKey({ id }),
+      })
+      queryClient.invalidateQueries({ queryKey: trpc.expenses.list.queryKey() })
+      queryClient.invalidateQueries({
+        queryKey: trpc.expenses.listAll.queryKey(),
+      })
+      queryClient.invalidateQueries({
+        queryKey: trpc.expenses.getPendingReview.queryKey(),
+      })
+      queryClient.invalidateQueries({
+        queryKey: trpc.expenses.pendingReviewCount.queryKey(),
+      })
+
+      setNotification({
+        message: 'Expense saved! Moving to next...',
+        type: 'success',
+      })
+      setTimeout(() => {
+        setNotification(null)
+        navigateToNextOrReview()
+      }, 1000)
+    },
+    onError: (error) => {
+      setNotification({
+        message: error.message || 'Failed to save expense',
+        type: 'error',
+      })
+      setTimeout(() => setNotification(null), 5000)
+    },
+  })
+
   const updateMutation = useMutation({
     ...trpc.expenses.update.mutationOptions(),
     onSuccess: () => {
@@ -57,26 +93,14 @@ function ExpenseDetail() {
       })
       queryClient.invalidateQueries({ queryKey: trpc.expenses.list.queryKey() })
       queryClient.invalidateQueries({
-        queryKey: trpc.expenses.getNeedsAttention.queryKey(),
+        queryKey: trpc.expenses.listAll.queryKey(),
       })
 
-      const wasReviewItem = expenseQuery.data?.status !== 'success'
-      if (wasReviewItem) {
-        setNotification({
-          message: 'Expense saved! Moving to next...',
-          type: 'success',
-        })
-        setTimeout(() => {
-          setNotification(null)
-          navigateToNextOrReview()
-        }, 1000)
-      } else {
-        setNotification({
-          message: 'Expense saved successfully',
-          type: 'success',
-        })
-        setTimeout(() => setNotification(null), 3000)
-      }
+      setNotification({
+        message: 'Expense saved successfully',
+        type: 'success',
+      })
+      setTimeout(() => setNotification(null), 3000)
     },
     onError: (error) => {
       setNotification({
@@ -94,11 +118,17 @@ function ExpenseDetail() {
           queryKey: trpc.expenses.list.queryKey(),
         })
         queryClient.invalidateQueries({
-          queryKey: trpc.expenses.getNeedsAttention.queryKey(),
+          queryKey: trpc.expenses.listAll.queryKey(),
+        })
+        queryClient.invalidateQueries({
+          queryKey: trpc.expenses.getPendingReview.queryKey(),
+        })
+        queryClient.invalidateQueries({
+          queryKey: trpc.expenses.pendingReviewCount.queryKey(),
         })
 
-        const wasReviewItem = expenseQuery.data?.status !== 'success'
-        if (wasReviewItem) {
+        const wasDraft = expenseQuery.data?.state === 'draft'
+        if (wasDraft) {
           navigateToNextOrReview()
         } else {
           navigate({ to: '/' })
@@ -115,19 +145,31 @@ function ExpenseDetail() {
   )
 
   const handleSubmit = (data: ExpenseFormData) => {
-    const status =
-      expenseQuery.data?.status !== 'success' ? 'success' : undefined
+    const isDraft = expenseQuery.data?.state === 'draft'
 
-    updateMutation.mutate({
-      id,
-      amount: data.amount,
-      currency: data.currency,
-      merchant: data.merchant,
-      description: data.description,
-      categories: data.categories,
-      status,
-      expenseDate: data.expenseDate,
-    })
+    if (isDraft) {
+      // Use complete mutation for draft expenses
+      completeMutation.mutate({
+        id,
+        amount: data.amount,
+        currency: data.currency,
+        merchant: data.merchant,
+        description: data.description,
+        categories: data.categories,
+        expenseDate: data.expenseDate,
+      })
+    } else {
+      // Use update mutation for complete expenses
+      updateMutation.mutate({
+        id,
+        amount: data.amount,
+        currency: data.currency,
+        merchant: data.merchant,
+        description: data.description,
+        categories: data.categories,
+        expenseDate: data.expenseDate,
+      })
+    }
   }
 
   const handleDelete = () => {
@@ -180,6 +222,8 @@ function ExpenseDetail() {
   }
 
   const expense = expenseQuery.data
+  const isDraft = expense.state === 'draft'
+  const needsReview = isDraft && expense.extractionStatus === 'done'
 
   return (
     <div className="px-6 pt-6 pb-24">
@@ -201,12 +245,16 @@ function ExpenseDetail() {
         <div className="flex-1">
           <h1 className="text-2xl font-bold tracking-tight">Expense Details</h1>
         </div>
-        <StatusBadge status={expense.status} showSuccess />
+        <StatusBadge
+          state={expense.state}
+          extractionStatus={expense.extractionStatus}
+          showComplete
+        />
       </div>
 
       {/* Review warning */}
-      {expense.status === 'needs-review' && expense.errorMessage && (
-        <ReviewWarning errorMessage={expense.errorMessage} />
+      {needsReview && expense.extractionError && (
+        <ReviewWarning errorMessage={expense.extractionError} />
       )}
 
       {/* Form */}
@@ -219,12 +267,12 @@ function ExpenseDetail() {
           categories: expense.categories,
           expenseDate: expense.expenseDate,
         }}
-        imageUrl={getScreenshotUrl(expense.screenshotPath)}
+        imageUrl={getScreenshotUrl(expense.receiptImageKey)}
         onSubmit={handleSubmit}
         onDelete={handleDelete}
-        isSubmitting={updateMutation.isPending}
+        isSubmitting={completeMutation.isPending || updateMutation.isPending}
         isDeleting={deleteMutation.isPending}
-        submitLabel="Save Changes"
+        submitLabel={isDraft ? 'Complete Expense' : 'Save Changes'}
         showDescription
         showCategories
         showDeleteButton

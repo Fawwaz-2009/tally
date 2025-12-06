@@ -40,10 +40,14 @@ function Dashboard() {
   const navigate = useNavigate({ from: '/' })
   const filters = Route.useSearch()
 
-  const expensesQuery = useQuery(trpc.expenses.list.queryOptions())
+  // Use listAll to get both draft and complete expenses for the dashboard
+  const expensesQuery = useQuery(trpc.expenses.listAll.queryOptions())
   const usersQuery = useQuery(trpc.users.list.queryOptions())
   const baseCurrencyQuery = useQuery(
     trpc.settings.getBaseCurrency.queryOptions(),
+  )
+  const pendingReviewQuery = useQuery(
+    trpc.expenses.pendingReviewCount.queryOptions(),
   )
 
   const hasActiveFilters = Boolean(
@@ -82,7 +86,9 @@ function Dashboard() {
     const dateRange = getDateRangeBounds(filters.dateRange)
     if (dateRange) {
       result = result.filter((expense) => {
-        const dateToCheck = new Date(expense.expenseDate || expense.createdAt)
+        const dateToCheck = new Date(
+          expense.expenseDate || expense.receiptCapturedAt,
+        )
         return dateToCheck >= dateRange.start && dateToCheck <= dateRange.end
       })
     }
@@ -111,8 +117,12 @@ function Dashboard() {
     }
 
     return result.sort((a, b) => {
-      const dateA = new Date(a.expenseDate || a.createdAt).getTime()
-      const dateB = new Date(b.expenseDate || b.createdAt).getTime()
+      const dateA = new Date(
+        a.expenseDate || a.receiptCapturedAt,
+      ).getTime()
+      const dateB = new Date(
+        b.expenseDate || b.receiptCapturedAt,
+      ).getTime()
       return dateB - dateA
     })
   }, [
@@ -123,12 +133,14 @@ function Dashboard() {
     filters.search,
   ])
 
+  // Only show complete expenses in the main list
   const displayExpenses = useMemo((): ExpenseCardData[] => {
     return filteredExpenses
-      .filter((expense) => expense.status === 'success')
+      .filter((expense) => expense.state === 'complete')
       .map((expense) => ({
         id: expense.id,
-        status: expense.status,
+        state: expense.state,
+        extractionStatus: expense.extractionStatus,
         amount: expense.amount,
         currency: expense.currency,
         baseAmount: expense.baseAmount,
@@ -138,21 +150,19 @@ function Dashboard() {
         userId: expense.userId,
         createdAt: expense.createdAt,
         expenseDate: expense.expenseDate,
-        screenshotPath: expense.screenshotPath,
+        receiptImageKey: expense.receiptImageKey,
       }))
   }, [filteredExpenses])
 
-  const { needsReviewCount, processingCount } = useMemo(() => {
-    if (!expensesQuery.data) return { needsReviewCount: 0, processingCount: 0 }
-    return {
-      needsReviewCount: expensesQuery.data.filter(
-        (expense) => expense.status === 'needs-review',
-      ).length,
-      processingCount: expensesQuery.data.filter(
-        (expense) =>
-          expense.status === 'processing' || expense.status === 'submitted',
-      ).length,
-    }
+  // Count processing expenses (draft with pending/processing extraction)
+  const processingCount = useMemo(() => {
+    if (!expensesQuery.data) return 0
+    return expensesQuery.data.filter(
+      (expense) =>
+        expense.state === 'draft' &&
+        (expense.extractionStatus === 'pending' ||
+          expense.extractionStatus === 'processing'),
+    ).length
   }, [expensesQuery.data])
 
   const totalSpent = useMemo(() => {
@@ -176,7 +186,7 @@ function Dashboard() {
       />
 
       <StatusBanners
-        needsReviewCount={needsReviewCount}
+        needsReviewCount={pendingReviewQuery.data ?? 0}
         processingCount={processingCount}
       />
 

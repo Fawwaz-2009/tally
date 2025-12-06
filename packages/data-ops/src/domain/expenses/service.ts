@@ -1,60 +1,43 @@
-import { Effect } from "effect";
+import { Effect, Data } from "effect";
 import { ExpenseRepo } from "./repo";
-import { CreateExpense, UpdateExpense, type ExpenseStatus } from "./schema";
+import {
+  type CaptureExpenseInput,
+  type CompleteExpenseInput,
+  type UpdateExpenseInput,
+  type CaptureExpenseResult,
+  type Expense,
+  hasRequiredFields,
+  getMissingFields,
+} from "./schema";
 import { CurrencyService } from "../currency";
 import { SettingsService } from "../settings";
 import { ExtractionService } from "../extraction";
 import { BucketClient } from "../../layers";
 
-/**
- * Input for updating an expense with automatic base currency conversion
- */
-export interface UpdateExpenseInput {
-  amount?: number;
-  currency?: string;
-  merchant?: string;
-  description?: string;
-  categories?: string[];
-  status?: ExpenseStatus;
-  expenseDate?: Date;
-}
+// ============================================================================
+// Domain Errors
+// ============================================================================
 
-/**
- * Input for ingesting a new expense from an image
- */
-export interface IngestExpenseInput {
-  userId: string;
-  imageBuffer: Buffer;
-  fileKey: string;
-  contentType: string;
-}
+export class ExpenseNotFoundError extends Data.TaggedError("ExpenseNotFoundError")<{
+  id: string;
+}> {}
 
-/**
- * Result of expense ingestion
- */
-export interface IngestExpenseResult {
-  expense: {
-    id: string;
-    status: string;
-    amount: number | null;
-    currency: string | null;
-    merchant: string | null;
-  } | null;
-  extraction: {
-    success: boolean;
-    data: {
-      amount: number | null;
-      currency: string | null;
-      merchant: string | null;
-      date: string | null;
-    } | null;
-    error: string | null;
-    timing: {
-      ocrMs: number;
-      llmMs: number;
-    } | null;
-  };
-}
+export class ExpenseAlreadyCompleteError extends Data.TaggedError(
+  "ExpenseAlreadyCompleteError"
+)<{
+  id: string;
+}> {}
+
+export class MissingRequiredFieldsError extends Data.TaggedError(
+  "MissingRequiredFieldsError"
+)<{
+  id: string;
+  missingFields: string[];
+}> {}
+
+// ============================================================================
+// Service
+// ============================================================================
 
 export class ExpenseService extends Effect.Service<ExpenseService>()(
   "ExpenseService",
@@ -67,142 +50,42 @@ export class ExpenseService extends Effect.Service<ExpenseService>()(
       const bucket = yield* BucketClient;
 
       return {
-        // Create a new expense
-        // If amount is provided, mark as success; otherwise submitted for processing
-        createExpense: (data: CreateExpense) =>
-          repo.create({
-            ...data,
-            status: data.amount ? "success" : "submitted",
-          }),
-
-        // Get expense by ID
-        getExpense: (id: string) => repo.getById(id),
-
-        // Get all expenses
-        getAllExpenses: repo.getAll,
-
-        // Get expenses by user
-        getExpensesByUser: (userId: string) => repo.getByUser(userId),
-
-        // Get expenses by status
-        getExpensesByStatus: (status: ExpenseStatus) => repo.getByStatus(status),
-
-        // Get expenses in a date range
-        getExpensesByDateRange: (from: Date, to: Date) =>
-          repo.getByDateRange(from, to),
-
-        // Update expense (low-level, no currency conversion)
-        updateExpense: (id: string, data: UpdateExpense) => repo.update(id, data),
+        // ======================================================================
+        // Domain Operations
+        // ======================================================================
 
         /**
-         * Update expense with automatic base currency conversion.
-         * If amount or currency changes, recalculates baseAmount in base currency.
+         * Capture a receipt and process it through the extraction pipeline.
+         * Creates an expense in draft state, runs OCR/LLM, and determines if
+         * the expense can be auto-completed or needs review.
          */
-        updateExpenseWithConversion: (
-          id: string,
-          data: UpdateExpenseInput
-        ): Effect.Effect<
-          {
-            id: string;
-            userId: string;
-            amount: number | null;
-            currency: string | null;
-            baseAmount: number | null;
-            baseCurrency: string | null;
-            merchant: string | null;
-            description: string | null;
-            categories: string[] | null;
-            screenshotPath: string | null;
-            status: string;
-            errorMessage: string | null;
-            expenseDate: Date | null;
-            createdAt: Date;
-            processedAt: Date | null;
-          } | null,
-          Error
-        > =>
+        capture: (
+          input: CaptureExpenseInput
+        ): Effect.Effect<CaptureExpenseResult, Error> =>
           Effect.gen(function* () {
-            // Get current expense to check what changed
-            const currentExpense = yield* repo.getById(id);
-            if (!currentExpense) {
-              return null;
-            }
+            // 1. Decode base64 and generate storage key
+            const imageBuffer = Buffer.from(input.imageBase64, "base64");
+            const imageKey = `expenses/${Date.now()}-${input.fileName}`;
 
-            // Determine final amount and currency
-            const amount = data.amount ?? currentExpense.amount;
-            const currency = data.currency ?? currentExpense.currency ?? "USD";
-
-            // Recalculate baseAmount if amount or currency changed
-            let baseAmount = currentExpense.baseAmount;
-            let baseCurrency = currentExpense.baseCurrency;
-
-            const amountChanged = data.amount !== undefined;
-            const currencyChanged = data.currency !== undefined;
-
-            if (amount !== null && (amountChanged || currencyChanged)) {
-              baseCurrency = yield* settingsService.getBaseCurrency();
-              baseAmount = yield* currencyService.convert(
-                amount,
-                currency,
-                baseCurrency
-              );
-            }
-
-            // Build update payload
-            const updateData: UpdateExpense = {
-              ...data,
-              baseAmount: baseAmount ?? undefined,
-              baseCurrency: baseCurrency ?? undefined,
-            };
-
-            return yield* repo.update(id, updateData);
-          }),
-
-        // Delete expense
-        deleteExpense: (id: string) => repo.delete(id),
-
-        // Worker methods
-        getNextForProcessing: repo.getNextSubmitted,
-        markProcessing: (id: string) => repo.markProcessing(id),
-        markSuccess: (
-          id: string,
-          data: {
-            amount: number;
-            currency: string;
-            baseAmount?: number;
-            baseCurrency?: string;
-            merchant?: string;
-            categories?: string[];
-            expenseDate?: Date;
-          }
-        ) => repo.markSuccess(id, data),
-        markNeedsReview: (id: string, error: string) =>
-          repo.markNeedsReview(id, error),
-
-        /**
-         * Ingest a new expense from an image.
-         * Handles the full workflow: save → create → extract → convert → update
-         */
-        ingest: (input: IngestExpenseInput): Effect.Effect<IngestExpenseResult, Error> =>
-          Effect.gen(function* () {
-            // 1. Save image to bucket storage
-            yield* bucket.put(input.fileKey, input.imageBuffer, {
+            // 2. Save image to bucket storage
+            yield* bucket.put(imageKey, imageBuffer, {
               httpMetadata: { contentType: input.contentType },
             });
 
-            // 2. Create expense record in "submitted" status
+            // 3. Create expense in draft state with pending extraction
             const expense = yield* repo.create({
               userId: input.userId,
-              screenshotPath: input.fileKey,
-              status: "submitted",
+              receiptImageKey: imageKey,
+              state: "draft",
+              extractionStatus: "pending",
             });
 
-            // 3. Mark as processing
-            yield* repo.markProcessing(expense.id);
+            // 4. Mark extraction as processing
+            yield* repo.setExtractionProcessing(expense.id);
 
-            // 4. Run extraction with error handling to prevent stuck "processing" status
+            // 5. Run extraction with error handling
             const extractionResult = yield* extractionService
-              .extractFromImage(input.imageBuffer)
+              .extractFromImage(imageBuffer)
               .pipe(
                 Effect.catchAll((error) =>
                   Effect.succeed({
@@ -219,13 +102,195 @@ export class ExpenseService extends Effect.Service<ExpenseService>()(
                 )
               );
 
-            // 5. Update expense based on extraction result
+            // 6. Apply extraction results
             if (extractionResult.success && extractionResult.data) {
-              const { data } = extractionResult;
-              const amount = data.amount ?? 0;
-              const currency = data.currency ?? "USD";
+              const { data, timing } = extractionResult;
 
-              // Get base currency and convert
+              // Parse expense date from extraction
+              const expenseDate = data.date ? new Date(data.date) : undefined;
+
+              yield* repo.applyExtraction(expense.id, {
+                extractionStatus: "done",
+                extractionOcrText: extractionResult.ocrText ?? undefined,
+                extractionOcrMs: timing?.ocrMs,
+                extractionLlmMs: timing?.llmMs,
+                amount: data.amount ?? undefined,
+                currency: data.currency ?? undefined,
+                merchant: data.merchant ?? undefined,
+                categories: data.category,
+                expenseDate,
+              });
+
+              // Check if we can auto-complete (all required fields present)
+              const updatedExpense = yield* repo.getById(expense.id);
+
+              if (updatedExpense && hasRequiredFields(updatedExpense)) {
+                // Auto-complete: compute base currency and finalize
+                const baseCurrency = yield* settingsService.getBaseCurrency();
+                const baseAmount = yield* currencyService.convert(
+                  updatedExpense.amount!,
+                  updatedExpense.currency!,
+                  baseCurrency
+                );
+
+                const completedExpense = yield* repo.complete(expense.id, {
+                  amount: updatedExpense.amount!,
+                  currency: updatedExpense.currency!,
+                  baseAmount,
+                  baseCurrency,
+                  merchant: updatedExpense.merchant!,
+                  expenseDate: updatedExpense.expenseDate!,
+                  categories: updatedExpense.categories ?? undefined,
+                });
+
+                return {
+                  expense: completedExpense!,
+                  extraction: {
+                    success: true,
+                    data: {
+                      amount: data.amount,
+                      currency: data.currency,
+                      merchant: data.merchant,
+                      date: data.date,
+                      categories: data.category,
+                    },
+                    error: null,
+                    timing: timing
+                      ? { ocrMs: timing.ocrMs, llmMs: timing.llmMs }
+                      : null,
+                  },
+                  needsReview: false,
+                };
+              }
+
+              // Needs review: return draft expense
+              return {
+                expense: updatedExpense!,
+                extraction: {
+                  success: true,
+                  data: {
+                    amount: data.amount,
+                    currency: data.currency,
+                    merchant: data.merchant,
+                    date: data.date,
+                    categories: data.category,
+                  },
+                  error: null,
+                  timing: timing
+                    ? { ocrMs: timing.ocrMs, llmMs: timing.llmMs }
+                    : null,
+                },
+                needsReview: true,
+              };
+            } else {
+              // Extraction failed
+              yield* repo.applyExtraction(expense.id, {
+                extractionStatus: "failed",
+                extractionOcrText: extractionResult.ocrText ?? undefined,
+                extractionError: extractionResult.error ?? "Extraction failed",
+              });
+
+              const failedExpense = yield* repo.getById(expense.id);
+
+              return {
+                expense: failedExpense!,
+                extraction: {
+                  success: false,
+                  data: null,
+                  error: extractionResult.error ?? "Extraction failed",
+                  timing: null,
+                },
+                needsReview: true,
+              };
+            }
+          }),
+
+        /**
+         * Complete a draft expense by validating required fields and
+         * transitioning to complete state.
+         */
+        complete: (id: string, overrides?: CompleteExpenseInput) =>
+          Effect.gen(function* () {
+            // 1. Get the expense
+            const expense = yield* repo.getById(id);
+            if (!expense) {
+              return yield* Effect.fail(new ExpenseNotFoundError({ id }));
+            }
+
+            // 2. Check if already complete
+            if (expense.state === "complete") {
+              return yield* Effect.fail(new ExpenseAlreadyCompleteError({ id }));
+            }
+
+            // 3. Merge overrides with existing data
+            const amount = overrides?.amount ?? expense.amount;
+            const currency = overrides?.currency ?? expense.currency;
+            const merchant = overrides?.merchant ?? expense.merchant;
+            const description = overrides?.description ?? expense.description;
+            const categories = overrides?.categories ?? expense.categories;
+
+            // For expenseDate: use override, then existing, then fall back to receiptCapturedAt
+            const expenseDate =
+              overrides?.expenseDate ??
+              expense.expenseDate ??
+              expense.receiptCapturedAt;
+
+            // 4. Validate required fields
+            const missingFields: string[] = [];
+            if (amount === null || amount === undefined) missingFields.push("amount");
+            if (!currency) missingFields.push("currency");
+            if (!merchant) missingFields.push("merchant");
+
+            if (missingFields.length > 0) {
+              return yield* Effect.fail(
+                new MissingRequiredFieldsError({ id, missingFields })
+              );
+            }
+
+            // 5. Compute base currency conversion
+            const baseCurrency = yield* settingsService.getBaseCurrency();
+            const baseAmount = yield* currencyService.convert(
+              amount!,
+              currency!,
+              baseCurrency
+            );
+
+            // 6. Complete the expense
+            const completedExpense = yield* repo.complete(id, {
+              amount: amount!,
+              currency: currency!,
+              baseAmount,
+              baseCurrency,
+              merchant: merchant!,
+              expenseDate: expenseDate!,
+              description: description ?? undefined,
+              categories: categories ?? undefined,
+            });
+
+            return completedExpense!;
+          }),
+
+        /**
+         * Update an expense's data. If the expense is complete and amount/currency
+         * changes, recalculates baseAmount.
+         */
+        update: (
+          id: string,
+          data: UpdateExpenseInput
+        ): Effect.Effect<Expense | null, Error> =>
+          Effect.gen(function* () {
+            const expense = yield* repo.getById(id);
+            if (!expense) {
+              return null;
+            }
+
+            // If amount or currency changed on a complete expense, recalculate base
+            if (
+              expense.state === "complete" &&
+              (data.amount !== undefined || data.currency !== undefined)
+            ) {
+              const amount = data.amount ?? expense.amount!;
+              const currency = data.currency ?? expense.currency!;
               const baseCurrency = yield* settingsService.getBaseCurrency();
               const baseAmount = yield* currencyService.convert(
                 amount,
@@ -233,53 +298,85 @@ export class ExpenseService extends Effect.Service<ExpenseService>()(
                 baseCurrency
               );
 
-              // Parse expense date from extraction if available
-              const expenseDate = data.date ? new Date(data.date) : undefined;
-
-              yield* repo.markSuccess(expense.id, {
-                amount,
-                currency,
+              return yield* repo.update(id, {
+                ...data,
                 baseAmount,
                 baseCurrency,
-                merchant: data.merchant ?? undefined,
-                categories: data.category,
-                expenseDate,
               });
-            } else {
-              yield* repo.markNeedsReview(
-                expense.id,
-                extractionResult.error ?? "Extraction failed"
-              );
             }
 
-            // 6. Return updated expense
-            const updatedExpense = yield* repo.getById(expense.id);
-
-            return {
-              expense: updatedExpense
-                ? {
-                    id: updatedExpense.id,
-                    status: updatedExpense.status,
-                    amount: updatedExpense.amount,
-                    currency: updatedExpense.currency,
-                    merchant: updatedExpense.merchant,
-                  }
-                : null,
-              extraction: {
-                success: extractionResult.success,
-                data: extractionResult.data
-                  ? {
-                      amount: extractionResult.data.amount,
-                      currency: extractionResult.data.currency,
-                      merchant: extractionResult.data.merchant,
-                      date: extractionResult.data.date ?? null,
-                    }
-                  : null,
-                error: extractionResult.error,
-                timing: extractionResult.timing,
-              },
-            };
+            return yield* repo.update(id, data);
           }),
+
+        // ======================================================================
+        // Queries
+        // ======================================================================
+
+        /**
+         * Get expense by ID
+         */
+        getById: (id: string) => repo.getById(id),
+
+        /**
+         * Get all expenses (both draft and complete)
+         */
+        listAll: () => repo.getAll(),
+
+        /**
+         * Get only complete expenses (for reports)
+         */
+        list: () => repo.getComplete(),
+
+        /**
+         * Get expenses by user
+         */
+        getByUser: (userId: string) => repo.getByUser(userId),
+
+        /**
+         * Get draft expenses pending review
+         */
+        getPendingReview: () => repo.getPendingReview(),
+
+        /**
+         * Get count of expenses pending review
+         */
+        pendingReviewCount: () => repo.countPendingReview(),
+
+        /**
+         * Delete an expense
+         */
+        delete: (id: string) => repo.delete(id),
+
+        // ======================================================================
+        // Domain Helpers
+        // ======================================================================
+
+        /**
+         * Check if an expense needs review
+         */
+        needsReview: (expense: Expense): boolean => {
+          return (
+            expense.state === "draft" &&
+            expense.extractionStatus === "done" &&
+            !hasRequiredFields(expense)
+          );
+        },
+
+        /**
+         * Get missing fields for an expense
+         */
+        getMissingFields: (expense: Expense): string[] => {
+          return getMissingFields(expense);
+        },
+
+        // ======================================================================
+        // Extraction Health Check
+        // ======================================================================
+
+        /**
+         * Check if the extraction service (Ollama) is available
+         */
+        checkExtractionHealth: () => extractionService.checkOllamaHealth(),
       } as const;
     }),
     dependencies: [

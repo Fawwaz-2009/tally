@@ -4,23 +4,8 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 
 import { useTRPC } from '@/integrations/trpc-react'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-
-import {
-  type ProcessingStage,
-  type ExtractedData,
-  type TimingData,
-  OllamaStatus,
-  UploadArea,
-  ReviewForm,
-  SuccessView,
-} from './-components'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { type ProcessingStage, type ExtractedData, type TimingData, OllamaStatus, UploadArea, ReviewForm, SuccessView } from '@/components/expense'
 
 export const Route = createFileRoute('/_main/add/')({ component: AddExpense })
 
@@ -28,7 +13,7 @@ function AddExpense() {
   const trpc = useTRPC()
 
   // Queries
-  const ollamaHealth = useQuery(trpc.expenses.checkOllamaHealth.queryOptions())
+  const ollamaHealth = useQuery(trpc.expenses.checkExtractionHealth.queryOptions())
   const usersQuery = useQuery(trpc.users.list.queryOptions())
 
   // State
@@ -47,12 +32,12 @@ function AddExpense() {
     merchant: string
   } | null>(null)
 
-  // Mutations
-  const uploadAndProcess = useMutation(
-    trpc.expenses.uploadAndProcess.mutationOptions({
+  // Mutations - using the new capture API
+  const captureExpense = useMutation(
+    trpc.expenses.capture.mutationOptions({
       onSuccess: (result) => {
         setStage('complete')
-        setExpenseId(result.expense?.id ?? null)
+        setExpenseId(result.expense.id)
         if (result.extraction.success && result.extraction.data) {
           const data = result.extraction.data
           setExtractedData({
@@ -63,6 +48,16 @@ function AddExpense() {
           })
         }
         setTiming(result.extraction.timing)
+
+        // If expense was auto-completed (all fields extracted), show success
+        if (!result.needsReview && result.expense.state === 'complete') {
+          setSavedData({
+            amount: ((result.expense.amount ?? 0) / 100).toFixed(2),
+            currency: result.expense.currency ?? 'USD',
+            merchant: result.expense.merchant ?? 'Unknown',
+          })
+          setStage('saved')
+        }
       },
       onError: (err) => {
         setStage('error')
@@ -71,8 +66,9 @@ function AddExpense() {
     }),
   )
 
-  const updateExpense = useMutation(
-    trpc.expenses.update.mutationOptions({
+  // Complete mutation for finalizing draft expenses
+  const completeExpense = useMutation(
+    trpc.expenses.complete.mutationOptions({
       onError: (err) => {
         setError(err.message)
       },
@@ -90,27 +86,16 @@ function AddExpense() {
       const url = URL.createObjectURL(file)
       setPreviewUrl(url)
       setError(null)
-      setStage('uploading')
+      setStage('processing')
 
       const reader = new FileReader()
       reader.onload = () => {
         const base64 = (reader.result as string).split(',')[1]
-        setStage('ocr')
-
-        setTimeout(() => {
-          setStage((current) => (current === 'ocr' ? 'extracting' : current))
-        }, 500)
-
-        uploadAndProcess.mutate({
-          userId: selectedUserId,
-          imageBase64: base64,
-          fileName: file.name,
-          contentType: file.type,
-        })
+        captureExpense.mutate({ userId: selectedUserId, imageBase64: base64, fileName: file.name, contentType: file.type })
       }
       reader.readAsDataURL(file)
     },
-    [selectedUserId, uploadAndProcess],
+    [selectedUserId, captureExpense],
   )
 
   const handleReset = () => {
@@ -123,22 +108,17 @@ function AddExpense() {
     setSavedData(null)
   }
 
-  const handleSave = (data: {
-    amount: number
-    currency: string
-    merchant: string
-    expenseDate: string
-  }) => {
+  const handleSave = (data: { amount: number; currency: string; merchant: string; expenseDate: string }) => {
     if (!expenseId) return
 
-    updateExpense.mutate(
+    // Use the complete mutation to finalize the draft expense
+    completeExpense.mutate(
       {
         id: expenseId,
         amount: data.amount,
         currency: data.currency,
         merchant: data.merchant || undefined,
         expenseDate: data.expenseDate || undefined,
-        status: 'success',
       },
       {
         onSuccess: () => {
@@ -166,23 +146,14 @@ function AddExpense() {
         amount={savedData.amount}
         currency={savedData.currency}
         merchant={savedData.merchant}
-        onAddAnother={handleReset}
+        timing={timing}
+        secondaryAction={{ label: 'Add Another Expense', onClick: handleReset }}
       />
     )
   }
 
   if (stage === 'complete' && extractedData) {
-    return (
-      <ReviewForm
-        previewUrl={previewUrl}
-        extractedData={extractedData}
-        timing={timing}
-        error={error}
-        isSaving={updateExpense.isPending}
-        onSave={handleSave}
-        onBack={handleReset}
-      />
-    )
+    return <ReviewForm previewUrl={previewUrl} extractedData={extractedData} timing={timing} error={error} isSaving={completeExpense.isPending} onSave={handleSave} onBack={handleReset} />
   }
 
   const canUpload = ollamaHealth.data?.modelAvailable && selectedUserId
@@ -191,12 +162,8 @@ function AddExpense() {
     <div className="px-6 pt-12 pb-24">
       <div className="max-w-sm mx-auto w-full">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight font-heading mb-2">
-            Add Expense
-          </h1>
-          <p className="text-muted-foreground">
-            Upload a screenshot of a payment to extract expense details
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight font-heading mb-2">Capture Receipt</h1>
+          <p className="text-muted-foreground">Upload a screenshot of a payment to extract expense details</p>
         </div>
 
         {/* User selector */}
@@ -218,19 +185,9 @@ function AddExpense() {
           </div>
         )}
 
-        <OllamaStatus
-          isLoading={ollamaHealth.isLoading}
-          data={ollamaHealth.data}
-        />
+        <OllamaStatus isLoading={ollamaHealth.isLoading} data={ollamaHealth.data} />
 
-        <UploadArea
-          stage={stage}
-          previewUrl={previewUrl}
-          error={error}
-          canUpload={!!canUpload}
-          onFileSelect={handleFileSelect}
-          onReset={handleReset}
-        />
+        <UploadArea stage={stage} previewUrl={previewUrl} error={error} canUpload={!!canUpload} onFileSelect={handleFileSelect} onReset={handleReset} />
       </div>
     </div>
   )

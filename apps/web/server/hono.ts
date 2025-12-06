@@ -5,24 +5,9 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 
 import { trpcRouter } from './trpc/router/index'
+import { env } from '@/env'
 
-// Environment type for Node.js
-export interface NodeEnv {
-  DATABASE_PATH: string
-  BUCKET_STORAGE_PATH: string
-  BASE_FRONTEND_URL: string
-  NODE_ENV: string
-}
 
-// Get environment from process.env
-function getEnv(): NodeEnv {
-  return {
-    DATABASE_PATH: process.env.DATABASE_PATH || './data/app.db',
-    BUCKET_STORAGE_PATH: process.env.BUCKET_STORAGE_PATH || './data/uploads',
-    BASE_FRONTEND_URL: process.env.BASE_FRONTEND_URL || 'http://localhost:3000',
-    NODE_ENV: process.env.NODE_ENV || 'development',
-  }
-}
 
 const app = new Hono()
 
@@ -34,7 +19,6 @@ app.get('/health', (c) => {
 // File serving endpoint for local filesystem storage
 app.get('/api/files/:key{.+}', async (c) => {
   const key = c.req.param('key')
-  const env = getEnv()
 
   if (!key) {
     return c.notFound()
@@ -70,8 +54,6 @@ app.get('/api/files/:key{.+}', async (c) => {
 })
 
 app.all('/api/trpc', async (c) => {
-  const env = getEnv()
-
   return fetchRequestHandler({
     endpoint: '/api/trpc',
     req: c.req.raw,
@@ -81,8 +63,6 @@ app.all('/api/trpc', async (c) => {
 })
 
 app.all('/api/trpc/*', async (c) => {
-  const env = getEnv()
-
   return fetchRequestHandler({
     endpoint: '/api/trpc',
     req: c.req.raw,
@@ -92,7 +72,6 @@ app.all('/api/trpc/*', async (c) => {
 })
 
 app.all('*', async (c) => {
-  const env = getEnv()
   // TanStack Start expects the env wrapped in a context object
   return handler.fetch(c.req.raw, { context: { env } })
 })

@@ -63,7 +63,10 @@ export function ExpenseDrawer({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: trpc.expenses.list.queryKey() })
       queryClient.invalidateQueries({
-        queryKey: trpc.expenses.getNeedsAttention.queryKey(),
+        queryKey: trpc.expenses.listAll.queryKey(),
+      })
+      queryClient.invalidateQueries({
+        queryKey: trpc.expenses.getPendingReview.queryKey(),
       })
       setIsEditing(false)
     },
@@ -74,7 +77,10 @@ export function ExpenseDrawer({
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: trpc.expenses.list.queryKey() })
         queryClient.invalidateQueries({
-          queryKey: trpc.expenses.getNeedsAttention.queryKey(),
+          queryKey: trpc.expenses.listAll.queryKey(),
+        })
+        queryClient.invalidateQueries({
+          queryKey: trpc.expenses.getPendingReview.queryKey(),
         })
         setDeleteDialogOpen(false)
         onOpenChange(false)
@@ -102,7 +108,7 @@ export function ExpenseDrawer({
   if (!expense) return null
 
   const displayDate = expense.expenseDate || expense.createdAt
-  const screenshotUrl = getScreenshotUrl(expense.screenshotPath)
+  const screenshotUrl = getScreenshotUrl(expense.receiptImageKey)
   const displayAmount = expense.baseAmount ?? expense.amount
   const isDifferentCurrency =
     expense.currency && expense.currency !== baseCurrency

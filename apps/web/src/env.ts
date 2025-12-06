@@ -3,10 +3,12 @@ import { z } from 'zod'
 
 export const env = createEnv({
   server: {
-    DATABASE_PATH: z.string().optional(),
-    BUCKET_STORAGE_PATH: z.string().optional(),
-    BASE_FRONTEND_URL: z.string().url().optional(),
-    NODE_ENV: z.enum(['development', 'production', 'test']).optional(),
+    NODE_ENV: z.enum(['development', 'production', 'test']),
+    DATABASE_PATH: z.string().min(1),
+    BUCKET_STORAGE_PATH: z.string().min(1),
+    BASE_FRONTEND_URL: z.string().url(),
+    OLLAMA_HOST: z.string().url(),
+    OLLAMA_MODEL: z.string().min(1),
   },
 
   /**
@@ -26,28 +28,17 @@ export const env = createEnv({
    */
   runtimeEnv: {
     // Server variables (from process.env)
+    NODE_ENV: process.env.NODE_ENV,
     DATABASE_PATH: process.env.DATABASE_PATH,
     BUCKET_STORAGE_PATH: process.env.BUCKET_STORAGE_PATH,
     BASE_FRONTEND_URL: process.env.BASE_FRONTEND_URL,
-    NODE_ENV: process.env.NODE_ENV,
+    OLLAMA_HOST: process.env.OLLAMA_HOST,
+    OLLAMA_MODEL: process.env.OLLAMA_MODEL,
     // Client variables (from import.meta.env)
     VITE_APP_TITLE: import.meta.env.VITE_APP_TITLE,
     VITE_BASE_FRONTEND_URL: import.meta.env.VITE_BASE_FRONTEND_URL,
   },
 
-  /**
-   * By default, this library will feed the environment variables directly to
-   * the Zod validator.
-   *
-   * This means that if you have an empty string for a value that is supposed
-   * to be a number (e.g. `PORT=` in a ".env" file), Zod will incorrectly flag
-   * it as a type mismatch violation. Additionally, if you have an empty string
-   * for a value that is supposed to be a string with a default value (e.g.
-   * `DOMAIN=` in an ".env" file), the default value will never be applied.
-   *
-   * In order to solve these issues, we recommend that all new projects
-   * explicitly specify this option as true.
-   */
   emptyStringAsUndefined: true,
 
   /**

@@ -1,5 +1,9 @@
 // Node.js server entry for TanStack Start + Nitro
 // This is the main entry point for the production server
+
+// Import env first - validates and fails fast if missing
+import { env } from '@/env'
+
 import app from './hono'
 import {
   initDatabase,
@@ -9,15 +13,6 @@ import {
 } from '@repo/data-ops/layers'
 import { createServerTRPCClient } from '@/integrations/trpc-server'
 import { initTRPCClient } from '@/integrations/root-provider'
-
-import type { NodeEnv } from './hono'
-
-const env: NodeEnv = {
-  DATABASE_PATH: process.env.DATABASE_PATH || './data/app.db',
-  BUCKET_STORAGE_PATH: process.env.BUCKET_STORAGE_PATH || './data/uploads',
-  BASE_FRONTEND_URL: process.env.BASE_FRONTEND_URL || 'http://localhost:3000',
-  NODE_ENV: process.env.NODE_ENV || 'development',
-}
 
 // Initialize all services at server startup
 console.log('[Server] Initializing database...')
@@ -31,6 +26,8 @@ initFullEnv(env)
 initRuntimeEnvs({
   BASE_FRONTEND_URL: env.BASE_FRONTEND_URL,
   NODE_ENV: env.NODE_ENV,
+  OLLAMA_HOST: env.OLLAMA_HOST,
+  OLLAMA_MODEL: env.OLLAMA_MODEL,
 })
 
 // Initialize tRPC client with server-side direct calls (avoids HTTP self-request)

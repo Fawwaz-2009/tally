@@ -2,6 +2,7 @@ import { Effect, Data } from "effect";
 import Tesseract from "tesseract.js";
 import { Ollama } from "ollama";
 import type { ExtractedExpense, ExtractionResult } from "./schema";
+import { RuntimeEnvs } from "../../layers";
 
 // Error types
 export class OcrError extends Data.TaggedError("OcrError")<{
@@ -125,20 +126,15 @@ export class ExtractionService extends Effect.Service<ExtractionService>()(
   "ExtractionService",
   {
     effect: Effect.gen(function* () {
-      // Required environment variables - no defaults to fail fast
-      const ollamaHost = process.env.OLLAMA_HOST;
-      const ollamaModel = process.env.OLLAMA_MODEL;
+      // Get environment variables from RuntimeEnvs (initialized at server startup)
+      const runtimeEnvs = yield* RuntimeEnvs;
 
-      if (!ollamaHost) {
-        console.error("[ExtractionService] OLLAMA_HOST environment variable is required");
-      }
-      if (!ollamaModel) {
-        console.error("[ExtractionService] OLLAMA_MODEL environment variable is required");
-      }
+      const host = runtimeEnvs.OLLAMA_HOST || "http://localhost:11434";
+      const model = runtimeEnvs.OLLAMA_MODEL || "";
 
-      // Use localhost as a reasonable fallback for host only (model has no safe default)
-      const host = ollamaHost || "http://localhost:11434";
-      const model = ollamaModel || "";
+      if (!model) {
+        console.warn("[ExtractionService] OLLAMA_MODEL not configured - extraction will fail");
+      }
 
       const ollama = new Ollama({ host });
 
@@ -325,6 +321,7 @@ export class ExtractionService extends Effect.Service<ExtractionService>()(
           }),
       } as const;
     }),
+    dependencies: [RuntimeEnvs.Default],
     accessors: true,
   }
 ) {}

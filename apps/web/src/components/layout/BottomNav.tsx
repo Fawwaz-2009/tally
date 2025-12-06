@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 export function BottomNav() {
   const trpc = useTRPC()
   const needsReviewQuery = useQuery(
-    trpc.expenses.needsReviewCount.queryOptions(),
+    trpc.expenses.pendingReviewCount.queryOptions(),
   )
   const reviewCount = needsReviewQuery.data ?? 0
 

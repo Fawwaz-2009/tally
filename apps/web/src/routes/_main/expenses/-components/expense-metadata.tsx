@@ -8,7 +8,7 @@ interface ExpenseMetadataProps {
     baseAmount: number | null
     baseCurrency: string | null
     createdAt: Date
-    processedAt: Date | null
+    completedAt: Date | null
   }
 }
 
@@ -52,11 +52,11 @@ export function ExpenseMetadata({ expense }: ExpenseMetadataProps) {
             })}
           </dd>
         </div>
-        {expense.processedAt && (
+        {expense.completedAt && (
           <div className="flex justify-between">
-            <dt className="text-muted-foreground">Processed</dt>
+            <dt className="text-muted-foreground">Completed</dt>
             <dd>
-              {new Date(expense.processedAt).toLocaleDateString('en-US', {
+              {new Date(expense.completedAt).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',

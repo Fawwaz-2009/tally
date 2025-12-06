@@ -595,7 +595,7 @@ function CategoriesSection() {
     const statsMap = new Map<string, { count: number; totalAmount: number }>()
 
     for (const expense of expensesQuery.data) {
-      if (expense.status !== 'success') continue
+      if (expense.state !== 'complete') continue
 
       if (expense.categories && Array.isArray(expense.categories)) {
         const amount = expense.baseAmount ?? expense.amount ?? 0
@@ -794,14 +794,15 @@ function CategoriesSection() {
 
 interface Expense {
   id: string
-  status: string
+  state: 'draft' | 'complete'
   amount: number | null
   currency: string | null
   merchant: string | null
   categories: string[] | null
   userId: string
-  createdAt: Date
-  processedAt: Date | null
+  baseAmount: number | null
+  receiptCapturedAt: Date
+  completedAt: Date | null
 }
 
 function ExportSection() {
@@ -838,13 +839,13 @@ function ExportSection() {
       'Status',
     ]
     const rows = expenses.map((expense) => [
-      formatDate(expense.createdAt),
+      formatDate(expense.receiptCapturedAt),
       formatAmount(expense.amount),
       expense.currency || '',
       expense.merchant || '',
       (expense.categories || []).join('; '),
       getUserName(expense.userId),
-      expense.status,
+      expense.state,
     ])
 
     const escapeCSV = (value: string): string => {
@@ -864,14 +865,14 @@ function ExportSection() {
 
   const generateJSON = (expenses: Expense[]): string => {
     const exportData = expenses.map((expense) => ({
-      date: formatDate(expense.createdAt),
+      date: formatDate(expense.receiptCapturedAt),
       amount: expense.amount !== null ? expense.amount / 100 : null,
       currency: expense.currency,
       merchant: expense.merchant,
       categories: expense.categories || [],
       user: getUserName(expense.userId),
       userId: expense.userId,
-      status: expense.status,
+      state: expense.state,
     }))
 
     return JSON.stringify(exportData, null, 2)
