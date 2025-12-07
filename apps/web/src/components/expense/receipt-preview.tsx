@@ -25,16 +25,8 @@ export function ReceiptPreview({ imageUrl, merchantName }: ReceiptPreviewProps) 
 
   return (
     <>
-      <ReceiptThumbnail
-        imageUrl={imageUrl}
-        onTap={() => setIsFullScreenOpen(true)}
-      />
-      <ImagePreviewDialog
-        open={isFullScreenOpen}
-        onOpenChange={setIsFullScreenOpen}
-        imageUrl={imageUrl}
-        alt={`Receipt from ${merchantName || 'Unknown Merchant'}`}
-      />
+      <ReceiptThumbnail imageUrl={imageUrl} onTap={() => setIsFullScreenOpen(true)} />
+      <ImagePreviewDialog open={isFullScreenOpen} onOpenChange={setIsFullScreenOpen} imageUrl={imageUrl} alt={`Receipt from ${merchantName || 'Unknown Merchant'}`} />
     </>
   )
 }
@@ -64,18 +56,14 @@ function ReceiptThumbnail({ imageUrl, onTap }: ReceiptThumbnailProps) {
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="bg-background/80 backdrop-blur-sm rounded-full px-4 py-2 flex items-center gap-2 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 group-active:opacity-100 transition-opacity shadow-lg">
           <ZoomIn className="w-4 h-4" />
-          <span className="text-xs font-mono uppercase tracking-wider">
-            View Receipt
-          </span>
+          <span className="text-xs font-mono uppercase tracking-wider">View Receipt</span>
         </div>
       </div>
 
       {/* Receipt badge */}
       <div className="absolute top-3 right-3 bg-background/60 backdrop-blur-md rounded-full px-3 py-1 flex items-center gap-2 pointer-events-none">
         <Receipt className="w-3 h-3 text-foreground" />
-        <span className="text-[10px] font-mono text-foreground uppercase tracking-wider">
-          Receipt
-        </span>
+        <span className="text-[10px] font-mono text-foreground uppercase tracking-wider">Receipt</span>
       </div>
     </button>
   )

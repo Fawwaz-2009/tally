@@ -11,11 +11,7 @@ interface FilterBarProps {
   users: User[] | undefined
 }
 
-export function FilterBar({
-  selectedUserId,
-  onUserFilterChange,
-  users,
-}: FilterBarProps) {
+export function FilterBar({ selectedUserId, onUserFilterChange, users }: FilterBarProps) {
   const isAllSelected = !selectedUserId
 
   return (
@@ -25,9 +21,7 @@ export function FilterBar({
         size="sm"
         onClick={() => onUserFilterChange(undefined)}
         className={`rounded-full h-8 px-4 text-xs font-mono transition-colors shrink-0 ${
-          isAllSelected
-            ? 'bg-foreground text-background hover:bg-foreground/90'
-            : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
+          isAllSelected ? 'bg-foreground text-background hover:bg-foreground/90' : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
         }`}
       >
         All

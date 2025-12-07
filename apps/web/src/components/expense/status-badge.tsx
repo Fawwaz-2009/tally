@@ -18,11 +18,7 @@ interface StatusBadgeProps {
  * - Draft + failed: red with warning icon (Extraction Failed)
  * - Complete: green with checkmark (if showComplete is true)
  */
-export function StatusBadge({
-  state,
-  extractionStatus,
-  showComplete = false,
-}: StatusBadgeProps) {
+export function StatusBadge({ state, extractionStatus, showComplete = false }: StatusBadgeProps) {
   if (state === 'draft') {
     if (extractionStatus === 'pending' || extractionStatus === 'processing') {
       return (
@@ -64,10 +60,7 @@ export function StatusBadge({
 /**
  * Get status label text based on state and extraction status
  */
-export function getStatusLabel(
-  state: string,
-  extractionStatus?: string,
-): string {
+export function getStatusLabel(state: string, extractionStatus?: string): string {
   if (state === 'draft') {
     if (extractionStatus === 'pending' || extractionStatus === 'processing') {
       return 'Processing'

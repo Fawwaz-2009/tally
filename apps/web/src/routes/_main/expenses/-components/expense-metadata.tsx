@@ -13,30 +13,21 @@ interface ExpenseMetadataProps {
 }
 
 export function ExpenseMetadata({ expense }: ExpenseMetadataProps) {
-  const showConversion =
-    expense.amount !== null &&
-    expense.baseAmount !== null &&
-    expense.currency !== expense.baseCurrency
+  const showConversion = expense.amount !== null && expense.baseAmount !== null && expense.currency !== expense.baseCurrency
 
   return (
     <div className="mt-8 pt-6 border-t">
-      <h3 className="text-sm font-medium text-muted-foreground mb-3">
-        Details
-      </h3>
+      <h3 className="text-sm font-medium text-muted-foreground mb-3">Details</h3>
       <dl className="space-y-2 text-sm">
         {showConversion && (
           <>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Original Amount</dt>
-              <dd className="font-mono tabular-nums">
-                {formatAmount(expense.amount, expense.currency)}
-              </dd>
+              <dd className="font-mono tabular-nums">{formatAmount(expense.amount, expense.currency)}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Base Amount</dt>
-              <dd className="font-mono tabular-nums font-medium">
-                {formatAmount(expense.baseAmount, expense.baseCurrency)}
-              </dd>
+              <dd className="font-mono tabular-nums font-medium">{formatAmount(expense.baseAmount, expense.baseCurrency)}</dd>
             </div>
           </>
         )}

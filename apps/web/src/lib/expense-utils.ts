@@ -3,10 +3,7 @@ import cc from 'currency-codes'
 /**
  * Format amount from cents to a localized currency string
  */
-export function formatAmount(
-  amountInCents: number | null,
-  currency: string | null = 'USD',
-): string {
+export function formatAmount(amountInCents: number | null, currency: string | null = 'USD'): string {
   if (amountInCents === null) return '$0.00'
 
   const amount = amountInCents / 100

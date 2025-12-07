@@ -1,12 +1,6 @@
 import { QueryClient } from '@tanstack/react-query'
 import superjson from 'superjson'
-import {
-  createTRPCClient,
-  httpBatchLink,
-  isNonJsonSerializable,
-  httpLink,
-  splitLink,
-} from '@trpc/client'
+import { createTRPCClient, httpBatchLink, isNonJsonSerializable, httpLink, splitLink } from '@trpc/client'
 import { createTRPCOptionsProxy } from '@trpc/tanstack-react-query'
 
 import { TRPCProvider } from '@/integrations/trpc-react'
@@ -71,13 +65,7 @@ export function getContext() {
   }
 }
 
-export function Provider({
-  children,
-  queryClient,
-}: {
-  children: React.ReactNode
-  queryClient: QueryClient
-}) {
+export function Provider({ children, queryClient }: { children: React.ReactNode; queryClient: QueryClient }) {
   return (
     <TRPCProvider trpcClient={getTRPCClient()} queryClient={queryClient}>
       {children}

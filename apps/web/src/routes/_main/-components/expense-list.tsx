@@ -23,19 +23,8 @@ interface ExpenseListProps {
   onClearFilters: () => void
 }
 
-export function ExpenseList({
-  expenses,
-  baseCurrency,
-  users,
-  isLoading,
-  isError,
-  errorMessage,
-  hasActiveFilters,
-  onClearFilters,
-}: ExpenseListProps) {
-  const [selectedExpense, setSelectedExpense] = useState<ExpenseCardData | null>(
-    null,
-  )
+export function ExpenseList({ expenses, baseCurrency, users, isLoading, isError, errorMessage, hasActiveFilters, onClearFilters }: ExpenseListProps) {
+  const [selectedExpense, setSelectedExpense] = useState<ExpenseCardData | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   const handleExpenseClick = (expense: ExpenseCardData) => {
@@ -52,9 +41,7 @@ export function ExpenseList({
     <div className="px-4">
       <div className="px-2 py-2 text-xs font-mono text-muted-foreground uppercase tracking-widest">
         {hasActiveFilters ? 'Filtered Expenses' : 'Recent Activity'}
-        {!isLoading && expenses.length > 0 && (
-          <span className="ml-2">({expenses.length})</span>
-        )}
+        {!isLoading && expenses.length > 0 && <span className="ml-2">({expenses.length})</span>}
       </div>
 
       {isLoading ? (
@@ -71,11 +58,7 @@ export function ExpenseList({
             </Button>
           </div>
         ) : (
-          <EmptyState
-            title="No expenses yet"
-            description="Add your first expense to get started!"
-            action={{ label: 'Add Expense', to: '/add' }}
-          />
+          <EmptyState title="No expenses yet" description="Add your first expense to get started!" action={{ label: 'Add Expense', to: '/add' }} />
         )
       ) : (
         <div className="space-y-1 pb-4">

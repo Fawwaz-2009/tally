@@ -14,3 +14,6 @@ todos.json
 
 # Runtime data (database, uploads)
 data/
+
+# Storybook build output
+storybook-static

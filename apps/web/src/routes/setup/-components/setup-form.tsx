@@ -10,27 +10,9 @@ import { cn } from '@/lib/utils'
 import { useTRPC } from '@/integrations/trpc-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 
 const setupFormSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
@@ -88,12 +70,8 @@ export function SetupForm() {
     <div className="min-h-screen flex flex-col justify-center px-6 py-12">
       <div className="max-w-sm mx-auto w-full">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold tracking-tight font-heading mb-2">
-            Welcome to Tally
-          </h1>
-          <p className="text-muted-foreground">
-            Let's get you set up in just a moment
-          </p>
+          <h1 className="text-4xl font-bold tracking-tight font-heading mb-2">Welcome to Tally</h1>
+          <p className="text-muted-foreground">Let's get you set up in just a moment</p>
         </div>
 
         <Form {...form}>
@@ -105,12 +83,7 @@ export function SetupForm() {
                 <FormItem>
                   <FormLabel>Your Name</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="John"
-                      autoComplete="given-name"
-                      autoFocus
-                      {...field}
-                    />
+                    <Input placeholder="John" autoComplete="given-name" autoFocus {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -126,18 +99,8 @@ export function SetupForm() {
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
-                            'w-full justify-between',
-                            !field.value && 'text-muted-foreground',
-                          )}
-                        >
-                          {field.value
-                            ? currencies.find((c) => c.value === field.value)
-                                ?.label
-                            : 'Search currencies...'}
+                        <Button variant="outline" role="combobox" className={cn('w-full justify-between', !field.value && 'text-muted-foreground')}>
+                          {field.value ? currencies.find((c) => c.value === field.value)?.label : 'Search currencies...'}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </FormControl>
@@ -150,9 +113,7 @@ export function SetupForm() {
                           const valueLower = value.toLowerCase()
 
                           // Check if the currency code (first 3 chars) starts with search
-                          const codeMatch = valueLower
-                            .slice(0, 3)
-                            .startsWith(searchLower)
+                          const codeMatch = valueLower.slice(0, 3).startsWith(searchLower)
                           if (codeMatch) return 1
 
                           // Fall back to checking if search appears anywhere in value
@@ -173,14 +134,7 @@ export function SetupForm() {
                                   field.onChange(currency.value)
                                 }}
                               >
-                                <Check
-                                  className={cn(
-                                    'mr-2 h-4 w-4',
-                                    field.value === currency.value
-                                      ? 'opacity-100'
-                                      : 'opacity-0',
-                                  )}
-                                />
+                                <Check className={cn('mr-2 h-4 w-4', field.value === currency.value ? 'opacity-100' : 'opacity-0')} />
                                 {currency.label}
                               </CommandItem>
                             ))}
@@ -194,12 +148,7 @@ export function SetupForm() {
               )}
             />
 
-            <Button
-              type="submit"
-              className="w-full"
-              size="lg"
-              disabled={isSubmitting}
-            >
+            <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
               {isSubmitting ? 'Setting up...' : 'Get Started'}
             </Button>
           </form>

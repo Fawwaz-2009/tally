@@ -35,13 +35,7 @@ interface AmountDisplayProps {
  * <AmountDisplay amount={123456} currency="USD" size="hero" />
  * ```
  */
-export function AmountDisplay({
-  amount,
-  currency,
-  size = 'md',
-  className,
-  isLoading = false,
-}: AmountDisplayProps) {
+export function AmountDisplay({ amount, currency, size = 'md', className, isLoading = false }: AmountDisplayProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const textRef = useRef<HTMLSpanElement>(null)
   const [fontSize, setFontSize] = useState(sizeConfig[size].maxFontSize)
@@ -68,7 +62,7 @@ export function AmountDisplay({
         const scale = containerWidth / textWidth
         const newFontSize = Math.max(
           minFontSize,
-          Math.floor(maxFontSize * scale * 0.95) // 0.95 for a bit of padding
+          Math.floor(maxFontSize * scale * 0.95), // 0.95 for a bit of padding
         )
         setFontSize(newFontSize)
       }
@@ -85,15 +79,8 @@ export function AmountDisplay({
   }
 
   return (
-    <div
-      ref={containerRef}
-      className={cn('w-full overflow-hidden', className)}
-    >
-      <span
-        ref={textRef}
-        className="font-mono font-bold tracking-tighter tabular-nums whitespace-nowrap block"
-        style={{ fontSize: `${fontSize}px`, lineHeight: 1.1 }}
-      >
+    <div ref={containerRef} className={cn('w-full overflow-hidden', className)}>
+      <span ref={textRef} className="font-mono font-bold tracking-tighter tabular-nums whitespace-nowrap block" style={{ fontSize: `${fontSize}px`, lineHeight: 1.1 }}>
         {formattedAmount}
       </span>
     </div>

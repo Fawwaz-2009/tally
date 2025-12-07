@@ -6,10 +6,7 @@ interface StatusBannersProps {
   processingCount: number
 }
 
-export function StatusBanners({
-  needsReviewCount,
-  processingCount,
-}: StatusBannersProps) {
+export function StatusBanners({ needsReviewCount, processingCount }: StatusBannersProps) {
   if (needsReviewCount === 0 && processingCount === 0) return null
 
   return (
@@ -22,18 +19,13 @@ export function StatusBanners({
                 <AlertTriangle size={16} />
               </div>
               <div>
-                <div className="text-sm font-bold text-orange-500 leading-none mb-1">
-                  Action Required
-                </div>
+                <div className="text-sm font-bold text-orange-500 leading-none mb-1">Action Required</div>
                 <div className="text-xs text-muted-foreground">
-                  {needsReviewCount} expense{needsReviewCount !== 1 ? 's' : ''}{' '}
-                  need review
+                  {needsReviewCount} expense{needsReviewCount !== 1 ? 's' : ''} need review
                 </div>
               </div>
             </div>
-            <div className="text-orange-500 text-xs font-mono uppercase tracking-wider group-hover:underline decoration-orange-500/50">
-              Resolve
-            </div>
+            <div className="text-orange-500 text-xs font-mono uppercase tracking-wider group-hover:underline decoration-orange-500/50">Resolve</div>
           </div>
         </Link>
       )}
@@ -44,9 +36,7 @@ export function StatusBanners({
             <Loader2 size={16} className="animate-spin" />
           </div>
           <div>
-            <div className="text-sm font-bold text-blue-500 leading-none mb-1">
-              Processing
-            </div>
+            <div className="text-sm font-bold text-blue-500 leading-none mb-1">Processing</div>
             <div className="text-xs text-muted-foreground">
               {processingCount} expense{processingCount !== 1 ? 's' : ''} pending
             </div>

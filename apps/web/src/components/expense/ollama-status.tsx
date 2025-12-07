@@ -47,11 +47,7 @@ export function OllamaStatus({ isLoading, data }: OllamaStatusProps) {
           </span>
         )}
       </div>
-      {data && !data.available && (
-        <p className="text-xs text-muted-foreground mt-1 ml-6">
-          Make sure Ollama is running at {data.host}
-        </p>
-      )}
+      {data && !data.available && <p className="text-xs text-muted-foreground mt-1 ml-6">Make sure Ollama is running at {data.host}</p>}
       {data?.available && !data.modelAvailable && data.models.length > 0 && (
         <p className="text-xs text-muted-foreground mt-1 ml-6">
           Available: {data.models.slice(0, 3).join(', ')}

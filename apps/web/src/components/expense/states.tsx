@@ -1,11 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import {
-  Loader2,
-  AlertCircle,
-  Plus,
-  CheckCircle,
-  TrendingUp,
-} from 'lucide-react'
+import { Loader2, AlertCircle, Plus, CheckCircle, TrendingUp } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 
@@ -20,12 +14,7 @@ interface EmptyStateProps {
   }
 }
 
-export function EmptyState({
-  icon: Icon = Plus,
-  title,
-  description,
-  action,
-}: EmptyStateProps) {
+export function EmptyState({ icon: Icon = Plus, title, description, action }: EmptyStateProps) {
   return (
     <div className="text-center py-20 text-muted-foreground">
       <Icon className="w-12 h-12 mx-auto mb-4 opacity-50" />
@@ -64,11 +53,7 @@ interface ErrorStateProps {
   }
 }
 
-export function ErrorState({
-  title = 'Failed to load',
-  message,
-  action,
-}: ErrorStateProps) {
+export function ErrorState({ title = 'Failed to load', message, action }: ErrorStateProps) {
   return (
     <div className="text-center py-20 text-muted-foreground">
       <AlertCircle className="w-8 h-8 mx-auto mb-2 text-destructive" />
@@ -96,18 +81,12 @@ interface SuccessStateProps {
   }
 }
 
-export function SuccessState({
-  title,
-  description,
-  action,
-}: SuccessStateProps) {
+export function SuccessState({ title, description, action }: SuccessStateProps) {
   return (
     <div className="text-center py-20">
       <CheckCircle className="w-12 h-12 mx-auto mb-4 text-green-500" />
       <h2 className="text-xl font-semibold mb-2">{title}</h2>
-      {description && (
-        <p className="text-muted-foreground mb-6">{description}</p>
-      )}
+      {description && <p className="text-muted-foreground mb-6">{description}</p>}
       {action &&
         (action.to ? (
           <Button asChild>

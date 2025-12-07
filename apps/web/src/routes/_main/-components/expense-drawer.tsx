@@ -6,28 +6,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTRPC } from '@/integrations/trpc-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-} from '@/components/ui/drawer'
-import {
-  getScreenshotUrl,
-  ExpenseForm,
-  AmountDisplay,
-  ReceiptPreview,
-  type ExpenseFormData,
-} from '@/components/expense'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer'
+import { getScreenshotUrl, ExpenseForm, AmountDisplay, ReceiptPreview, type ExpenseFormData } from '@/components/expense'
 
 import type { ExpenseCardData } from './expense-card'
 
@@ -39,13 +20,7 @@ interface ExpenseDrawerProps {
   userName?: string
 }
 
-export function ExpenseDrawer({
-  open,
-  onOpenChange,
-  expense,
-  baseCurrency,
-  userName,
-}: ExpenseDrawerProps) {
+export function ExpenseDrawer({ open, onOpenChange, expense, baseCurrency, userName }: ExpenseDrawerProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const trpc = useTRPC()
@@ -110,25 +85,19 @@ export function ExpenseDrawer({
   const displayDate = expense.expenseDate || expense.createdAt
   const screenshotUrl = getScreenshotUrl(expense.receiptImageKey)
   const displayAmount = expense.baseAmount ?? expense.amount
-  const isDifferentCurrency =
-    expense.currency && expense.currency !== baseCurrency
+  const isDifferentCurrency = expense.currency && expense.currency !== baseCurrency
 
   return (
     <>
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent className="bg-background border-border text-foreground max-h-[95vh] flex flex-col">
           <div className="mx-auto w-full max-w-sm flex-1 overflow-auto">
-            <ReceiptPreview
-              imageUrl={screenshotUrl}
-              merchantName={expense.merchant}
-            />
+            <ReceiptPreview imageUrl={screenshotUrl} merchantName={expense.merchant} />
 
             <DrawerHeader className="text-left pt-6 relative z-10 -mt-8">
               {isEditing ? (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-mono uppercase tracking-wider text-muted-foreground">
-                    Editing Expense
-                  </span>
+                  <span className="text-sm font-mono uppercase tracking-wider text-muted-foreground">Editing Expense</span>
                 </div>
               ) : (
                 <>
@@ -136,10 +105,7 @@ export function ExpenseDrawer({
                     {expense.merchant || 'Unknown Merchant'}
                   </DrawerTitle>
                   <DrawerDescription className="text-muted-foreground font-mono mt-2">
-                    {format(
-                      new Date(displayDate),
-                      "EEEE, MMMM do, yyyy 'at' h:mm a",
-                    )}
+                    {format(new Date(displayDate), "EEEE, MMMM do, yyyy 'at' h:mm a")}
                   </DrawerDescription>
                 </>
               )}
@@ -164,19 +130,10 @@ export function ExpenseDrawer({
                 <>
                   {/* Amount Section */}
                   <div className="border-b border-dashed border-border pb-6">
-                    <AmountDisplay
-                      amount={displayAmount}
-                      currency={baseCurrency}
-                      size="xl"
-                    />
+                    <AmountDisplay amount={displayAmount} currency={baseCurrency} size="xl" />
                     {isDifferentCurrency && expense.amount !== null && (
                       <div className="text-sm text-muted-foreground font-mono mt-2">
-                        <AmountDisplay
-                          amount={expense.amount}
-                          currency={expense.currency}
-                          size="sm"
-                          className="text-muted-foreground"
-                        />
+                        <AmountDisplay amount={expense.amount} currency={expense.currency} size="sm" className="text-muted-foreground" />
                       </div>
                     )}
                   </div>
@@ -185,16 +142,10 @@ export function ExpenseDrawer({
                   <div className="space-y-4">
                     {expense.categories && expense.categories.length > 0 && (
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground uppercase tracking-wider font-mono">
-                          Category
-                        </span>
+                        <span className="text-sm text-muted-foreground uppercase tracking-wider font-mono">Category</span>
                         <div className="flex gap-2 flex-wrap justify-end">
                           {expense.categories.map((cat) => (
-                            <Badge
-                              key={cat}
-                              variant="secondary"
-                              className="bg-muted text-muted-foreground hover:bg-muted/80 font-mono uppercase text-[10px]"
-                            >
+                            <Badge key={cat} variant="secondary" className="bg-muted text-muted-foreground hover:bg-muted/80 font-mono uppercase text-[10px]">
                               {cat}
                             </Badge>
                           ))}
@@ -204,13 +155,9 @@ export function ExpenseDrawer({
 
                     {userName && (
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground uppercase tracking-wider font-mono">
-                          Paid By
-                        </span>
+                        <span className="text-sm text-muted-foreground uppercase tracking-wider font-mono">Paid By</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold uppercase text-foreground">
-                            {userName}
-                          </span>
+                          <span className="text-sm font-bold uppercase text-foreground">{userName}</span>
                         </div>
                       </div>
                     )}
@@ -221,11 +168,7 @@ export function ExpenseDrawer({
               {/* Actions */}
               <div className="pt-4 space-y-3 pb-8">
                 {isEditing ? (
-                  <Button
-                    variant="outline"
-                    className="w-full rounded-xl h-12 font-bold uppercase tracking-wider"
-                    onClick={() => setIsEditing(false)}
-                  >
+                  <Button variant="outline" className="w-full rounded-xl h-12 font-bold uppercase tracking-wider" onClick={() => setIsEditing(false)}>
                     Cancel
                   </Button>
                 ) : (
@@ -236,11 +179,7 @@ export function ExpenseDrawer({
                     >
                       <Pencil className="mr-2 h-3 w-3" /> Edit
                     </Button>
-                    <Button
-                      variant="destructive"
-                      className="rounded-xl h-12 font-bold uppercase tracking-wider"
-                      onClick={() => setDeleteDialogOpen(true)}
-                    >
+                    <Button variant="destructive" className="rounded-xl h-12 font-bold uppercase tracking-wider" onClick={() => setDeleteDialogOpen(true)}>
                       <Trash2 className="mr-2 h-3 w-3" /> Delete
                     </Button>
                   </div>
@@ -256,23 +195,13 @@ export function ExpenseDrawer({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Expense</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this expense? This action cannot
-              be undone.
-            </DialogDescription>
+            <DialogDescription>Are you sure you want to delete this expense? This action cannot be undone.</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={deleteMutation.isPending}
-            >
+            <Button variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>
               {deleteMutation.isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />

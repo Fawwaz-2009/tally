@@ -7,10 +7,7 @@ import { nitro } from 'nitro/vite'
 import { builtinModules } from 'node:module'
 
 // Node.js built-ins to externalize during SSR
-const nodeBuiltins = [
-  ...builtinModules,
-  ...builtinModules.map((m) => `node:${m}`),
-]
+const nodeBuiltins = [...builtinModules, ...builtinModules.map((m) => `node:${m}`)]
 
 const config = defineConfig(({ mode }) => {
   // Load all env vars (not just VITE_* prefixed) for server-side use

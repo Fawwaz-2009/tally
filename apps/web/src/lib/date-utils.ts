@@ -12,9 +12,7 @@ export type DateRange = 'last-7-days' | 'this-month' | 'last-month' | 'all-time'
 export function formatDate(date: Date | string): string {
   const now = new Date()
   const expenseDate = new Date(date)
-  const diffInDays = Math.floor(
-    (now.getTime() - expenseDate.getTime()) / (1000 * 60 * 60 * 24),
-  )
+  const diffInDays = Math.floor((now.getTime() - expenseDate.getTime()) / (1000 * 60 * 60 * 24))
 
   if (diffInDays === 0) {
     return 'Today'
@@ -26,8 +24,7 @@ export function formatDate(date: Date | string): string {
     return expenseDate.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      year:
-        expenseDate.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
+      year: expenseDate.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
     })
   }
 }
@@ -35,9 +32,7 @@ export function formatDate(date: Date | string): string {
 /**
  * Format date for HTML date input (YYYY-MM-DD)
  */
-export function formatDateForInput(
-  date: Date | string | null | undefined,
-): string {
+export function formatDateForInput(date: Date | string | null | undefined): string {
   if (!date) return ''
   const d = new Date(date)
   return d.toISOString().split('T')[0]
@@ -46,9 +41,7 @@ export function formatDateForInput(
 /**
  * Get date range boundaries for filtering
  */
-export function getDateRangeBounds(
-  dateRange: DateRange | undefined,
-): { start: Date; end: Date } | null {
+export function getDateRangeBounds(dateRange: DateRange | undefined): { start: Date; end: Date } | null {
   if (!dateRange || dateRange === 'all-time') return null
 
   const now = new Date()

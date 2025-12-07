@@ -22,10 +22,7 @@ export const usersRouter = {
           .string()
           .min(1)
           .max(50)
-          .regex(
-            /^[a-z0-9-]+$/,
-            'ID must be lowercase alphanumeric with hyphens',
-          ),
+          .regex(/^[a-z0-9-]+$/, 'ID must be lowercase alphanumeric with hyphens'),
         name: z.string().min(1).max(100),
       }),
     )

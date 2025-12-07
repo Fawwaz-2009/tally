@@ -5,12 +5,7 @@ import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react'
 
 import { useTRPC } from '@/integrations/trpc-react'
 import { Button } from '@/components/ui/button'
-import {
-  getScreenshotUrl,
-  StatusBadge,
-  ExpenseForm,
-  type ExpenseFormData,
-} from '@/components/expense'
+import { getScreenshotUrl, StatusBadge, ExpenseForm, type ExpenseFormData } from '@/components/expense'
 
 import { Notification, ExpenseMetadata, ReviewWarning } from './-components'
 
@@ -30,9 +25,7 @@ function ExpenseDetail() {
   } | null>(null)
 
   const expenseQuery = useQuery(trpc.expenses.getById.queryOptions({ id }))
-  const pendingReviewQuery = useQuery(
-    trpc.expenses.getPendingReview.queryOptions(),
-  )
+  const pendingReviewQuery = useQuery(trpc.expenses.getPendingReview.queryOptions())
 
   const getNextExpenseId = (): string | null => {
     const expenses = pendingReviewQuery.data || []
@@ -192,9 +185,7 @@ function ExpenseDetail() {
         <div className="text-center py-20">
           <AlertCircle className="w-12 h-12 mx-auto mb-4 text-destructive" />
           <h2 className="text-xl font-semibold mb-2">Failed to load expense</h2>
-          <p className="text-muted-foreground mb-6">
-            {expenseQuery.error.message}
-          </p>
+          <p className="text-muted-foreground mb-6">{expenseQuery.error.message}</p>
           <Button asChild>
             <Link to="/">Back to Dashboard</Link>
           </Button>
@@ -210,9 +201,7 @@ function ExpenseDetail() {
         <div className="text-center py-20">
           <AlertCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
           <h2 className="text-xl font-semibold mb-2">Expense not found</h2>
-          <p className="text-muted-foreground mb-6">
-            This expense may have been deleted.
-          </p>
+          <p className="text-muted-foreground mb-6">This expense may have been deleted.</p>
           <Button asChild>
             <Link to="/">Back to Dashboard</Link>
           </Button>
@@ -227,13 +216,7 @@ function ExpenseDetail() {
 
   return (
     <div className="px-6 pt-6 pb-24">
-      {notification && (
-        <Notification
-          message={notification.message}
-          type={notification.type}
-          onClose={() => setNotification(null)}
-        />
-      )}
+      {notification && <Notification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />}
 
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
@@ -245,17 +228,11 @@ function ExpenseDetail() {
         <div className="flex-1">
           <h1 className="text-2xl font-bold tracking-tight">Expense Details</h1>
         </div>
-        <StatusBadge
-          state={expense.state}
-          extractionStatus={expense.extractionStatus}
-          showComplete
-        />
+        <StatusBadge state={expense.state} extractionStatus={expense.extractionStatus} showComplete />
       </div>
 
       {/* Review warning */}
-      {needsReview && expense.extractionError && (
-        <ReviewWarning errorMessage={expense.extractionError} />
-      )}
+      {needsReview && expense.extractionError && <ReviewWarning errorMessage={expense.extractionError} />}
 
       {/* Form */}
       <ExpenseForm

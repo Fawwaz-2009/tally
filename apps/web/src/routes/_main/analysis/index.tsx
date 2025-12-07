@@ -5,33 +5,13 @@ import { Users, Store, Tag } from 'lucide-react'
 
 import { useTRPC } from '@/integrations/trpc-react'
 import { PageHeader } from '@/components/layout/page-header'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  LoadingState,
-  ErrorState,
-  AnalyticsEmptyState,
-  type DateRange,
-} from '@/components/expense'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { LoadingState, ErrorState, AnalyticsEmptyState, type DateRange } from '@/components/expense'
 
-import {
-  TotalSpendingCard,
-  CategoryBreakdownCard,
-  BreakdownCard,
-  userColors,
-  merchantColors,
-  useAnalytics,
-} from './-components'
+import { TotalSpendingCard, CategoryBreakdownCard, BreakdownCard, userColors, merchantColors, useAnalytics } from './-components'
 
 const analysisSearchSchema = z.object({
-  dateRange: z
-    .enum(['last-7-days', 'this-month', 'last-month', 'all-time'])
-    .default('this-month'),
+  dateRange: z.enum(['last-7-days', 'this-month', 'last-month', 'all-time']).default('this-month'),
 })
 
 export const Route = createFileRoute('/_main/analysis/')({
@@ -46,16 +26,10 @@ function Analysis() {
 
   const expensesQuery = useQuery(trpc.expenses.list.queryOptions())
   const usersQuery = useQuery(trpc.users.list.queryOptions())
-  const baseCurrencyQuery = useQuery(
-    trpc.settings.getBaseCurrency.queryOptions(),
-  )
+  const baseCurrencyQuery = useQuery(trpc.settings.getBaseCurrency.queryOptions())
 
   const baseCurrency = baseCurrencyQuery.data ?? 'USD'
-  const analytics = useAnalytics(
-    expensesQuery.data,
-    usersQuery.data,
-    dateRange as DateRange,
-  )
+  const analytics = useAnalytics(expensesQuery.data, usersQuery.data, dateRange as DateRange)
 
   const handleDateRangeChange = (value: string) => {
     navigate({
@@ -66,8 +40,7 @@ function Analysis() {
 
   const isLoading = expensesQuery.isLoading || usersQuery.isLoading
   const isError = expensesQuery.isError || usersQuery.isError
-  const errorMessage =
-    expensesQuery.error?.message || usersQuery.error?.message || 'Unknown error'
+  const errorMessage = expensesQuery.error?.message || usersQuery.error?.message || 'Unknown error'
 
   return (
     <div className="px-4 pt-12 pb-24">
@@ -93,12 +66,7 @@ function Analysis() {
         <AnalyticsEmptyState />
       ) : (
         <div className="space-y-6">
-          <TotalSpendingCard
-            totalSpending={analytics.totalSpending}
-            expenseCount={analytics.expenseCount}
-            dateRange={dateRange as DateRange}
-            currency={baseCurrency}
-          />
+          <TotalSpendingCard totalSpending={analytics.totalSpending} expenseCount={analytics.expenseCount} dateRange={dateRange as DateRange} currency={baseCurrency} />
 
           <CategoryBreakdownCard
             icon={Tag}
@@ -108,14 +76,7 @@ function Analysis() {
             currency={baseCurrency}
           />
 
-          <BreakdownCard
-            icon={Users}
-            title="By User"
-            subtitle="Spending per person"
-            items={analytics.userBreakdown}
-            colors={userColors}
-            currency={baseCurrency}
-          />
+          <BreakdownCard icon={Users} title="By User" subtitle="Spending per person" items={analytics.userBreakdown} colors={userColors} currency={baseCurrency} />
 
           <BreakdownCard
             icon={Store}

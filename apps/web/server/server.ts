@@ -5,12 +5,7 @@
 import { env } from '@/env'
 
 import app from './hono'
-import {
-  initDatabase,
-  initRuntimeEnvs,
-  initBucket,
-  initFullEnv,
-} from '@repo/data-ops/layers'
+import { initDatabase, initRuntimeEnvs, initBucket, initFullEnv } from '@repo/data-ops/layers'
 import { createServerTRPCClient } from '@/integrations/trpc-server'
 import { initTRPCClient } from '@/integrations/root-provider'
 

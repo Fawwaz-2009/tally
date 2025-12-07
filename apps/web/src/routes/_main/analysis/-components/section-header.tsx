@@ -6,11 +6,7 @@ interface SectionHeaderProps {
   subtitle?: string
 }
 
-export function SectionHeader({
-  icon: Icon,
-  title,
-  subtitle,
-}: SectionHeaderProps) {
+export function SectionHeader({ icon: Icon, title, subtitle }: SectionHeaderProps) {
   return (
     <CardHeader className="pb-4">
       <CardTitle className="flex items-center gap-2 text-lg">

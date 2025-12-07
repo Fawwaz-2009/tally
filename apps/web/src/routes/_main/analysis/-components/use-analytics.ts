@@ -40,18 +40,11 @@ interface Analytics {
   }>
 }
 
-export function useAnalytics(
-  expenses: Expense[] | undefined,
-  users: User[] | undefined,
-  dateRange: DateRange,
-): Analytics | null {
+export function useAnalytics(expenses: Expense[] | undefined, users: User[] | undefined, dateRange: DateRange): Analytics | null {
   return useMemo(() => {
     if (!expenses) return null
 
-    let filteredExpenses = expenses.filter(
-      (e) =>
-        e.state === 'complete' && (e.baseAmount !== null || e.amount !== null),
-    )
+    let filteredExpenses = expenses.filter((e) => e.state === 'complete' && (e.baseAmount !== null || e.amount !== null))
 
     const bounds = getDateRangeBounds(dateRange)
     if (bounds) {
@@ -65,10 +58,7 @@ export function useAnalytics(
 
     const getBaseAmount = (e: Expense) => e.baseAmount ?? e.amount ?? 0
 
-    const totalSpending = filteredExpenses.reduce(
-      (sum, e) => sum + getBaseAmount(e),
-      0,
-    )
+    const totalSpending = filteredExpenses.reduce((sum, e) => sum + getBaseAmount(e), 0)
 
     const userMap = new Map(users?.map((u) => [u.id, u.name]) || [])
 
@@ -98,10 +88,7 @@ export function useAnalytics(
     // User breakdown
     const userAmountMap = new Map<string, number>()
     filteredExpenses.forEach((e) => {
-      userAmountMap.set(
-        e.userId,
-        (userAmountMap.get(e.userId) || 0) + getBaseAmount(e),
-      )
+      userAmountMap.set(e.userId, (userAmountMap.get(e.userId) || 0) + getBaseAmount(e))
     })
     const userBreakdown = Array.from(userAmountMap.entries())
       .map(([userId, amount]) => ({
@@ -115,10 +102,7 @@ export function useAnalytics(
     const merchantMap = new Map<string, number>()
     filteredExpenses.forEach((e) => {
       const merchant = e.merchant || 'Unknown'
-      merchantMap.set(
-        merchant,
-        (merchantMap.get(merchant) || 0) + getBaseAmount(e),
-      )
+      merchantMap.set(merchant, (merchantMap.get(merchant) || 0) + getBaseAmount(e))
     })
     const merchantBreakdown = Array.from(merchantMap.entries())
       .map(([merchant, amount]) => ({

@@ -23,15 +23,13 @@ export const settingsRouter = {
     return frontendRuntime.runPromise(program)
   }),
 
-  setBaseCurrency: publicProcedure
-    .input(z.object({ currency: z.string().length(3) }))
-    .mutation(async ({ input }) => {
-      const program = Effect.gen(function* () {
-        const service = yield* SettingsService
-        return yield* service.setBaseCurrency(input.currency)
-      })
-      return frontendRuntime.runPromise(program)
-    }),
+  setBaseCurrency: publicProcedure.input(z.object({ currency: z.string().length(3) })).mutation(async ({ input }) => {
+    const program = Effect.gen(function* () {
+      const service = yield* SettingsService
+      return yield* service.setBaseCurrency(input.currency)
+    })
+    return frontendRuntime.runPromise(program)
+  }),
 
   completeSetup: publicProcedure
     .input(

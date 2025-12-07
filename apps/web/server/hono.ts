@@ -7,8 +7,6 @@ import * as path from 'node:path'
 import { trpcRouter } from './trpc/router/index'
 import { env } from '@/env'
 
-
-
 const app = new Hono()
 
 // Health check endpoint for Docker/Kubernetes

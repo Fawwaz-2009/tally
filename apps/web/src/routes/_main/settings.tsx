@@ -4,58 +4,17 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import {
-  Users,
-  Plus,
-  Copy,
-  Check,
-  ExternalLink,
-  Download,
-  FileJson,
-  FileSpreadsheet,
-  Tag,
-  Sun,
-  Moon,
-  Monitor,
-} from 'lucide-react'
+import { Users, Plus, Copy, Check, ExternalLink, Download, FileJson, FileSpreadsheet, Tag, Sun, Moon, Monitor } from 'lucide-react'
 
 import { useTRPC } from '@/integrations/trpc-react'
 import { useTheme } from '@/components/theme-provider'
 import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 export const Route = createFileRoute('/_main/settings')({ component: Settings })
 
 const addUserFormSchema = z.object({
@@ -63,10 +22,7 @@ const addUserFormSchema = z.object({
     .string()
     .min(1, 'ID is required')
     .max(50)
-    .regex(
-      /^[a-z0-9-]+$/,
-      'ID must be lowercase alphanumeric with hyphens only',
-    ),
+    .regex(/^[a-z0-9-]+$/, 'ID must be lowercase alphanumeric with hyphens only'),
   name: z.string().min(1, 'Name is required').max(100),
 })
 
@@ -82,9 +38,7 @@ function Settings() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
 
   const usersQuery = useQuery(trpc.users.list.queryOptions())
-  const baseCurrencyQuery = useQuery(
-    trpc.settings.getBaseCurrency.queryOptions(),
-  )
+  const baseCurrencyQuery = useQuery(trpc.settings.getBaseCurrency.queryOptions())
 
   const form = useForm<AddUserFormValues>({
     resolver: zodResolver(addUserFormSchema),
@@ -110,10 +64,7 @@ function Settings() {
   }
 
   // Generate ID from name
-  const handleNameChange = (
-    name: string,
-    onChange: (value: string) => void,
-  ) => {
+  const handleNameChange = (name: string, onChange: (value: string) => void) => {
     onChange(name)
     // Auto-generate ID from name if ID is empty or was auto-generated
     const currentId = form.getValues('id')
@@ -143,9 +94,7 @@ function Settings() {
         <Card>
           <CardHeader>
             <CardTitle>Appearance</CardTitle>
-            <CardDescription>
-              Customize how Tally looks on your device
-            </CardDescription>
+            <CardDescription>Customize how Tally looks on your device</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="bg-muted rounded-xl p-1 flex">
@@ -180,17 +129,13 @@ function Settings() {
         <Card>
           <CardHeader>
             <CardTitle>Base Currency</CardTitle>
-            <CardDescription>
-              Your default currency for expense tracking
-            </CardDescription>
+            <CardDescription>Your default currency for expense tracking</CardDescription>
           </CardHeader>
           <CardContent>
             {baseCurrencyQuery.isLoading ? (
               <div className="text-muted-foreground">Loading...</div>
             ) : baseCurrencyQuery.data ? (
-              <div className="inline-flex items-center px-3 py-1.5 bg-muted rounded-md font-mono text-lg">
-                {baseCurrencyQuery.data}
-              </div>
+              <div className="inline-flex items-center px-3 py-1.5 bg-muted rounded-md font-mono text-lg">{baseCurrencyQuery.data}</div>
             ) : (
               <div className="text-muted-foreground">Not set</div>
             )}
@@ -206,9 +151,7 @@ function Settings() {
                   <Users className="w-5 h-5" />
                   Users
                 </CardTitle>
-                <CardDescription className="mt-1">
-                  People who can submit expenses via the API
-                </CardDescription>
+                <CardDescription className="mt-1">People who can submit expenses via the API</CardDescription>
               </div>
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
@@ -220,16 +163,10 @@ function Settings() {
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Add New User</DialogTitle>
-                    <DialogDescription>
-                      Create a new user who can submit expenses. Each user gets
-                      a unique ID for the iOS Shortcut.
-                    </DialogDescription>
+                    <DialogDescription>Create a new user who can submit expenses. Each user gets a unique ID for the iOS Shortcut.</DialogDescription>
                   </DialogHeader>
                   <Form {...form}>
-                    <form
-                      onSubmit={form.handleSubmit(onSubmit)}
-                      className="space-y-4"
-                    >
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                       <FormField
                         control={form.control}
                         name="name"
@@ -237,21 +174,9 @@ function Settings() {
                           <FormItem>
                             <FormLabel>Name</FormLabel>
                             <FormControl>
-                              <Input
-                                placeholder="Partner"
-                                autoFocus
-                                {...field}
-                                onChange={(e) =>
-                                  handleNameChange(
-                                    e.target.value,
-                                    field.onChange,
-                                  )
-                                }
-                              />
+                              <Input placeholder="Partner" autoFocus {...field} onChange={(e) => handleNameChange(e.target.value, field.onChange)} />
                             </FormControl>
-                            <FormDescription>
-                              Display name for this user
-                            </FormDescription>
+                            <FormDescription>Display name for this user</FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -265,19 +190,13 @@ function Settings() {
                             <FormControl>
                               <Input placeholder="partner" {...field} />
                             </FormControl>
-                            <FormDescription>
-                              Unique identifier used in the iOS Shortcut
-                            </FormDescription>
+                            <FormDescription>Unique identifier used in the iOS Shortcut</FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                       <DialogFooter>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setDialogOpen(false)}
-                        >
+                        <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                           Cancel
                         </Button>
                         <Button type="submit" disabled={createUser.isPending}>
@@ -299,30 +218,20 @@ function Settings() {
                   <div
                     key={user.id}
                     className={`flex items-center justify-between p-3 rounded-lg border transition-colors cursor-pointer hover:bg-muted/50 ${
-                      selectedUserId === user.id
-                        ? 'border-primary bg-primary/5'
-                        : ''
+                      selectedUserId === user.id ? 'border-primary bg-primary/5' : ''
                     }`}
-                    onClick={() =>
-                      setSelectedUserId(
-                        selectedUserId === user.id ? null : user.id,
-                      )
-                    }
+                    onClick={() => setSelectedUserId(selectedUserId === user.id ? null : user.id)}
                   >
                     <div>
                       <div className="font-medium">{user.name}</div>
-                      <div className="text-sm text-muted-foreground font-mono">
-                        {user.id}
-                      </div>
+                      <div className="text-sm text-muted-foreground font-mono">{user.id}</div>
                     </div>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation()
-                        setSelectedUserId(
-                          selectedUserId === user.id ? null : user.id,
-                        )
+                        setSelectedUserId(selectedUserId === user.id ? null : user.id)
                       }}
                     >
                       {selectedUserId === user.id ? 'Hide' : 'Setup'}
@@ -334,9 +243,7 @@ function Settings() {
               <div className="text-center py-6 text-muted-foreground">
                 <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
                 <p>No users yet</p>
-                <p className="text-sm">
-                  Add a user to get started with expense tracking
-                </p>
+                <p className="text-sm">Add a user to get started with expense tracking</p>
               </div>
             )}
           </CardContent>
@@ -362,10 +269,7 @@ interface ShortcutInstructionsProps {
 function ShortcutInstructions({ userId }: ShortcutInstructionsProps) {
   const [copiedField, setCopiedField] = useState<'url' | 'userId' | null>(null)
 
-  const apiEndpoint =
-    typeof window !== 'undefined'
-      ? `${window.location.origin}/api/expense`
-      : '/api/expense'
+  const apiEndpoint = typeof window !== 'undefined' ? `${window.location.origin}/api/expense` : '/api/expense'
 
   const copyToClipboard = async (text: string, field: 'url' | 'userId') => {
     try {
@@ -381,50 +285,26 @@ function ShortcutInstructions({ userId }: ShortcutInstructionsProps) {
     <Card>
       <CardHeader>
         <CardTitle>iOS Shortcut Setup</CardTitle>
-        <CardDescription>
-          Set up the iOS Shortcut to submit expenses from your phone
-        </CardDescription>
+        <CardDescription>Set up the iOS Shortcut to submit expenses from your phone</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Configuration Values */}
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium mb-2 block">
-              API Endpoint
-            </label>
+            <label className="text-sm font-medium mb-2 block">API Endpoint</label>
             <div className="flex items-center gap-2">
-              <code className="flex-1 px-3 py-2 bg-muted rounded-md text-sm font-mono break-all">
-                {apiEndpoint}
-              </code>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => copyToClipboard(apiEndpoint, 'url')}
-              >
-                {copiedField === 'url' ? (
-                  <Check className="w-4 h-4 text-green-600" />
-                ) : (
-                  <Copy className="w-4 h-4" />
-                )}
+              <code className="flex-1 px-3 py-2 bg-muted rounded-md text-sm font-mono break-all">{apiEndpoint}</code>
+              <Button variant="outline" size="icon" onClick={() => copyToClipboard(apiEndpoint, 'url')}>
+                {copiedField === 'url' ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
               </Button>
             </div>
           </div>
           <div>
             <label className="text-sm font-medium mb-2 block">User ID</label>
             <div className="flex items-center gap-2">
-              <code className="flex-1 px-3 py-2 bg-muted rounded-md text-sm font-mono">
-                {userId}
-              </code>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => copyToClipboard(userId, 'userId')}
-              >
-                {copiedField === 'userId' ? (
-                  <Check className="w-4 h-4 text-green-600" />
-                ) : (
-                  <Copy className="w-4 h-4" />
-                )}
+              <code className="flex-1 px-3 py-2 bg-muted rounded-md text-sm font-mono">{userId}</code>
+              <Button variant="outline" size="icon" onClick={() => copyToClipboard(userId, 'userId')}>
+                {copiedField === 'userId' ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
               </Button>
             </div>
           </div>
@@ -435,93 +315,50 @@ function ShortcutInstructions({ userId }: ShortcutInstructionsProps) {
           <h4 className="font-medium mb-4">Setup Instructions</h4>
           <ol className="space-y-4 text-sm">
             <li className="flex gap-3">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
-                1
-              </span>
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">1</span>
               <div>
-                <p className="font-medium">
-                  Open the Shortcuts app on your iPhone
-                </p>
-                <p className="text-muted-foreground mt-1">
-                  Create a new shortcut or import the Tally expense shortcut
-                </p>
+                <p className="font-medium">Open the Shortcuts app on your iPhone</p>
+                <p className="text-muted-foreground mt-1">Create a new shortcut or import the Tally expense shortcut</p>
               </div>
             </li>
             <li className="flex gap-3">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
-                2
-              </span>
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">2</span>
               <div>
-                <p className="font-medium">
-                  Add a "Get Contents of URL" action
-                </p>
-                <p className="text-muted-foreground mt-1">
-                  Set the URL to the API endpoint shown above
-                </p>
+                <p className="font-medium">Add a "Get Contents of URL" action</p>
+                <p className="text-muted-foreground mt-1">Set the URL to the API endpoint shown above</p>
               </div>
             </li>
             <li className="flex gap-3">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
-                3
-              </span>
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">3</span>
               <div>
-                <p className="font-medium">
-                  Configure the request as Form data
-                </p>
-                <p className="text-muted-foreground mt-1">
-                  Set method to POST, Request Body to "Form", and add these
-                  fields:
-                </p>
+                <p className="font-medium">Configure the request as Form data</p>
+                <p className="text-muted-foreground mt-1">Set method to POST, Request Body to "Form", and add these fields:</p>
                 <ul className="mt-2 space-y-1 text-muted-foreground">
                   <li>
-                    <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
-                      image
-                    </code>{' '}
-                    - The screenshot file
+                    <code className="bg-muted px-1.5 py-0.5 rounded text-xs">image</code> - The screenshot file
                   </li>
                   <li>
-                    <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
-                      userId
-                    </code>{' '}
-                    - Your user ID:{' '}
-                    <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
-                      {userId}
-                    </code>
+                    <code className="bg-muted px-1.5 py-0.5 rounded text-xs">userId</code> - Your user ID:{' '}
+                    <code className="bg-muted px-1.5 py-0.5 rounded text-xs">{userId}</code>
                   </li>
                   <li>
-                    <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
-                      caption
-                    </code>{' '}
-                    - (Optional) Override attribution, e.g., "household"
+                    <code className="bg-muted px-1.5 py-0.5 rounded text-xs">caption</code> - (Optional) Override attribution, e.g., "household"
                   </li>
                 </ul>
               </div>
             </li>
             <li className="flex gap-3">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
-                4
-              </span>
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">4</span>
               <div>
-                <p className="font-medium">
-                  Add "Select Photos" or use Share Sheet input
-                </p>
-                <p className="text-muted-foreground mt-1">
-                  Connect the photo to the "image" form field
-                </p>
+                <p className="font-medium">Add "Select Photos" or use Share Sheet input</p>
+                <p className="text-muted-foreground mt-1">Connect the photo to the "image" form field</p>
               </div>
             </li>
             <li className="flex gap-3">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
-                5
-              </span>
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">5</span>
               <div>
-                <p className="font-medium">
-                  Add the shortcut to your home screen
-                </p>
-                <p className="text-muted-foreground mt-1">
-                  Tap the share icon and select "Add to Home Screen" for quick
-                  access
-                </p>
+                <p className="font-medium">Add the shortcut to your home screen</p>
+                <p className="text-muted-foreground mt-1">Tap the share icon and select "Add to Home Screen" for quick access</p>
               </div>
             </li>
           </ol>
@@ -533,24 +370,15 @@ function ShortcutInstructions({ userId }: ShortcutInstructionsProps) {
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li className="flex items-start gap-2">
               <ExternalLink className="w-4 h-4 mt-0.5 flex-shrink-0" />
-              <span>
-                The shortcut works with screenshots from any banking or payment
-                app
-              </span>
+              <span>The shortcut works with screenshots from any banking or payment app</span>
             </li>
             <li className="flex items-start gap-2">
               <ExternalLink className="w-4 h-4 mt-0.5 flex-shrink-0" />
-              <span>
-                Each user needs their own unique User ID configured in their
-                shortcut
-              </span>
+              <span>Each user needs their own unique User ID configured in their shortcut</span>
             </li>
             <li className="flex items-start gap-2">
               <ExternalLink className="w-4 h-4 mt-0.5 flex-shrink-0" />
-              <span>
-                Make sure your server is accessible from your phone (same
-                network or public URL)
-              </span>
+              <span>Make sure your server is accessible from your phone (same network or public URL)</span>
             </li>
           </ul>
         </div>
@@ -569,9 +397,7 @@ function CategoriesSection() {
   const trpc = useTRPC()
   const queryClient = useQueryClient()
   const expensesQuery = useQuery(trpc.expenses.list.queryOptions())
-  const baseCurrencyQuery = useQuery(
-    trpc.settings.getBaseCurrency.queryOptions(),
-  )
+  const baseCurrencyQuery = useQuery(trpc.settings.getBaseCurrency.queryOptions())
 
   const [renameDialogOpen, setRenameDialogOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
@@ -653,8 +479,7 @@ function CategoriesSection() {
   }
 
   const handleRename = async () => {
-    if (!selectedCategory || !newCategoryName.trim() || !expensesQuery.data)
-      return
+    if (!selectedCategory || !newCategoryName.trim() || !expensesQuery.data) return
     if (newCategoryName.trim() === selectedCategory) {
       setRenameDialogOpen(false)
       return
@@ -663,14 +488,10 @@ function CategoriesSection() {
     setIsRenaming(true)
     try {
       // Find all expenses with this category and update them
-      const expensesToUpdate = expensesQuery.data.filter((e) =>
-        e.categories?.includes(selectedCategory),
-      )
+      const expensesToUpdate = expensesQuery.data.filter((e) => e.categories?.includes(selectedCategory))
 
       for (const expense of expensesToUpdate) {
-        const newCategories = expense.categories?.map((c) =>
-          c === selectedCategory ? newCategoryName.trim() : c,
-        )
+        const newCategories = expense.categories?.map((c) => (c === selectedCategory ? newCategoryName.trim() : c))
         await updateExpense.mutateAsync({
           id: expense.id,
           categories: newCategories,
@@ -693,10 +514,7 @@ function CategoriesSection() {
             <Tag className="w-5 h-5" />
             Categories
           </CardTitle>
-          <CardDescription>
-            Tap a category to filter expenses. Click rename to merge similar
-            categories.
-          </CardDescription>
+          <CardDescription>Tap a category to filter expenses. Click rename to merge similar categories.</CardDescription>
         </CardHeader>
         <CardContent>
           {expensesQuery.isLoading ? (
@@ -704,26 +522,14 @@ function CategoriesSection() {
           ) : categoryStats.length > 0 ? (
             <div className="space-y-2">
               {categoryStats.map(({ category, count, totalAmount }) => (
-                <div
-                  key={category}
-                  className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors group"
-                >
-                  <a
-                    href={`/?dateRange=all-time&category=${encodeURIComponent(category)}`}
-                    className="flex-1 min-w-0"
-                  >
+                <div key={category} className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors group">
+                  <a href={`/?dateRange=all-time&category=${encodeURIComponent(category)}`} className="flex-1 min-w-0">
                     <div className="font-medium truncate">{category}</div>
                     <div className="text-sm text-muted-foreground">
-                      {count} expense{count !== 1 ? 's' : ''} ·{' '}
-                      {formatAmount(totalAmount)}
+                      {count} expense{count !== 1 ? 's' : ''} · {formatAmount(totalAmount)}
                     </div>
                   </a>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => handleRenameClick(category, e)}
-                  >
+                  <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => handleRenameClick(category, e)}>
                     Rename
                   </Button>
                 </div>
@@ -733,9 +539,7 @@ function CategoriesSection() {
             <div className="text-center py-6 text-muted-foreground">
               <Tag className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p>No categories yet</p>
-              <p className="text-sm">
-                Categories will appear here once you add expenses
-              </p>
+              <p className="text-sm">Categories will appear here once you add expenses</p>
             </div>
           )}
         </CardContent>
@@ -746,43 +550,20 @@ function CategoriesSection() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Rename Category</DialogTitle>
-            <DialogDescription>
-              Rename "{selectedCategory}" across all expenses. Use this to merge
-              similar categories (e.g., "Food" and "food").
-            </DialogDescription>
+            <DialogDescription>Rename "{selectedCategory}" across all expenses. Use this to merge similar categories (e.g., "Food" and "food").</DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <label className="text-sm font-medium mb-2 block">
-              New Category Name
-            </label>
-            <Input
-              value={newCategoryName}
-              onChange={(e) => setNewCategoryName(e.target.value)}
-              placeholder="Enter new name"
-              autoFocus
-            />
-            {categoryStats.some(
-              (c) =>
-                c.category.toLowerCase() === newCategoryName.toLowerCase() &&
-                c.category !== selectedCategory,
-            ) && (
-              <p className="text-sm text-amber-600 mt-2">
-                This will merge with the existing "{newCategoryName}" category
-              </p>
+            <label className="text-sm font-medium mb-2 block">New Category Name</label>
+            <Input value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} placeholder="Enter new name" autoFocus />
+            {categoryStats.some((c) => c.category.toLowerCase() === newCategoryName.toLowerCase() && c.category !== selectedCategory) && (
+              <p className="text-sm text-amber-600 mt-2">This will merge with the existing "{newCategoryName}" category</p>
             )}
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setRenameDialogOpen(false)}
-              disabled={isRenaming}
-            >
+            <Button variant="outline" onClick={() => setRenameDialogOpen(false)} disabled={isRenaming}>
               Cancel
             </Button>
-            <Button
-              onClick={handleRename}
-              disabled={isRenaming || !newCategoryName.trim()}
-            >
+            <Button onClick={handleRename} disabled={isRenaming || !newCategoryName.trim()}>
               {isRenaming ? 'Renaming...' : 'Rename'}
             </Button>
           </DialogFooter>
@@ -829,15 +610,7 @@ function ExportSection() {
   }
 
   const generateCSV = (expenses: Expense[]): string => {
-    const headers = [
-      'Date',
-      'Amount',
-      'Currency',
-      'Merchant',
-      'Categories',
-      'User',
-      'Status',
-    ]
+    const headers = ['Date', 'Amount', 'Currency', 'Merchant', 'Categories', 'User', 'Status']
     const rows = expenses.map((expense) => [
       formatDate(expense.receiptCapturedAt),
       formatAmount(expense.amount),
@@ -855,10 +628,7 @@ function ExportSection() {
       return value
     }
 
-    const csvContent = [
-      headers.join(','),
-      ...rows.map((row) => row.map(escapeCSV).join(',')),
-    ].join('\n')
+    const csvContent = [headers.join(','), ...rows.map((row) => row.map(escapeCSV).join(','))].join('\n')
 
     return csvContent
   }
@@ -878,11 +648,7 @@ function ExportSection() {
     return JSON.stringify(exportData, null, 2)
   }
 
-  const downloadFile = (
-    content: string,
-    filename: string,
-    mimeType: string,
-  ) => {
+  const downloadFile = (content: string, filename: string, mimeType: string) => {
     const blob = new Blob([content], { type: mimeType })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -904,11 +670,7 @@ function ExportSection() {
 
       if (exportFormat === 'csv') {
         const csv = generateCSV(expenses)
-        downloadFile(
-          csv,
-          `expenses-${timestamp}.csv`,
-          'text/csv;charset=utf-8;',
-        )
+        downloadFile(csv, `expenses-${timestamp}.csv`, 'text/csv;charset=utf-8;')
       } else {
         const json = generateJSON(expenses)
         downloadFile(json, `expenses-${timestamp}.json`, 'application/json')
@@ -927,17 +689,12 @@ function ExportSection() {
           <Download className="w-5 h-5" />
           Export Data
         </CardTitle>
-        <CardDescription>
-          Download your expense data in CSV or JSON format
-        </CardDescription>
+        <CardDescription>Download your expense data in CSV or JSON format</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <label className="text-sm font-medium">Format</label>
-          <Select
-            value={exportFormat}
-            onValueChange={(value: ExportFormat) => setExportFormat(value)}
-          >
+          <Select value={exportFormat} onValueChange={(value: ExportFormat) => setExportFormat(value)}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select format" />
             </SelectTrigger>
@@ -960,16 +717,9 @@ function ExportSection() {
 
         <div className="flex items-center justify-between pt-2">
           <div className="text-sm text-muted-foreground">
-            {expensesQuery.isLoading
-              ? 'Loading expenses...'
-              : `${expenseCount} expense${expenseCount !== 1 ? 's' : ''} will be exported`}
+            {expensesQuery.isLoading ? 'Loading expenses...' : `${expenseCount} expense${expenseCount !== 1 ? 's' : ''} will be exported`}
           </div>
-          <Button
-            onClick={handleExport}
-            disabled={
-              isExporting || expensesQuery.isLoading || expenseCount === 0
-            }
-          >
+          <Button onClick={handleExport} disabled={isExporting || expensesQuery.isLoading || expenseCount === 0}>
             {isExporting ? (
               'Exporting...'
             ) : (

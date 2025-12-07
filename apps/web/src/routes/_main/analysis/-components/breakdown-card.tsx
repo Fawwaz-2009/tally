@@ -4,31 +4,11 @@ import { SectionHeader } from './section-header'
 import { BreakdownItem, CategoryBreakdownItem } from './breakdown-item'
 
 // Colors for different breakdown sections
-export const categoryColors = [
-  'bg-blue-500',
-  'bg-green-500',
-  'bg-purple-500',
-  'bg-orange-500',
-  'bg-pink-500',
-  'bg-cyan-500',
-  'bg-amber-500',
-  'bg-indigo-500',
-]
+export const categoryColors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-orange-500', 'bg-pink-500', 'bg-cyan-500', 'bg-amber-500', 'bg-indigo-500']
 
-export const userColors = [
-  'bg-emerald-500',
-  'bg-teal-500',
-  'bg-lime-500',
-  'bg-green-600',
-]
+export const userColors = ['bg-emerald-500', 'bg-teal-500', 'bg-lime-500', 'bg-green-600']
 
-export const merchantColors = [
-  'bg-rose-500',
-  'bg-red-500',
-  'bg-fuchsia-500',
-  'bg-violet-500',
-  'bg-pink-600',
-]
+export const merchantColors = ['bg-rose-500', 'bg-red-500', 'bg-fuchsia-500', 'bg-violet-500', 'bg-pink-600']
 
 interface CategoryBreakdownCardProps {
   icon: React.ElementType
@@ -43,13 +23,7 @@ interface CategoryBreakdownCardProps {
   currency: string
 }
 
-export function CategoryBreakdownCard({
-  icon,
-  title,
-  subtitle,
-  items,
-  currency,
-}: CategoryBreakdownCardProps) {
+export function CategoryBreakdownCard({ icon, title, subtitle, items, currency }: CategoryBreakdownCardProps) {
   if (items.length === 0) return null
 
   const maxAmount = items[0].amount
@@ -88,14 +62,7 @@ interface BreakdownCardProps {
   currency: string
 }
 
-export function BreakdownCard({
-  icon,
-  title,
-  subtitle,
-  items,
-  colors,
-  currency,
-}: BreakdownCardProps) {
+export function BreakdownCard({ icon, title, subtitle, items, colors, currency }: BreakdownCardProps) {
   if (items.length === 0) return null
 
   const maxAmount = items[0].amount

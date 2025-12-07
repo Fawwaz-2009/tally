@@ -45,45 +45,43 @@ export const expensesRouter = {
    * Capture receipt via FormData (for iOS Shortcuts and direct file uploads).
    * POST /api/trpc/expenses.captureFromFormData - accepts multipart/form-data
    */
-  captureFromFormData: publicProcedure
-    .input(uploadFormDataSchema)
-    .mutation(async ({ input }) => {
-      const { image, userId, caption } = input
+  captureFromFormData: publicProcedure.input(uploadFormDataSchema).mutation(async ({ input }) => {
+    const { image, userId, caption } = input
 
-      // Caption can override userId for attribution (e.g., "household" account)
-      const effectiveUserId = caption?.trim() || userId
+    // Caption can override userId for attribution (e.g., "household" account)
+    const effectiveUserId = caption?.trim() || userId
 
-      // Convert File to base64 (transport adaptation)
-      const arrayBuffer = await image.arrayBuffer()
-      const imageBase64 = Buffer.from(arrayBuffer).toString('base64')
+    // Convert File to base64 (transport adaptation)
+    const arrayBuffer = await image.arrayBuffer()
+    const imageBase64 = Buffer.from(arrayBuffer).toString('base64')
 
-      const program = Effect.gen(function* () {
-        const service = yield* ExpenseService
+    const program = Effect.gen(function* () {
+      const service = yield* ExpenseService
 
-        return yield* service.capture({
-          userId: effectiveUserId,
-          imageBase64,
-          fileName: image.name || 'upload.png',
-          contentType: image.type || 'image/png',
-        })
+      return yield* service.capture({
+        userId: effectiveUserId,
+        imageBase64,
+        fileName: image.name || 'upload.png',
+        contentType: image.type || 'image/png',
       })
+    })
 
-      const result = await frontendRuntime.runPromise(program)
+    const result = await frontendRuntime.runPromise(program)
 
-      // Return consistent response format for iOS Shortcuts compatibility
-      return {
-        id: result.expense.id,
-        state: result.expense.state,
-        needsReview: result.needsReview,
-        extraction: result.extraction.success
-          ? {
-              amount: result.extraction.data?.amount,
-              currency: result.extraction.data?.currency,
-              merchant: result.extraction.data?.merchant,
-            }
-          : { error: result.extraction.error },
-      }
-    }),
+    // Return consistent response format for iOS Shortcuts compatibility
+    return {
+      id: result.expense.id,
+      state: result.expense.state,
+      needsReview: result.needsReview,
+      extraction: result.extraction.success
+        ? {
+            amount: result.extraction.data?.amount,
+            currency: result.extraction.data?.currency,
+            merchant: result.extraction.data?.merchant,
+          }
+        : { error: result.extraction.error },
+    }
+  }),
 
   /**
    * Complete a draft expense with optional overrides.
@@ -141,28 +139,24 @@ export const expensesRouter = {
   /**
    * Get expense by ID.
    */
-  getById: publicProcedure
-    .input(z.object({ id: z.string() }))
-    .query(async ({ input }) => {
-      const program = Effect.gen(function* () {
-        const service = yield* ExpenseService
-        return yield* service.getById(input.id)
-      })
-      return frontendRuntime.runPromise(program)
-    }),
+  getById: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
+    const program = Effect.gen(function* () {
+      const service = yield* ExpenseService
+      return yield* service.getById(input.id)
+    })
+    return frontendRuntime.runPromise(program)
+  }),
 
   /**
    * Get expenses by user.
    */
-  getByUser: publicProcedure
-    .input(z.object({ userId: z.string() }))
-    .query(async ({ input }) => {
-      const program = Effect.gen(function* () {
-        const service = yield* ExpenseService
-        return yield* service.getByUser(input.userId)
-      })
-      return frontendRuntime.runPromise(program)
-    }),
+  getByUser: publicProcedure.input(z.object({ userId: z.string() })).query(async ({ input }) => {
+    const program = Effect.gen(function* () {
+      const service = yield* ExpenseService
+      return yield* service.getByUser(input.userId)
+    })
+    return frontendRuntime.runPromise(program)
+  }),
 
   /**
    * Get draft expenses pending review.
@@ -219,15 +213,13 @@ export const expensesRouter = {
   /**
    * Delete an expense.
    */
-  delete: publicProcedure
-    .input(z.object({ id: z.string() }))
-    .mutation(async ({ input }) => {
-      const program = Effect.gen(function* () {
-        const service = yield* ExpenseService
-        return yield* service.delete(input.id)
-      })
-      return frontendRuntime.runPromise(program)
-    }),
+  delete: publicProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
+    const program = Effect.gen(function* () {
+      const service = yield* ExpenseService
+      return yield* service.delete(input.id)
+    })
+    return frontendRuntime.runPromise(program)
+  }),
 
   // ==========================================================================
   // Health Checks

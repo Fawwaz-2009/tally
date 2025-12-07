@@ -10,12 +10,8 @@ export function AlreadySetup() {
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
           <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
         </div>
-        <h1 className="text-3xl font-bold tracking-tight font-heading mb-2">
-          Already Set Up
-        </h1>
-        <p className="text-muted-foreground mb-8">
-          Tally has already been configured and is ready to use.
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight font-heading mb-2">Already Set Up</h1>
+        <p className="text-muted-foreground mb-8">Tally has already been configured and is ready to use.</p>
         <Button asChild className="w-full" size="lg">
           <Link to="/">
             <Home className="w-4 h-4 mr-2" />

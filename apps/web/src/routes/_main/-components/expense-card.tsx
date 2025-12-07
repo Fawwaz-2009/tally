@@ -28,19 +28,11 @@ interface ExpenseCardProps {
   userName?: string
 }
 
-export function ExpenseCard({
-  expense,
-  baseCurrency,
-  onClick,
-  index = 0,
-  userName,
-}: ExpenseCardProps) {
+export function ExpenseCard({ expense, baseCurrency, onClick, index = 0, userName }: ExpenseCardProps) {
   const displayDate = expense.expenseDate || expense.createdAt
-  const needsReview =
-    expense.state === 'draft' && expense.extractionStatus === 'done'
+  const needsReview = expense.state === 'draft' && expense.extractionStatus === 'done'
   const displayAmount = expense.baseAmount ?? expense.amount
-  const isDifferentCurrency =
-    expense.currency && expense.currency !== baseCurrency
+  const isDifferentCurrency = expense.currency && expense.currency !== baseCurrency
 
   return (
     <motion.div
@@ -54,11 +46,9 @@ export function ExpenseCard({
       <div
         className="absolute -bottom-1 left-0 right-0 h-2 bg-card z-10"
         style={{
-          maskImage:
-            'conic-gradient(from 135deg at top, transparent 90deg, black 0)',
+          maskImage: 'conic-gradient(from 135deg at top, transparent 90deg, black 0)',
           maskSize: '12px 10px',
-          WebkitMaskImage:
-            'conic-gradient(from 135deg at top, transparent 90deg, black 0)',
+          WebkitMaskImage: 'conic-gradient(from 135deg at top, transparent 90deg, black 0)',
           WebkitMaskSize: '12px 10px',
           maskPosition: 'bottom',
           WebkitMaskPosition: 'bottom',
@@ -72,63 +62,38 @@ export function ExpenseCard({
         {/* Left: Date & Merchant */}
         <div className="flex flex-col gap-1 min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-              {format(new Date(displayDate), 'MMM dd • HH:mm')}
-            </span>
+            <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{format(new Date(displayDate), 'MMM dd • HH:mm')}</span>
             {needsReview && (
-              <Badge
-                variant="destructive"
-                className="h-4 px-1 text-[9px] uppercase"
-              >
+              <Badge variant="destructive" className="h-4 px-1 text-[9px] uppercase">
                 Review
               </Badge>
             )}
           </div>
 
-          <h3 className="text-lg font-bold leading-tight tracking-tight uppercase line-clamp-1">
-            {expense.merchant || 'Unknown merchant'}
-          </h3>
+          <h3 className="text-lg font-bold leading-tight tracking-tight uppercase line-clamp-1">{expense.merchant || 'Unknown merchant'}</h3>
 
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             {userName && (
               <div className="flex items-center gap-1.5 bg-muted rounded-full pr-2 pl-1.5 py-0.5">
-                <span className="text-[10px] font-medium text-muted-foreground uppercase">
-                  {userName}
-                </span>
+                <span className="text-[10px] font-medium text-muted-foreground uppercase">{userName}</span>
               </div>
             )}
 
             {expense.categories?.slice(0, 2).map((cat) => (
-              <span
-                key={cat}
-                className="text-[10px] font-mono text-muted-foreground uppercase"
-              >
+              <span key={cat} className="text-[10px] font-mono text-muted-foreground uppercase">
                 #{cat}
               </span>
             ))}
-            {expense.categories && expense.categories.length > 2 && (
-              <span className="text-[10px] font-mono text-muted-foreground">
-                +{expense.categories.length - 2}
-              </span>
-            )}
+            {expense.categories && expense.categories.length > 2 && <span className="text-[10px] font-mono text-muted-foreground">+{expense.categories.length - 2}</span>}
           </div>
         </div>
 
         {/* Right: Amount */}
         <div className="text-right shrink-0 max-w-[45%]">
-          <AmountDisplay
-            amount={displayAmount}
-            currency={baseCurrency}
-            size="md"
-          />
+          <AmountDisplay amount={displayAmount} currency={baseCurrency} size="md" />
           {isDifferentCurrency && expense.amount !== null && (
             <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
-              <AmountDisplay
-                amount={expense.amount}
-                currency={expense.currency}
-                size="sm"
-                className="text-muted-foreground"
-              />
+              <AmountDisplay amount={expense.amount} currency={expense.currency} size="sm" className="text-muted-foreground" />
             </div>
           )}
         </div>
