@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router'
 
 import { Button } from '@/components/ui/button'
-import { ExpenseCapture } from '@/components/expense/expense-capture'
+import { CaptureFlow } from '@/components/expense/capture-flow'
 
 interface WaitingForExpenseProps {
   userName: string
@@ -17,7 +17,14 @@ export function WaitingForExpense({ userName, userId }: WaitingForExpenseProps) 
           <p className="text-muted-foreground">Upload a screenshot of a payment to complete setup</p>
         </div>
 
-        <ExpenseCapture userId={userId} />
+        <CaptureFlow
+          userId={userId}
+          successActionButton={
+            <Button className="w-full" size="lg" asChild>
+              <Link to="/">Continue to Dashboard</Link>
+            </Button>
+          }
+        />
 
         <div className="text-center mt-6">
           <Button variant="ghost" size="sm" asChild>

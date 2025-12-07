@@ -184,3 +184,33 @@ export const captureScenarios = {
     },
   }),
 }
+
+export const expenseScenarios = {
+  /** Draft expense pending review */
+  draft: createMockExpense({
+    id: 'exp-123',
+    state: 'draft',
+    amount: 4599,
+    currency: 'USD',
+    merchant: 'Starbucks',
+  }),
+
+  /** Completed expense */
+  complete: createMockExpense({
+    id: 'exp-123',
+    state: 'complete',
+    amount: 4599,
+    currency: 'USD',
+    merchant: 'Starbucks',
+    completedAt: new Date(),
+  }),
+
+  /** Expense with missing required fields */
+  incomplete: createMockExpense({
+    id: 'exp-123',
+    state: 'draft',
+    amount: null,
+    currency: null,
+    merchant: null,
+  }),
+}

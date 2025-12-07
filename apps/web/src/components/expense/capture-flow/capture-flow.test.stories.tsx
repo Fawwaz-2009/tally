@@ -1,5 +1,5 @@
 /**
- * Automated regression tests for ExpenseCapture.
+ * Automated regression tests for CaptureFlow.
  * These run as part of CI to catch breaking changes.
  */
 import type { Meta, StoryObj } from '@storybook/react-vite'
@@ -8,8 +8,8 @@ import { delay } from 'msw'
 import { TRPCError } from '@trpc/server'
 
 import { trpcMsw } from '../../../../.storybook/mocks/trpc'
-import { ollamaScenarios, captureScenarios } from '../../../../.storybook/mocks/factories'
-import { ExpenseCapture } from './index'
+import { ollamaScenarios, captureScenarios, expenseScenarios, createMockExpense } from '../../../../.storybook/mocks/factories'
+import { CaptureFlow } from './capture-flow'
 
 // =============================================================================
 // Test Helpers
@@ -31,20 +31,21 @@ async function simulateUpload(canvasElement: HTMLElement) {
 // Meta
 // =============================================================================
 
-const meta: Meta<typeof ExpenseCapture> = {
-  title: 'Domain/ExpenseCapture/Tests',
-  component: ExpenseCapture,
+const meta: Meta<typeof CaptureFlow> = {
+  title: 'Domain/CaptureFlow/Tests',
+  component: CaptureFlow,
   parameters: {
     layout: 'centered',
   },
   args: {
     userId: 'user-1',
+    showAddAnother: true,
   },
   tags: ['!autodocs'],
 }
 
 export default meta
-type Story = StoryObj<typeof ExpenseCapture>
+type Story = StoryObj<typeof CaptureFlow>
 
 // =============================================================================
 // Health Check Tests
@@ -94,6 +95,7 @@ export const CaptureSuccess: Story = {
           await delay(50)
           return captureScenarios.needsReview
         }),
+        trpcMsw.expenses.getById.query(() => expenseScenarios.draft),
       ],
     },
   },
@@ -146,11 +148,93 @@ export const CaptureError: Story = {
   },
 }
 
+/** Auto-complete → skip review, show success directly */
+export const AutoCompleteSuccess: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready),
+        trpcMsw.expenses.capture.mutation(async () => {
+          await delay(50)
+          return captureScenarios.autoComplete
+        }),
+        trpcMsw.expenses.getById.query(() => expenseScenarios.complete),
+      ],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await waitFor(() => {
+      expect(canvas.getByRole('button', { name: /select image/i })).toBeEnabled()
+    })
+
+    await simulateUpload(canvasElement)
+
+    // Should skip review and go straight to success
+    await waitFor(
+      () => {
+        expect(canvas.getByRole('heading', { name: /expense saved/i })).toBeInTheDocument()
+      },
+      { timeout: 3000 },
+    )
+  },
+}
+
 // =============================================================================
-// Complete Flow Tests
+// Review → Save Flow Tests
 // =============================================================================
 
-/** Save error → error message appears near save button */
+/** Review → Save success → success view appears */
+export const ReviewSaveSuccess: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready),
+        trpcMsw.expenses.capture.mutation(async () => {
+          await delay(50)
+          return captureScenarios.needsReview
+        }),
+        trpcMsw.expenses.getById.query(() => expenseScenarios.draft),
+        trpcMsw.expenses.complete.mutation(async () => {
+          await delay(50)
+          return createMockExpense({ state: 'complete' })
+        }),
+      ],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // Wait for upload to be ready
+    await waitFor(() => {
+      expect(canvas.getByRole('button', { name: /select image/i })).toBeEnabled()
+    })
+
+    await simulateUpload(canvasElement)
+
+    // Wait for review form
+    await waitFor(
+      () => {
+        expect(canvas.getByRole('heading', { name: /review expense/i })).toBeInTheDocument()
+      },
+      { timeout: 3000 },
+    )
+
+    // Click save
+    canvas.getByRole('button', { name: /save expense/i }).click()
+
+    // Should show success
+    await waitFor(
+      () => {
+        expect(canvas.getByRole('heading', { name: /expense saved/i })).toBeInTheDocument()
+      },
+      { timeout: 3000 },
+    )
+  },
+}
+
+/** Save error → error message appears in form */
 export const CompleteError: Story = {
   parameters: {
     msw: {
@@ -160,6 +244,7 @@ export const CompleteError: Story = {
           await delay(50)
           return captureScenarios.needsReview
         }),
+        trpcMsw.expenses.getById.query(() => expenseScenarios.draft),
         trpcMsw.expenses.complete.mutation(async () => {
           await delay(50)
           throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to save' })
@@ -191,5 +276,50 @@ export const CompleteError: Story = {
       },
       { timeout: 3000 },
     )
+  },
+}
+
+// =============================================================================
+// Add Another Flow Tests
+// =============================================================================
+
+/** Clicking "Add Another" resets to upload stage */
+export const AddAnotherResets: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready),
+        trpcMsw.expenses.capture.mutation(async () => {
+          await delay(50)
+          return captureScenarios.autoComplete
+        }),
+        trpcMsw.expenses.getById.query(() => expenseScenarios.complete),
+      ],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await waitFor(() => {
+      expect(canvas.getByRole('button', { name: /select image/i })).toBeEnabled()
+    })
+
+    await simulateUpload(canvasElement)
+
+    // Wait for success
+    await waitFor(
+      () => {
+        expect(canvas.getByRole('heading', { name: /expense saved/i })).toBeInTheDocument()
+      },
+      { timeout: 3000 },
+    )
+
+    // Click "Add Another"
+    canvas.getByRole('button', { name: /add another/i }).click()
+
+    // Should be back to upload stage
+    await waitFor(() => {
+      expect(canvas.getByRole('button', { name: /select image/i })).toBeInTheDocument()
+    })
   },
 }

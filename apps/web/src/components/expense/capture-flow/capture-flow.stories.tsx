@@ -4,8 +4,8 @@ import { delay } from 'msw'
 import { TRPCError } from '@trpc/server'
 
 import { trpcMsw } from '../../../../.storybook/mocks/trpc'
-import { createMockExpense, ollamaScenarios, captureScenarios } from '../../../../.storybook/mocks/factories'
-import { ExpenseCapture } from './index'
+import { createMockExpense, ollamaScenarios, captureScenarios, expenseScenarios } from '../../../../.storybook/mocks/factories'
+import { CaptureFlow } from './capture-flow'
 
 // =============================================================================
 // API Response Types
@@ -13,12 +13,15 @@ import { ExpenseCapture } from './index'
 
 type HealthResponse = 'ready' | 'ollamaUnavailable' | 'modelMissing' | 'networkError'
 type CaptureResponse = 'needsReview' | 'autoComplete' | 'networkError'
+type GetByIdResponse = 'draft' | 'complete' | 'networkError'
 type CompleteResponse = 'success' | 'networkError'
 
 interface StoryArgs {
   userId: string
+  showAddAnother: boolean
   healthApi: HealthResponse
   captureApi: CaptureResponse
+  getByIdApi: GetByIdResponse
   completeApi: CompleteResponse
 }
 
@@ -61,6 +64,19 @@ function getCaptureHandler(response: CaptureResponse) {
   }
 }
 
+function getByIdHandler(response: GetByIdResponse) {
+  switch (response) {
+    case 'draft':
+      return trpcMsw.expenses.getById.query(() => expenseScenarios.draft)
+    case 'complete':
+      return trpcMsw.expenses.getById.query(() => expenseScenarios.complete)
+    case 'networkError':
+      return trpcMsw.expenses.getById.query(() => {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Expense not found' })
+      })
+  }
+}
+
 function getCompleteHandler(response: CompleteResponse) {
   switch (response) {
     case 'success':
@@ -81,13 +97,14 @@ function getCompleteHandler(response: CompleteResponse) {
 // =============================================================================
 
 const meta: Meta<StoryArgs> = {
-  title: 'Domain/ExpenseCapture',
-  component: ExpenseCapture,
+  title: 'Domain/CaptureFlow',
+  component: CaptureFlow,
   parameters: {
     layout: 'centered',
   },
   args: {
     userId: 'user-1',
+    showAddAnother: true,
   },
 }
 
@@ -107,12 +124,14 @@ type Story = StoryObj<StoryArgs>
  * **Flow:**
  * 1. Component loads → `checkExtractionHealth` API called
  * 2. Upload image → `capture` API called
- * 3. If needsReview → edit form → `complete` API called
+ * 3. If needsReview → `getById` fetches expense → edit form → `complete` API called
+ * 4. Success → `getById` fetches expense for display
  */
 export const Interactive: Story = {
   args: {
     healthApi: 'ready',
     captureApi: 'needsReview',
+    getByIdApi: 'draft',
     completeApi: 'success',
   },
   argTypes: {
@@ -130,6 +149,13 @@ export const Interactive: Story = {
       description: 'Response when uploading receipt image',
       table: { category: 'API Responses' },
     },
+    getByIdApi: {
+      name: 'getById',
+      control: 'select',
+      options: ['draft', 'complete', 'networkError'] satisfies GetByIdResponse[],
+      description: 'Response when fetching expense by ID (for review/success stages)',
+      table: { category: 'API Responses' },
+    },
     completeApi: {
       name: 'complete',
       control: 'select',
@@ -137,12 +163,22 @@ export const Interactive: Story = {
       description: 'Response when saving reviewed expense',
       table: { category: 'API Responses' },
     },
+    showAddAnother: {
+      control: 'boolean',
+      description: 'Show "Add Another" button on success',
+      table: { category: 'Props' },
+    },
   },
   loaders: [
     async ({ args }) => {
       const worker = getWorker()
       worker.resetHandlers()
-      worker.use(getHealthHandler(args.healthApi), getCaptureHandler(args.captureApi), getCompleteHandler(args.completeApi))
+      worker.use(
+        getHealthHandler(args.healthApi),
+        getCaptureHandler(args.captureApi),
+        getByIdHandler(args.getByIdApi),
+        getCompleteHandler(args.completeApi),
+      )
       return {}
     },
   ],

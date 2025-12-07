@@ -18,7 +18,7 @@ export const Route = createFileRoute('/setup/')({
   loaderDeps: ({ search }) => ({ search }),
   loader: async ({ context }) => {
     // Prefetch setup status server-side
-    const isSetupComplete = await context.queryClient.fetchQuery(context.trpc.settings.isSetupComplete.queryOptions())
+    const isSetupComplete = await context.queryClient.ensureQueryData(context.trpc.settings.isSetupComplete.queryOptions())
     return { isSetupComplete }
   },
 })
