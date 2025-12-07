@@ -1,5 +1,5 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { AmountDisplay } from '@/components/expense'
+import { AmountDisplay } from '@/components/expense/amount-display'
 import { type DateRange, getDateRangeLabel } from '@/lib/date-utils'
 
 interface OverviewHeaderProps {

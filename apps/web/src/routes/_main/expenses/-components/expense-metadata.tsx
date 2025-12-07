@@ -1,4 +1,4 @@
-import { formatAmount } from '@/components/expense'
+import { formatAmount } from '@/lib/expense-utils'
 
 interface ExpenseMetadataProps {
   expense: {

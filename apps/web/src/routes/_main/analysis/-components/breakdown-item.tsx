@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 
-import { formatAmount } from '@/components/expense'
+import { formatAmount } from '@/lib/expense-utils'
 
 import { ProgressBar } from './progress-bar'
 

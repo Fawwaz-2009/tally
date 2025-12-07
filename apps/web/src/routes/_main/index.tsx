@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { useMemo } from 'react'
 
 import { useTRPC } from '@/integrations/trpc-react'
-import { getDateRangeBounds, type DateRange } from '@/components/expense'
+import { getDateRangeBounds, type DateRange } from '@/lib/date-utils'
 import { OverviewHeader, StatusBanners, FilterBar, ExpenseList, type ExpenseCardData } from './-components'
 
 const dashboardSearchSchema = z.object({

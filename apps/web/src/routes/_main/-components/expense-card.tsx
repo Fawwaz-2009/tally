@@ -2,7 +2,7 @@ import { format } from 'date-fns'
 import { motion } from 'motion/react'
 
 import { Badge } from '@/components/ui/badge'
-import { AmountDisplay } from '@/components/expense'
+import { AmountDisplay } from '@/components/expense/amount-display'
 
 export interface ExpenseCardData {
   id: string

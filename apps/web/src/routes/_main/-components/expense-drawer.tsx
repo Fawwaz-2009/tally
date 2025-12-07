@@ -8,7 +8,10 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer'
-import { getScreenshotUrl, ExpenseForm, AmountDisplay, ReceiptPreview, type ExpenseFormData } from '@/components/expense'
+import { getScreenshotUrl } from '@/lib/expense-utils'
+import { ExpenseForm, type ExpenseFormData } from '@/components/expense/expense-form'
+import { AmountDisplay } from '@/components/expense/amount-display'
+import { ReceiptPreview } from '@/components/expense/receipt-preview'
 
 import type { ExpenseCardData } from './expense-card'
 

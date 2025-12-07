@@ -1,7 +1,7 @@
 import { ArrowLeft, Clock, Sparkles } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { ExpenseForm, type ExpenseFormData } from '@/components/expense'
+import { ExpenseForm, type ExpenseFormData } from '@/components/expense/expense-form'
 import type { ExtractedData, TimingData } from './capture-types'
 
 interface ReviewFormProps {
@@ -48,8 +48,6 @@ export function ReviewForm({ previewUrl, extractedData, timing, error, isSaving,
           </div>
         )}
 
-        {error && <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">{error}</div>}
-
         <ExpenseForm
           initialData={{
             amount: extractedData.amount,
@@ -61,6 +59,7 @@ export function ReviewForm({ previewUrl, extractedData, timing, error, isSaving,
           onSubmit={handleSubmit}
           isSubmitting={isSaving}
           submitLabel="Save Expense"
+          error={error}
         />
       </div>
     </div>

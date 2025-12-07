@@ -4,7 +4,10 @@ import { ChevronRight, ImageOff } from 'lucide-react'
 
 import { useTRPC } from '@/integrations/trpc-react'
 import { PageHeader } from '@/components/layout/page-header'
-import { formatDate, getScreenshotUrl, getStatusLabel, getStatusStyle, LoadingState, ErrorState, SuccessState } from '@/components/expense'
+import { formatDate } from '@/lib/date-utils'
+import { getScreenshotUrl } from '@/lib/expense-utils'
+import { getStatusLabel, getStatusStyle } from '@/components/expense/status-badge'
+import { LoadingState, ErrorState, SuccessState } from '@/components/expense/states'
 
 export const Route = createFileRoute('/_main/review')({
   component: ReviewPage,

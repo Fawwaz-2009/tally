@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 
-import { getDateRangeBounds, type DateRange } from '@/components/expense'
+import { getDateRangeBounds, type DateRange } from '@/lib/date-utils'
 
 interface Expense {
   id: string

@@ -6,7 +6,8 @@ import { Users, Store, Tag } from 'lucide-react'
 import { useTRPC } from '@/integrations/trpc-react'
 import { PageHeader } from '@/components/layout/page-header'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { LoadingState, ErrorState, AnalyticsEmptyState, type DateRange } from '@/components/expense'
+import { LoadingState, ErrorState, AnalyticsEmptyState } from '@/components/expense/states'
+import { type DateRange } from '@/lib/date-utils'
 
 import { TotalSpendingCard, CategoryBreakdownCard, BreakdownCard, userColors, merchantColors, useAnalytics } from './-components'
 

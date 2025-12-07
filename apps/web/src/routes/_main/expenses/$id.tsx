@@ -5,7 +5,9 @@ import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react'
 
 import { useTRPC } from '@/integrations/trpc-react'
 import { Button } from '@/components/ui/button'
-import { getScreenshotUrl, StatusBadge, ExpenseForm, type ExpenseFormData } from '@/components/expense'
+import { getScreenshotUrl } from '@/lib/expense-utils'
+import { StatusBadge } from '@/components/expense/status-badge'
+import { ExpenseForm, type ExpenseFormData } from '@/components/expense/expense-form'
 
 import { Notification, ExpenseMetadata, ReviewWarning } from './-components'
 
