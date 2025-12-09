@@ -27,18 +27,22 @@ export function ReviewStage({ expenseId, onComplete, onBack, hideBackButton = fa
         if (amount == null || currency == null || merchant == null) {
           throw new Error('Completed expense is missing required fields')
         }
-        onComplete(id)
+        onComplete(id!)
       },
     }),
   )
 
   const handleSubmit = (data: ExpenseFormData) => {
+    if (!expense.data) {
+      throw new Error('Expense data is missing')
+    }
     completeExpense.mutate({
-      id: expenseId,
+      ...expense.data,
+      id: expense.data.id!,
       amount: data.amount,
       currency: data.currency,
-      merchant: data.merchant || undefined,
-      expenseDate: data.expenseDate ? new Date(data.expenseDate) : undefined,
+      merchant: data.merchant || null,
+      expenseDate: data.expenseDate ? new Date(data.expenseDate) : null,
     })
   }
 
@@ -89,7 +93,7 @@ export function ReviewStage({ expenseId, onComplete, onBack, hideBackButton = fa
           merchant: data.merchant,
           expenseDate: data.expenseDate,
         }}
-        imageUrl={getScreenshotUrl(data.receiptImageKey)}
+        imageUrl={getScreenshotUrl(data.receipt.imageKey)}
         onSubmit={handleSubmit}
         isSubmitting={completeExpense.isPending}
         submitLabel="Save Expense"

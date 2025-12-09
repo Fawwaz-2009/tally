@@ -1,18 +1,7 @@
 import { useMemo } from 'react'
 
 import { getDateRangeBounds, type DateRange } from '@/lib/date-utils'
-
-interface Expense {
-  id: string
-  userId: string
-  state: 'draft' | 'complete'
-  amount: number | null
-  baseAmount: number | null
-  merchant: string | null
-  categories: string[] | null
-  receiptCapturedAt: Date
-  expenseDate: Date | null
-}
+import { type Expense } from '@repo/data-ops/domain'
 
 interface User {
   id: string
@@ -49,7 +38,7 @@ export function useAnalytics(expenses: Expense[] | undefined, users: User[] | un
     const bounds = getDateRangeBounds(dateRange)
     if (bounds) {
       filteredExpenses = filteredExpenses.filter((expense) => {
-        const dateToCheck = new Date(expense.expenseDate || expense.receiptCapturedAt)
+        const dateToCheck = new Date(expense.expenseDate || expense.receipt.capturedAt)
         return dateToCheck >= bounds.start && dateToCheck <= bounds.end
       })
     }

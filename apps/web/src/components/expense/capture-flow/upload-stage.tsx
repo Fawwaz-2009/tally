@@ -21,7 +21,7 @@ export function UploadStage({ userId, onComplete }: UploadStageProps) {
   const captureExpense = useMutation(
     trpc.expenses.capture.mutationOptions({
       onSuccess: (result) => {
-        onComplete(result.expense.id, result.needsReview)
+        onComplete(result.expense.id!, result.needsReview)
       },
       onError: (err) => {
         setError(err.message)
@@ -42,17 +42,12 @@ export function UploadStage({ userId, onComplete }: UploadStageProps) {
       setPreviewUrl(url)
       setError(null)
 
-      const reader = new FileReader()
-      reader.onload = () => {
-        const base64 = (reader.result as string).split(',')[1]
-        captureExpense.mutate({
-          userId,
-          imageBase64: base64,
-          fileName: file.name,
-          contentType: file.type,
-        })
-      }
-      reader.readAsDataURL(file)
+      // Send FormData directly - server handles all transformation
+      const formData = new FormData()
+      formData.append('image', file)
+      formData.append('userId', userId)
+
+      captureExpense.mutate(formData)
     },
     [userId, captureExpense],
   )

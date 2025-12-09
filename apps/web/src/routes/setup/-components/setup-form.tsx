@@ -1,7 +1,7 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { effectTsResolver } from '@hookform/resolvers/effect-ts'
+import { Schema } from 'effect'
 import cc from 'currency-codes'
 import { useMutation } from '@tanstack/react-query'
 import { Check, ChevronsUpDown } from 'lucide-react'
@@ -14,12 +14,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 
-const setupFormSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100),
-  currency: z.string().length(3, 'Please select a currency'),
+const setupFormSchema = Schema.Struct({
+  name: Schema.String.pipe(Schema.minLength(1, { message: () => 'Name is required' }), Schema.maxLength(100)),
+  currency: Schema.String.pipe(Schema.length(3, { message: () => 'Please select a currency' })),
 })
 
-type SetupFormValues = z.infer<typeof setupFormSchema>
+type SetupFormValues = Schema.Schema.Type<typeof setupFormSchema>
 
 // Get all currencies with their details
 const currencies = cc.codes().map((code) => {
@@ -35,7 +35,7 @@ export function SetupForm() {
   const navigate = useNavigate()
 
   const form = useForm<SetupFormValues>({
-    resolver: zodResolver(setupFormSchema),
+    resolver: effectTsResolver(setupFormSchema),
     defaultValues: {
       name: '',
       currency: '',

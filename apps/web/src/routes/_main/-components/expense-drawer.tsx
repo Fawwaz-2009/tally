@@ -13,6 +13,7 @@ import { ExpenseForm, type ExpenseFormData } from '@/components/expense/expense-
 import { AmountDisplay } from '@/components/expense/amount-display'
 import { ReceiptPreview } from '@/components/expense/receipt-preview'
 
+import { ExpenseAggregate } from '@repo/data-ops/schemas'
 import type { ExpenseCardData } from './expense-card'
 
 interface ExpenseDrawerProps {
@@ -69,25 +70,26 @@ export function ExpenseDrawer({ open, onOpenChange, expense, baseCurrency, userN
   const handleSave = (data: ExpenseFormData) => {
     if (!expense) return
     updateMutation.mutate({
-      id: expense.id,
+      ...expense,
+      id: expense.id!,
       amount: data.amount,
       currency: data.currency,
-      merchant: data.merchant,
-      categories: data.categories,
-      expenseDate: data.expenseDate,
+      merchant: data.merchant ?? null,
+      categories: data.categories ?? [],
+      expenseDate: data.expenseDate ? new Date(data.expenseDate) : null,
     })
   }
 
   const handleDelete = () => {
     if (!expense) return
-    deleteMutation.mutate({ id: expense.id })
+    deleteMutation.mutate({ id: expense.id! })
   }
 
   if (!expense) return null
 
-  const displayDate = expense.expenseDate || expense.createdAt
-  const screenshotUrl = getScreenshotUrl(expense.receiptImageKey)
-  const displayAmount = expense.baseAmount ?? expense.amount
+  const displayDate = ExpenseAggregate.getDisplayDate(expense)
+  const screenshotUrl = getScreenshotUrl(expense.receipt.imageKey)
+  const displayAmount = ExpenseAggregate.getDisplayAmount(expense)
   const isDifferentCurrency = expense.currency && expense.currency !== baseCurrency
 
   return (

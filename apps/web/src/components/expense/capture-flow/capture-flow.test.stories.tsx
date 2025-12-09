@@ -4,11 +4,12 @@
  */
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { expect, within, waitFor } from 'storybook/test'
-import { delay } from 'msw'
+import { delay, http, HttpResponse } from 'msw'
+import superjson from 'superjson'
 import { TRPCError } from '@trpc/server'
 
 import { trpcMsw } from '../../../../.storybook/mocks/trpc'
-import { ollamaScenarios, captureScenarios, expenseScenarios, createMockExpense } from '../../../../.storybook/mocks/factories'
+import { ollamaScenarios, captureScenarios, expenseScenarios, expenseFactory } from '../../../../.storybook/mocks/factories'
 import { CaptureFlow } from './capture-flow'
 
 // =============================================================================
@@ -25,6 +26,37 @@ async function simulateUpload(canvasElement: HTMLElement) {
   dataTransfer.items.add(mockFile)
   fileInput.files = dataTransfer.files
   fileInput.dispatchEvent(new Event('change', { bubbles: true }))
+}
+
+/**
+ * Creates a raw MSW handler for the FormData-based capture endpoint.
+ * msw-trpc doesn't handle FormData, so we need a custom handler.
+ */
+function createCaptureHandler(response: typeof captureScenarios.needsReview | Error) {
+  return http.post('/api/trpc/expenses.capture', async () => {
+    await delay(50)
+
+    if (response instanceof Error) {
+      return HttpResponse.json({
+        error: {
+          json: {
+            message: response.message,
+            code: -32600,
+            data: { code: 'INTERNAL_SERVER_ERROR', httpStatus: 500 },
+          },
+        },
+      })
+    }
+
+    return HttpResponse.json({
+      result: {
+        data: {
+          json: response,
+          meta: { values: superjson.serialize(response).meta },
+        },
+      },
+    })
+  })
 }
 
 // =============================================================================
@@ -91,10 +123,7 @@ export const CaptureSuccess: Story = {
     msw: {
       handlers: [
         trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready),
-        trpcMsw.expenses.capture.mutation(async () => {
-          await delay(50)
-          return captureScenarios.needsReview
-        }),
+        createCaptureHandler(captureScenarios.needsReview),
         trpcMsw.expenses.getById.query(() => expenseScenarios.draft),
       ],
     },
@@ -123,10 +152,7 @@ export const CaptureError: Story = {
     msw: {
       handlers: [
         trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready),
-        trpcMsw.expenses.capture.mutation(async () => {
-          await delay(50)
-          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to upload' })
-        }),
+        createCaptureHandler(new Error('Failed to upload')),
       ],
     },
   },
@@ -154,10 +180,7 @@ export const AutoCompleteSuccess: Story = {
     msw: {
       handlers: [
         trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready),
-        trpcMsw.expenses.capture.mutation(async () => {
-          await delay(50)
-          return captureScenarios.autoComplete
-        }),
+        createCaptureHandler(captureScenarios.autoComplete),
         trpcMsw.expenses.getById.query(() => expenseScenarios.complete),
       ],
     },
@@ -191,14 +214,11 @@ export const ReviewSaveSuccess: Story = {
     msw: {
       handlers: [
         trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready),
-        trpcMsw.expenses.capture.mutation(async () => {
-          await delay(50)
-          return captureScenarios.needsReview
-        }),
+        createCaptureHandler(captureScenarios.needsReview),
         trpcMsw.expenses.getById.query(() => expenseScenarios.draft),
         trpcMsw.expenses.complete.mutation(async () => {
           await delay(50)
-          return createMockExpense({ state: 'complete' })
+          return expenseScenarios.complete
         }),
       ],
     },
@@ -240,13 +260,9 @@ export const CompleteError: Story = {
     msw: {
       handlers: [
         trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready),
-        trpcMsw.expenses.capture.mutation(async () => {
-          await delay(50)
-          return captureScenarios.needsReview
-        }),
+        createCaptureHandler(captureScenarios.needsReview),
         trpcMsw.expenses.getById.query(() => expenseScenarios.draft),
-        trpcMsw.expenses.complete.mutation(async () => {
-          await delay(50)
+        trpcMsw.expenses.complete.mutation(() => {
           throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to save' })
         }),
       ],
@@ -280,6 +296,149 @@ export const CompleteError: Story = {
 }
 
 // =============================================================================
+// Additional Health Check Tests
+// =============================================================================
+
+/** When model is missing, upload should be disabled with warning */
+export const HealthModelMissing: Story = {
+  parameters: {
+    msw: {
+      handlers: [trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.modelMissing)],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await waitFor(() => {
+      expect(canvas.getByRole('button', { name: /select image/i })).toBeDisabled()
+      expect(canvas.getByText(/not found/i)).toBeInTheDocument()
+    })
+  },
+}
+
+// =============================================================================
+// Partial Extraction Tests
+// =============================================================================
+
+/** Partial extraction → form shows with empty fields for missing data */
+export const PartialExtraction: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready),
+        createCaptureHandler(captureScenarios.partialExtraction),
+        trpcMsw.expenses.getById.query(() => expenseFactory.draft({ merchant: null, expenseDate: null })),
+      ],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await waitFor(() => {
+      expect(canvas.getByRole('button', { name: /select image/i })).toBeEnabled()
+    })
+
+    await simulateUpload(canvasElement)
+
+    // Should show review form
+    await waitFor(
+      () => {
+        expect(canvas.getByRole('heading', { name: /review expense/i })).toBeInTheDocument()
+      },
+      { timeout: 3000 },
+    )
+
+    // Merchant field should be empty (user needs to fill it)
+    const merchantInput = canvas.getByLabelText(/merchant/i) as HTMLInputElement
+    expect(merchantInput.value).toBe('')
+  },
+}
+
+// =============================================================================
+// Review Stage Navigation Tests
+// =============================================================================
+
+/** Clicking back in review returns to upload stage */
+export const ReviewBackButton: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready),
+        createCaptureHandler(captureScenarios.needsReview),
+        trpcMsw.expenses.getById.query(() => expenseScenarios.draft),
+      ],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await waitFor(() => {
+      expect(canvas.getByRole('button', { name: /select image/i })).toBeEnabled()
+    })
+
+    await simulateUpload(canvasElement)
+
+    // Wait for review form
+    await waitFor(
+      () => {
+        expect(canvas.getByRole('heading', { name: /review expense/i })).toBeInTheDocument()
+      },
+      { timeout: 3000 },
+    )
+
+    // Click back button (ArrowLeft icon button)
+    const backButton = canvas.getByRole('button', { name: '' })
+    backButton.click()
+
+    // Should be back to upload stage
+    await waitFor(() => {
+      expect(canvas.getByRole('button', { name: /select image/i })).toBeInTheDocument()
+    })
+  },
+}
+
+// =============================================================================
+// Error Recovery Tests
+// =============================================================================
+
+/** Try again after capture error resets the form */
+export const TryAgainAfterError: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready),
+        createCaptureHandler(new Error('Server error')),
+      ],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await waitFor(() => {
+      expect(canvas.getByRole('button', { name: /select image/i })).toBeEnabled()
+    })
+
+    await simulateUpload(canvasElement)
+
+    // Wait for error
+    await waitFor(
+      () => {
+        expect(canvas.getByText(/extraction failed/i)).toBeInTheDocument()
+      },
+      { timeout: 3000 },
+    )
+
+    // Click "Try again"
+    canvas.getByRole('button', { name: /try again/i }).click()
+
+    // Should be back to initial upload state (no error, no preview)
+    await waitFor(() => {
+      expect(canvas.queryByText(/extraction failed/i)).not.toBeInTheDocument()
+      expect(canvas.getByRole('button', { name: /select image/i })).toBeEnabled()
+    })
+  },
+}
+
+// =============================================================================
 // Add Another Flow Tests
 // =============================================================================
 
@@ -289,10 +448,7 @@ export const AddAnotherResets: Story = {
     msw: {
       handlers: [
         trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready),
-        trpcMsw.expenses.capture.mutation(async () => {
-          await delay(50)
-          return captureScenarios.autoComplete
-        }),
+        createCaptureHandler(captureScenarios.autoComplete),
         trpcMsw.expenses.getById.query(() => expenseScenarios.complete),
       ],
     },
@@ -320,6 +476,47 @@ export const AddAnotherResets: Story = {
     // Should be back to upload stage
     await waitFor(() => {
       expect(canvas.getByRole('button', { name: /select image/i })).toBeInTheDocument()
+    })
+  },
+}
+
+// =============================================================================
+// Loading State Tests
+// =============================================================================
+
+/** Processing indicator shows during upload */
+export const ProcessingIndicator: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready),
+        // Slow response to see loading state
+        http.post('/api/trpc/expenses.capture', async () => {
+          await delay(2000)
+          return HttpResponse.json({
+            result: {
+              data: {
+                json: captureScenarios.needsReview,
+                meta: { values: superjson.serialize(captureScenarios.needsReview).meta },
+              },
+            },
+          })
+        }),
+      ],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await waitFor(() => {
+      expect(canvas.getByRole('button', { name: /select image/i })).toBeEnabled()
+    })
+
+    await simulateUpload(canvasElement)
+
+    // Should show processing indicator
+    await waitFor(() => {
+      expect(canvas.getByText(/processing your receipt/i)).toBeInTheDocument()
     })
   },
 }

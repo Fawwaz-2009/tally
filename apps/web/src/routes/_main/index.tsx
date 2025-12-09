@@ -67,7 +67,7 @@ function Dashboard() {
     const dateRange = getDateRangeBounds(filters.dateRange)
     if (dateRange) {
       result = result.filter((expense) => {
-        const dateToCheck = new Date(expense.expenseDate || expense.receiptCapturedAt)
+        const dateToCheck = new Date(expense.expenseDate || expense.receipt.capturedAt)
         return dateToCheck >= dateRange.start && dateToCheck <= dateRange.end
       })
     }
@@ -90,38 +90,23 @@ function Dashboard() {
     }
 
     return result.sort((a, b) => {
-      const dateA = new Date(a.expenseDate || a.receiptCapturedAt).getTime()
-      const dateB = new Date(b.expenseDate || b.receiptCapturedAt).getTime()
+      const dateA = new Date(a.expenseDate || a.receipt.capturedAt).getTime()
+      const dateB = new Date(b.expenseDate || b.receipt.capturedAt).getTime()
       return dateB - dateA
     })
   }, [expensesQuery.data, filters.dateRange, filters.userId, filters.category, filters.search])
 
   // Only show complete expenses in the main list
   const displayExpenses = useMemo((): ExpenseCardData[] => {
-    return filteredExpenses
-      .filter((expense) => expense.state === 'complete')
-      .map((expense) => ({
-        id: expense.id,
-        state: expense.state,
-        extractionStatus: expense.extractionStatus,
-        amount: expense.amount,
-        currency: expense.currency,
-        baseAmount: expense.baseAmount,
-        baseCurrency: expense.baseCurrency,
-        merchant: expense.merchant,
-        categories: expense.categories,
-        userId: expense.userId,
-        createdAt: expense.createdAt,
-        expenseDate: expense.expenseDate,
-        receiptImageKey: expense.receiptImageKey,
-      }))
+    return filteredExpenses.filter((expense) => expense.state === 'complete')
   }, [filteredExpenses])
 
   // Count processing expenses (draft with pending/processing extraction)
   const processingCount = useMemo(() => {
     if (!expensesQuery.data) return 0
-    return expensesQuery.data.filter((expense) => expense.state === 'draft' && (expense.extractionStatus === 'pending' || expense.extractionStatus === 'processing'))
-      .length
+    return expensesQuery.data.filter(
+      (expense) => expense.state === 'draft' && (expense.receipt.extraction.status === 'pending' || expense.receipt.extraction.status === 'processing'),
+    ).length
   }, [expensesQuery.data])
 
   const totalSpent = useMemo(() => {

@@ -82,9 +82,9 @@ export function SuccessStage({ expenseId, onAddAnother, actionButton }: SuccessS
 
       <div className="bg-muted/30 border rounded-xl p-4 mb-6">
         <div className="flex gap-4">
-          {data.receiptImageKey && (
+          {data.receipt.imageKey && (
             <img
-              src={getScreenshotUrl(data.receiptImageKey)!}
+              src={getScreenshotUrl(data.receipt.imageKey)!}
               alt="Receipt"
               className="w-16 h-16 object-cover rounded-lg border flex-shrink-0"
             />

@@ -1,15 +1,8 @@
 import { formatAmount } from '@/lib/expense-utils'
+import { type Expense } from '@repo/data-ops/domain'
 
 interface ExpenseMetadataProps {
-  expense: {
-    id: string
-    amount: number | null
-    currency: string | null
-    baseAmount: number | null
-    baseCurrency: string | null
-    createdAt: Date
-    completedAt: Date | null
-  }
+  expense: Expense
 }
 
 export function ExpenseMetadata({ expense }: ExpenseMetadataProps) {

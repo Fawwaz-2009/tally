@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { effectTsResolver } from '@hookform/resolvers/effect-ts'
+import { Schema } from 'effect'
 import { Loader2, Save, Trash2 } from 'lucide-react'
 
 import { centsToDollars, dollarsToCents } from '@/lib/expense-utils'
@@ -15,16 +15,16 @@ import { CurrencyPicker } from './currency-picker'
 import { ImagePreviewDialog, ImagePreviewThumbnail } from './image-preview-dialog'
 
 // Form schema - amounts are displayed/edited in dollars, stored in cents
-const expenseFormSchema = z.object({
-  amount: z.string().min(1, 'Amount is required'),
-  currency: z.string().length(3, 'Currency must be 3 characters'),
-  merchant: z.string().optional(),
-  description: z.string().optional(),
-  categories: z.string().optional(),
-  expenseDate: z.string().optional(),
+const expenseFormSchema = Schema.Struct({
+  amount: Schema.String.pipe(Schema.minLength(1, { message: () => 'Amount is required' })),
+  currency: Schema.String.pipe(Schema.length(3, { message: () => 'Currency must be 3 characters' })),
+  merchant: Schema.optional(Schema.String),
+  description: Schema.optional(Schema.String),
+  categories: Schema.optional(Schema.String),
+  expenseDate: Schema.optional(Schema.String),
 })
 
-type ExpenseFormValues = z.infer<typeof expenseFormSchema>
+type ExpenseFormValues = Schema.Schema.Type<typeof expenseFormSchema>
 
 export interface ExpenseFormData {
   amount: number // in cents
@@ -79,7 +79,7 @@ export function ExpenseForm({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
   const form = useForm<ExpenseFormValues>({
-    resolver: zodResolver(expenseFormSchema),
+    resolver: effectTsResolver(expenseFormSchema),
     defaultValues: {
       amount: centsToDollars(initialData?.amount ?? null),
       currency: initialData?.currency || 'USD',

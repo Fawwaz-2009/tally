@@ -3,22 +3,9 @@ import { motion } from 'motion/react'
 
 import { Badge } from '@/components/ui/badge'
 import { AmountDisplay } from '@/components/expense/amount-display'
+import { type Expense, ExpenseAggregate } from '@repo/data-ops/schemas'
 
-export interface ExpenseCardData {
-  id: string
-  state: string
-  extractionStatus: string
-  amount: number | null
-  currency: string | null
-  baseAmount: number | null
-  baseCurrency: string | null
-  merchant: string | null
-  categories: string[] | null
-  userId: string | null
-  createdAt: Date
-  expenseDate: Date | null
-  receiptImageKey: string | null
-}
+export type ExpenseCardData = Expense
 
 interface ExpenseCardProps {
   expense: ExpenseCardData
@@ -29,9 +16,9 @@ interface ExpenseCardProps {
 }
 
 export function ExpenseCard({ expense, baseCurrency, onClick, index = 0, userName }: ExpenseCardProps) {
-  const displayDate = expense.expenseDate || expense.createdAt
-  const needsReview = expense.state === 'draft' && expense.extractionStatus === 'done'
-  const displayAmount = expense.baseAmount ?? expense.amount
+  const displayDate = ExpenseAggregate.getDisplayDate(expense)
+  const needsReview = ExpenseAggregate.needsReview(expense)
+  const displayAmount = ExpenseAggregate.getDisplayAmount(expense)
   const isDifferentCurrency = expense.currency && expense.currency !== baseCurrency
 
   return (

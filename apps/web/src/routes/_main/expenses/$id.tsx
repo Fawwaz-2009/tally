@@ -141,6 +141,7 @@ function ExpenseDetail() {
 
   const handleSubmit = (data: ExpenseFormData) => {
     const isDraft = expenseQuery.data?.state === 'draft'
+    const expenseDate = data.expenseDate ? new Date(data.expenseDate) : undefined
 
     if (isDraft) {
       // Use complete mutation for draft expenses
@@ -148,10 +149,10 @@ function ExpenseDetail() {
         id,
         amount: data.amount,
         currency: data.currency,
-        merchant: data.merchant,
-        description: data.description,
-        categories: data.categories,
-        expenseDate: data.expenseDate,
+        merchant: data.merchant ?? null,
+        description: data.description??null,
+        categories: data.categories??[],
+        expenseDate: expenseDate ?? null,
       })
     } else {
       // Use update mutation for complete expenses
@@ -159,10 +160,10 @@ function ExpenseDetail() {
         id,
         amount: data.amount,
         currency: data.currency,
-        merchant: data.merchant,
-        description: data.description,
-        categories: data.categories,
-        expenseDate: data.expenseDate,
+        merchant: data.merchant ?? null,
+        description: data.description ?? null,
+        categories: data.categories ?? [],
+        expenseDate: expenseDate ?? null,
       })
     }
   }
@@ -214,7 +215,7 @@ function ExpenseDetail() {
 
   const expense = expenseQuery.data
   const isDraft = expense.state === 'draft'
-  const needsReview = isDraft && expense.extractionStatus === 'done'
+  const needsReview = isDraft && expense.receipt.extraction.status === 'done'
 
   return (
     <div className="px-6 pt-6 pb-24">
@@ -230,11 +231,11 @@ function ExpenseDetail() {
         <div className="flex-1">
           <h1 className="text-2xl font-bold tracking-tight">Expense Details</h1>
         </div>
-        <StatusBadge state={expense.state} extractionStatus={expense.extractionStatus} showComplete />
+        <StatusBadge state={expense.state} extractionStatus={expense.receipt.extraction.status} showComplete />
       </div>
 
       {/* Review warning */}
-      {needsReview && expense.extractionError && <ReviewWarning errorMessage={expense.extractionError} />}
+      {needsReview && expense.receipt.extraction.error && <ReviewWarning errorMessage={expense.receipt.extraction.error} />}
 
       {/* Form */}
       <ExpenseForm
@@ -246,7 +247,7 @@ function ExpenseDetail() {
           categories: expense.categories,
           expenseDate: expense.expenseDate,
         }}
-        imageUrl={getScreenshotUrl(expense.receiptImageKey)}
+        imageUrl={getScreenshotUrl(expense.receipt.imageKey)}
         onSubmit={handleSubmit}
         onDelete={handleDelete}
         isSubmitting={completeMutation.isPending || updateMutation.isPending}

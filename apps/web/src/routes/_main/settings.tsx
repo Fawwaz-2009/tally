@@ -15,6 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
 export const Route = createFileRoute('/_main/settings')({ component: Settings })
 
 const addUserFormSchema = z.object({
@@ -491,9 +492,10 @@ function CategoriesSection() {
       const expensesToUpdate = expensesQuery.data.filter((e) => e.categories?.includes(selectedCategory))
 
       for (const expense of expensesToUpdate) {
-        const newCategories = expense.categories?.map((c) => (c === selectedCategory ? newCategoryName.trim() : c))
+        const newCategories = expense.categories.map((c) => (c === selectedCategory ? newCategoryName.trim() : c))
         await updateExpense.mutateAsync({
-          id: expense.id,
+          ...expense,
+          id: expense.id!,
           categories: newCategories,
         })
       }
@@ -582,7 +584,9 @@ interface Expense {
   categories: string[] | null
   userId: string
   baseAmount: number | null
-  receiptCapturedAt: Date
+  receipt: {
+    capturedAt: Date
+  }
   completedAt: Date | null
 }
 
@@ -612,7 +616,7 @@ function ExportSection() {
   const generateCSV = (expenses: Expense[]): string => {
     const headers = ['Date', 'Amount', 'Currency', 'Merchant', 'Categories', 'User', 'Status']
     const rows = expenses.map((expense) => [
-      formatDate(expense.receiptCapturedAt),
+      formatDate(expense.receipt.capturedAt),
       formatAmount(expense.amount),
       expense.currency || '',
       expense.merchant || '',
@@ -635,7 +639,7 @@ function ExportSection() {
 
   const generateJSON = (expenses: Expense[]): string => {
     const exportData = expenses.map((expense) => ({
-      date: formatDate(expense.receiptCapturedAt),
+      date: formatDate(expense.receipt.capturedAt),
       amount: expense.amount !== null ? expense.amount / 100 : null,
       currency: expense.currency,
       merchant: expense.merchant,

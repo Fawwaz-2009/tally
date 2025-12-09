@@ -321,15 +321,15 @@ importers:
       '@effect/platform':
         specifier: ^0.90.10
         version: 0.90.10(effect@3.18.4)
+      '@handfish/drizzle-effect':
+        specifier: ^0.0.17
+        version: 0.0.17(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@12.5.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0))(effect@3.18.4)
       better-sqlite3:
         specifier: ^12.5.0
         version: 12.5.0
       drizzle-orm:
         specifier: ^0.44.6
         version: 0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@12.5.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0)
-      drizzle-zod:
-        specifier: ^0.8.3
-        version: 0.8.3(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@12.5.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0))(zod@3.25.76)
       effect:
         specifier: ^3.17.9
         version: 3.18.4
@@ -342,9 +342,6 @@ importers:
       uuid:
         specifier: ^11.1.0
         version: 11.1.0
-      zod:
-        specifier: ^3.25.32
-        version: 3.25.76
     devDependencies:
       '@effect/language-service':
         specifier: ^0.23.1
@@ -1272,6 +1269,12 @@ packages:
 
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
+
+  '@handfish/drizzle-effect@0.0.17':
+    resolution: {integrity: sha512-ejZasK3wN/L3XvVAI0xKfjNkbTXEmtggxJkHbeEDIKoE27B58C9+Ah9WG1P0yhlc+X3C+2iPzhAp9oTfQ7yFsg==}
+    peerDependencies:
+      drizzle-orm: '>=0.23.13'
+      effect: '>=3.10.16'
 
   '@hcaptcha/loader@2.2.0':
     resolution: {integrity: sha512-LAd0XRt1Mu0hLpUpWAx5OS9FS0d6V+V0aCSYUKFAz0a6tTDHeAuwm5iO81mp2HIEhXFOSSB8AwCCOU9zq695lg==}
@@ -3980,12 +3983,6 @@ packages:
         optional: true
       sqlite3:
         optional: true
-
-  drizzle-zod@0.8.3:
-    resolution: {integrity: sha512-66yVOuvGhKJnTdiqj1/Xaaz9/qzOdRJADpDa68enqS6g3t0kpNkwNYjUuaeXgZfO/UWuIM9HIhSlJ6C5ZraMww==}
-    peerDependencies:
-      drizzle-orm: '>=0.36.0'
-      zod: ^3.25.0 || ^4.0.0
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -7808,6 +7805,11 @@ snapshots:
 
   '@floating-ui/utils@0.2.10': {}
 
+  '@handfish/drizzle-effect@0.0.17(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@12.5.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0))(effect@3.18.4)':
+    dependencies:
+      drizzle-orm: 0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@12.5.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0)
+      effect: 3.18.4
+
   '@hcaptcha/loader@2.2.0': {}
 
   '@hcaptcha/react-hcaptcha@1.14.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
@@ -10748,11 +10750,6 @@ snapshots:
       gel: 2.1.1
       kysely: 0.28.8
       prisma: 5.22.0
-
-  drizzle-zod@0.8.3(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@12.5.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0))(zod@3.25.76):
-    dependencies:
-      drizzle-orm: 0.44.6(@cloudflare/workers-types@4.20251014.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(better-sqlite3@12.5.0)(gel@2.1.1)(kysely@0.28.8)(prisma@5.22.0)
-      zod: 3.25.76
 
   dunder-proto@1.0.1:
     dependencies:

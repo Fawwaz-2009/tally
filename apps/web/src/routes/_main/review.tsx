@@ -8,6 +8,7 @@ import { formatDate } from '@/lib/date-utils'
 import { getScreenshotUrl } from '@/lib/expense-utils'
 import { getStatusLabel, getStatusStyle } from '@/components/expense/status-badge'
 import { LoadingState, ErrorState, SuccessState } from '@/components/expense/states'
+import { type Expense } from '@repo/data-ops/domain'
 
 export const Route = createFileRoute('/_main/review')({
   component: ReviewPage,
@@ -17,22 +18,14 @@ export const Route = createFileRoute('/_main/review')({
 function ReviewItem({
   expense,
 }: {
-  expense: {
-    id: string
-    state: string
-    extractionStatus: string
-    merchant: string | null
-    extractionError: string | null
-    createdAt: Date
-    receiptImageKey: string | null
-  }
+  expense: Expense
 }) {
-  const statusStyle = getStatusStyle(expense.state, expense.extractionStatus)
-  const screenshotUrl = getScreenshotUrl(expense.receiptImageKey)
+  const statusStyle = getStatusStyle(expense.state, expense.receipt.extraction.status)
+  const screenshotUrl = getScreenshotUrl(expense.receipt.imageKey)
 
   return (
     <div className={`border-l-4 ${statusStyle.border} ${statusStyle.bg} rounded-r-lg overflow-hidden`}>
-      <Link to="/expenses/$id" params={{ id: expense.id }} className={`flex items-start gap-4 p-4 ${statusStyle.hoverBg} transition-colors`}>
+      <Link to="/expenses/$id" params={{ id: expense.id! }} className={`flex items-start gap-4 p-4 ${statusStyle.hoverBg} transition-colors`}>
         {/* Screenshot thumbnail */}
         <div className="w-16 h-16 flex-shrink-0 bg-muted rounded-md overflow-hidden">
           {screenshotUrl ? (
@@ -50,15 +43,15 @@ function ReviewItem({
             <span className="font-medium truncate">{expense.merchant || 'Unknown merchant'}</span>
           </div>
           <div className="text-sm text-muted-foreground mb-2">{formatDate(expense.createdAt)}</div>
-          {expense.extractionError && (
-            <div className="text-xs text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded">{expense.extractionError}</div>
+          {expense.receipt.extraction.error && (
+            <div className="text-xs text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded">{expense.receipt.extraction.error}</div>
           )}
         </div>
 
         {/* Status indicator */}
         <div className="flex flex-col items-end gap-2 flex-shrink-0">
           <span className={`text-xs font-semibold ${statusStyle.textColor} ${statusStyle.badgeBg} px-2 py-1 rounded-full`}>
-            {getStatusLabel(expense.state, expense.extractionStatus)}
+            {getStatusLabel(expense.state, expense.receipt.extraction.status)}
           </span>
           <ChevronRight className={`w-5 h-5 ${statusStyle.textColor}`} />
         </div>

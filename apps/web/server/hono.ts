@@ -7,6 +7,9 @@ import * as path from 'node:path'
 import { trpcRouter } from './trpc/router/index'
 import { env } from '@/env'
 
+// Export the env type for use in tRPC context
+export type NodeEnv = typeof env
+
 const app = new Hono()
 
 // Health check endpoint for Docker/Kubernetes

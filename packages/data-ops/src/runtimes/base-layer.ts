@@ -7,9 +7,9 @@ import {
   SettingsService,
   ExpenseRepo,
   ExpenseService,
-  ExtractionService,
   CurrencyService,
 } from "../domain";
+import { ExtractionService } from "../domain/extraction";
 
 /**
  * Base layer containing all core services for the application.

@@ -1,37 +1,85 @@
 /**
  * Mock data factories for Storybook stories.
- * These provide type-safe defaults for tRPC return types.
+ * Simple defaults + overrides pattern.
+ *
+ * Note: We use plain objects internally since tRPC serializes to JSON anyway.
+ * The exported type is ExpenseAggregate to satisfy MSW/tRPC type inference,
+ * but at runtime these are just plain objects (no class methods).
  */
+import { type Expense, type ExpenseAggregate } from '@repo/data-ops/domain'
 
 // =============================================================================
-// Expense Types (matching @repo/data-ops schema)
+// Mock Types
 // =============================================================================
 
-interface Expense {
-  id: string
-  userId: string
-  state: 'draft' | 'complete'
-  receiptImageKey: string | null
-  receiptCapturedAt: Date
-  extractionStatus: 'pending' | 'processing' | 'done' | 'failed'
-  extractionOcrText: string | null
-  extractionError: string | null
-  extractionOcrMs: number | null
-  extractionLlmMs: number | null
-  amount: number | null
-  currency: string | null
-  baseAmount: number | null
-  baseCurrency: string | null
-  merchant: string | null
-  description: string | null
-  categories: string[] | null
-  expenseDate: Date | null
-  createdAt: Date
-  completedAt: Date | null
+/**
+ * Export type as ExpenseAggregate to satisfy tRPC mock handlers.
+ * At runtime, these are plain objects (methods don't exist after serialization).
+ */
+export type MockExpense = ExpenseAggregate
+
+// =============================================================================
+// Expense Factory
+// =============================================================================
+
+const defaultExpense: Expense = {
+  id: 'exp-123',
+  userId: 'user-1',
+  state: 'draft',
+  receipt: {
+    imageKey: 'receipts/exp-123.jpg',
+    capturedAt: new Date(),
+    extraction: {
+      status: 'done',
+      ocrText: 'Sample OCR text',
+      error: null,
+      timing: {
+        ocrMs: 1200,
+        llmMs: 3400,
+      },
+    },
+  },
+  amount: 4599,
+  currency: 'USD',
+  baseAmount: 4599,
+  baseCurrency: 'USD',
+  merchant: 'Starbucks',
+  description: null,
+  categories: [],
+  expenseDate: new Date(),
+  createdAt: new Date(),
+  completedAt: null,
 }
 
-interface CaptureExpenseResult {
-  expense: Expense
+export const expenseFactory = {
+  build: (overrides: Partial<Expense> = {}): MockExpense =>
+    ({ ...defaultExpense, ...overrides }) as MockExpense,
+
+  draft: (overrides: Partial<Expense> = {}): MockExpense =>
+    ({ ...defaultExpense, state: 'draft', completedAt: null, ...overrides }) as MockExpense,
+
+  complete: (overrides: Partial<Expense> = {}): MockExpense =>
+    ({ ...defaultExpense, state: 'complete', completedAt: new Date(), ...overrides }) as MockExpense,
+
+  incomplete: (overrides: Partial<Expense> = {}): MockExpense =>
+    ({
+      ...defaultExpense,
+      state: 'draft',
+      amount: null,
+      currency: null,
+      merchant: null,
+      expenseDate: null,
+      completedAt: null,
+      ...overrides,
+    }) as MockExpense,
+}
+
+// =============================================================================
+// Capture Result Factory
+// =============================================================================
+
+type MockCaptureResult = {
+  expense: MockExpense
   extraction: {
     success: boolean
     data: {
@@ -42,61 +90,22 @@ interface CaptureExpenseResult {
       categories: string[]
     } | null
     error: string | null
-    timing: {
-      ocrMs: number
-      llmMs: number
-    } | null
+    timing: { ocrMs: number; llmMs: number } | null
   }
   needsReview: boolean
 }
 
-interface OllamaHealthResult {
-  available: boolean
-  configured: boolean
-  modelAvailable: boolean
-  model: string
-  host: string
-  models: string[]
-}
-
-// =============================================================================
-// Factories
-// =============================================================================
-
-export function createMockExpense(overrides: Partial<Expense> = {}): Expense {
-  return {
-    id: 'exp-123',
-    userId: 'user-1',
-    state: 'draft',
-    receiptImageKey: 'receipts/exp-123.jpg',
-    receiptCapturedAt: new Date(),
-    extractionStatus: 'done',
-    extractionOcrText: 'Sample OCR text',
-    extractionError: null,
-    extractionOcrMs: 1200,
-    extractionLlmMs: 3400,
-    amount: 4599,
-    currency: 'USD',
-    baseAmount: 4599,
-    baseCurrency: 'USD',
-    merchant: 'Starbucks',
-    description: null,
-    categories: [],
-    expenseDate: new Date(),
-    createdAt: new Date(),
-    completedAt: null,
-    ...overrides,
-  }
-}
-
-export function createMockCaptureResult(
+export function createCaptureResult(
   overrides: {
-    expense?: Partial<Expense>
-    extraction?: Partial<CaptureExpenseResult['extraction']>
+    expense?: Partial<MockExpense>
+    extraction?: Partial<MockCaptureResult['extraction']>
     needsReview?: boolean
   } = {},
-): CaptureExpenseResult {
-  const expense = createMockExpense(overrides.expense)
+): MockCaptureResult {
+  const needsReview = overrides.needsReview ?? true
+  const expense = needsReview
+    ? expenseFactory.draft(overrides.expense)
+    : expenseFactory.complete(overrides.expense)
 
   return {
     expense,
@@ -110,26 +119,44 @@ export function createMockCaptureResult(
         categories: expense.categories ?? [],
       },
       error: null,
-      timing: {
-        ocrMs: expense.extractionOcrMs ?? 1200,
-        llmMs: expense.extractionLlmMs ?? 3400,
-      },
+      timing: { ocrMs: 1200, llmMs: 3400 },
       ...overrides.extraction,
     },
-    needsReview: overrides.needsReview ?? true,
+    needsReview,
   }
 }
 
-export function createMockOllamaHealth(overrides: Partial<OllamaHealthResult> = {}): OllamaHealthResult {
-  return {
-    available: true,
-    configured: true,
-    modelAvailable: true,
-    model: 'llava:13b',
-    host: 'http://localhost:11434',
-    models: ['llava:13b', 'mistral'],
-    ...overrides,
-  }
+// =============================================================================
+// Ollama Health Factory
+// =============================================================================
+
+type OllamaHealth = {
+  available: boolean
+  configured: boolean
+  modelAvailable: boolean
+  model: string
+  host: string
+  models: string[]
+}
+
+const defaultOllamaHealth: OllamaHealth = {
+  available: true,
+  configured: true,
+  modelAvailable: true,
+  model: 'llava:13b',
+  host: 'http://localhost:11434',
+  models: ['llava:13b', 'mistral'],
+}
+
+export const ollamaHealthFactory = {
+  ready: (overrides: Partial<OllamaHealth> = {}): OllamaHealth =>
+    ({ ...defaultOllamaHealth, ...overrides }),
+
+  unavailable: (overrides: Partial<OllamaHealth> = {}): OllamaHealth =>
+    ({ ...defaultOllamaHealth, available: false, modelAvailable: false, models: [], ...overrides }),
+
+  modelMissing: (overrides: Partial<OllamaHealth> = {}): OllamaHealth =>
+    ({ ...defaultOllamaHealth, modelAvailable: false, models: ['mistral', 'codellama'], ...overrides }),
 }
 
 // =============================================================================
@@ -137,80 +164,22 @@ export function createMockOllamaHealth(overrides: Partial<OllamaHealthResult> = 
 // =============================================================================
 
 export const ollamaScenarios = {
-  ready: createMockOllamaHealth(),
-  unavailable: createMockOllamaHealth({
-    available: false,
-    modelAvailable: false,
-    models: [],
-  }),
-  modelMissing: createMockOllamaHealth({
-    modelAvailable: false,
-    models: ['mistral', 'codellama'],
-  }),
+  ready: ollamaHealthFactory.ready(),
+  unavailable: ollamaHealthFactory.unavailable(),
+  modelMissing: ollamaHealthFactory.modelMissing(),
 }
 
 export const captureScenarios = {
-  /** Needs user review - some fields may need editing */
-  needsReview: createMockCaptureResult({
+  needsReview: createCaptureResult({ needsReview: true }),
+  autoComplete: createCaptureResult({ needsReview: false }),
+  partialExtraction: createCaptureResult({
     needsReview: true,
-    expense: { state: 'draft' },
-  }),
-
-  /** Auto-completed - all fields extracted perfectly */
-  autoComplete: createMockCaptureResult({
-    needsReview: false,
-    expense: { state: 'complete' },
-  }),
-
-  /** Partial extraction - missing some fields */
-  partialExtraction: createMockCaptureResult({
-    needsReview: true,
-    expense: {
-      state: 'draft',
-      merchant: null,
-      expenseDate: null,
-    },
-    extraction: {
-      success: true,
-      data: {
-        amount: 4599,
-        currency: 'USD',
-        merchant: null,
-        date: null,
-        categories: [],
-      },
-      error: null,
-      timing: { ocrMs: 1200, llmMs: 3400 },
-    },
+    expense: { merchant: null, expenseDate: null },
   }),
 }
 
 export const expenseScenarios = {
-  /** Draft expense pending review */
-  draft: createMockExpense({
-    id: 'exp-123',
-    state: 'draft',
-    amount: 4599,
-    currency: 'USD',
-    merchant: 'Starbucks',
-  }),
-
-  /** Completed expense */
-  complete: createMockExpense({
-    id: 'exp-123',
-    state: 'complete',
-    amount: 4599,
-    currency: 'USD',
-    merchant: 'Starbucks',
-    completedAt: new Date(),
-  }),
-
-  /** Expense with missing required fields */
-  incomplete: createMockExpense({
-    id: 'exp-123',
-    state: 'draft',
-    amount: null,
-    currency: null,
-    merchant: null,
-  }),
+  draft: expenseFactory.draft(),
+  complete: expenseFactory.complete(),
+  incomplete: expenseFactory.incomplete(),
 }

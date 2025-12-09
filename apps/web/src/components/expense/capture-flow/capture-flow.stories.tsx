@@ -1,10 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { getWorker } from 'msw-storybook-addon'
-import { delay } from 'msw'
+import { delay, http, HttpResponse } from 'msw'
+import superjson from 'superjson'
 import { TRPCError } from '@trpc/server'
 
 import { trpcMsw } from '../../../../.storybook/mocks/trpc'
-import { createMockExpense, ollamaScenarios, captureScenarios, expenseScenarios } from '../../../../.storybook/mocks/factories'
+import { expenseFactory, ollamaScenarios, captureScenarios, expenseScenarios } from '../../../../.storybook/mocks/factories'
 import { CaptureFlow } from './capture-flow'
 
 // =============================================================================
@@ -44,24 +45,37 @@ function getHealthHandler(response: HealthResponse) {
   }
 }
 
+/**
+ * Creates a raw MSW handler for the FormData-based capture endpoint.
+ * msw-trpc doesn't handle FormData, so we need a custom handler.
+ */
 function getCaptureHandler(response: CaptureResponse) {
-  switch (response) {
-    case 'needsReview':
-      return trpcMsw.expenses.capture.mutation(async () => {
-        await delay(100)
-        return captureScenarios.needsReview
+  return http.post('/api/trpc/expenses.capture', async () => {
+    await delay(100)
+
+    if (response === 'networkError') {
+      return HttpResponse.json({
+        error: {
+          json: {
+            message: 'Failed to upload image',
+            code: -32600,
+            data: { code: 'INTERNAL_SERVER_ERROR', httpStatus: 500 },
+          },
+        },
       })
-    case 'autoComplete':
-      return trpcMsw.expenses.capture.mutation(async () => {
-        await delay(100)
-        return captureScenarios.autoComplete
-      })
-    case 'networkError':
-      return trpcMsw.expenses.capture.mutation(async () => {
-        await delay(100)
-        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to upload image' })
-      })
-  }
+    }
+
+    const data = response === 'needsReview' ? captureScenarios.needsReview : captureScenarios.autoComplete
+
+    return HttpResponse.json({
+      result: {
+        data: {
+          json: data,
+          meta: { values: superjson.serialize(data).meta },
+        },
+      },
+    })
+  })
 }
 
 function getByIdHandler(response: GetByIdResponse) {
@@ -82,7 +96,7 @@ function getCompleteHandler(response: CompleteResponse) {
     case 'success':
       return trpcMsw.expenses.complete.mutation(async () => {
         await delay(100)
-        return createMockExpense({ state: 'complete' })
+        return expenseFactory.complete()
       })
     case 'networkError':
       return trpcMsw.expenses.complete.mutation(async () => {

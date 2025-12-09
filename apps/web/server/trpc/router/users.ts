@@ -1,5 +1,4 @@
-import { z } from 'zod'
-import { Effect } from 'effect'
+import { Schema, Effect } from 'effect'
 import { type TRPCRouterRecord } from '@trpc/server'
 
 import { publicProcedure } from '../init'
@@ -17,14 +16,16 @@ export const usersRouter = {
 
   create: publicProcedure
     .input(
-      z.object({
-        id: z
-          .string()
-          .min(1)
-          .max(50)
-          .regex(/^[a-z0-9-]+$/, 'ID must be lowercase alphanumeric with hyphens'),
-        name: z.string().min(1).max(100),
-      }),
+      Schema.decodeUnknownSync(
+        Schema.Struct({
+          id: Schema.String.pipe(
+            Schema.minLength(1),
+            Schema.maxLength(50),
+            Schema.pattern(/^[a-z0-9-]+$/, { message: () => 'ID must be lowercase alphanumeric with hyphens' })
+          ),
+          name: Schema.String.pipe(Schema.minLength(1), Schema.maxLength(100)),
+        })
+      )
     )
     .mutation(async ({ input }) => {
       const program = Effect.gen(function* () {
