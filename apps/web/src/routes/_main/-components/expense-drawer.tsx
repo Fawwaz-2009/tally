@@ -8,12 +8,10 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer'
-import { getScreenshotUrl } from '@/lib/expense-utils'
+import { getScreenshotUrl, getExpenseDisplayDate, getExpenseDisplayAmount } from '@/lib/expense-utils'
 import { ExpenseForm, type ExpenseFormData } from '@/components/expense/expense-form'
 import { AmountDisplay } from '@/components/expense/amount-display'
 import { ReceiptPreview } from '@/components/expense/receipt-preview'
-
-import { ExpenseAggregate } from '@repo/data-ops/schemas'
 import type { ExpenseCardData } from './expense-card'
 
 interface ExpenseDrawerProps {
@@ -68,10 +66,10 @@ export function ExpenseDrawer({ open, onOpenChange, expense, baseCurrency, userN
   )
 
   const handleSave = (data: ExpenseFormData) => {
-    if (!expense) return
+    if (!expense?.id) return
     updateMutation.mutate({
       ...expense,
-      id: expense.id!,
+      id: expense.id,
       amount: data.amount,
       currency: data.currency,
       merchant: data.merchant ?? null,
@@ -81,15 +79,15 @@ export function ExpenseDrawer({ open, onOpenChange, expense, baseCurrency, userN
   }
 
   const handleDelete = () => {
-    if (!expense) return
-    deleteMutation.mutate({ id: expense.id! })
+    if (!expense?.id) return
+    deleteMutation.mutate({ id: expense.id })
   }
 
   if (!expense) return null
 
-  const displayDate = ExpenseAggregate.getDisplayDate(expense)
+  const displayDate = getExpenseDisplayDate(expense)
   const screenshotUrl = getScreenshotUrl(expense.receipt.imageKey)
-  const displayAmount = ExpenseAggregate.getDisplayAmount(expense)
+  const displayAmount = getExpenseDisplayAmount(expense)
   const isDifferentCurrency = expense.currency && expense.currency !== baseCurrency
 
   return (

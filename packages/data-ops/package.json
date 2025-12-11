@@ -49,12 +49,12 @@
     "db:reset": "rm -rf ../../apps/web/data && mkdir -p ../../apps/web/data && drizzle-kit push"
   },
   "dependencies": {
-    "@effect/opentelemetry": "^0.56.6",
-    "@effect/platform": "^0.90.10",
+    "@effect/opentelemetry": "^0.59.2",
+    "@effect/platform": "^0.93.3",
     "@handfish/drizzle-effect": "^0.0.17",
     "better-sqlite3": "^12.5.0",
     "drizzle-orm": "^0.44.6",
-    "effect": "^3.17.9",
+    "effect": "^3.19.5",
     "ollama": "^0.6.3",
     "tesseract.js": "^6.0.1",
     "uuid": "^11.1.0"

@@ -3,7 +3,8 @@ import { motion } from 'motion/react'
 
 import { Badge } from '@/components/ui/badge'
 import { AmountDisplay } from '@/components/expense/amount-display'
-import { type Expense, ExpenseAggregate } from '@repo/data-ops/schemas'
+import { getExpenseDisplayDate, expenseNeedsReview, getExpenseDisplayAmount } from '@/lib/expense-utils'
+import type { Expense } from '@repo/data-ops/domain'
 
 export type ExpenseCardData = Expense
 
@@ -16,9 +17,9 @@ interface ExpenseCardProps {
 }
 
 export function ExpenseCard({ expense, baseCurrency, onClick, index = 0, userName }: ExpenseCardProps) {
-  const displayDate = ExpenseAggregate.getDisplayDate(expense)
-  const needsReview = ExpenseAggregate.needsReview(expense)
-  const displayAmount = ExpenseAggregate.getDisplayAmount(expense)
+  const displayDate = getExpenseDisplayDate(expense)
+  const needsReview = expenseNeedsReview(expense)
+  const displayAmount = getExpenseDisplayAmount(expense)
   const isDifferentCurrency = expense.currency && expense.currency !== baseCurrency
 
   return (

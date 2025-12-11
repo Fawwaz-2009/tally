@@ -21,7 +21,11 @@ export function UploadStage({ userId, onComplete }: UploadStageProps) {
   const captureExpense = useMutation(
     trpc.expenses.capture.mutationOptions({
       onSuccess: (result) => {
-        onComplete(result.expense.id!, result.needsReview)
+        if (!result.expense.id) {
+          setError('Expense ID is missing - please try again')
+          return
+        }
+        onComplete(result.expense.id, result.needsReview)
       },
       onError: (err) => {
         setError(err.message)

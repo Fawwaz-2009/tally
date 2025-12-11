@@ -33,12 +33,12 @@ export function ReviewStage({ expenseId, onComplete, onBack, hideBackButton = fa
   )
 
   const handleSubmit = (data: ExpenseFormData) => {
-    if (!expense.data) {
+    if (!expense.data?.id) {
       throw new Error('Expense data is missing')
     }
     completeExpense.mutate({
       ...expense.data,
-      id: expense.data.id!,
+      id: expense.data.id,
       amount: data.amount,
       currency: data.currency,
       merchant: data.merchant || null,

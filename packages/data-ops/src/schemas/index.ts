@@ -1,12 +1,14 @@
 /**
  * Client-safe schema exports.
- * This module only exports types and pure utility functions
- * that can be safely bundled for browser use.
+ * This module only exports types that can be safely used in frontend code.
  *
  * Import from "@repo/data-ops/schemas" in frontend code.
  */
 
-// Re-export types from domain schemas
+// =============================================================================
+// Expense Types
+// =============================================================================
+
 export type {
   Expense,
   ExpenseInsert,
@@ -18,10 +20,12 @@ export type {
   UpdateChanges,
 } from "../domain/expenses/schema";
 
-// Re-export the aggregate class for static method access
 export { ExpenseAggregate } from "../domain/expenses/schema";
 
-// Re-export DTO types
+// =============================================================================
+// DTO Types
+// =============================================================================
+
 export type {
   CaptureExpenseInput,
   CaptureExpenseResult,

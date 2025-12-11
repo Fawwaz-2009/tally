@@ -1,4 +1,5 @@
 import cc from 'currency-codes'
+import type { Expense } from '@repo/data-ops/domain'
 
 /**
  * Format amount from cents to a localized currency string
@@ -62,4 +63,45 @@ export function getCurrencyOptions(): CurrencyOption[] {
 export function getScreenshotUrl(screenshotPath: string | null): string | null {
   if (!screenshotPath) return null
   return `/api/files/${screenshotPath}`
+}
+
+// =============================================================================
+// Expense Display Utilities
+// =============================================================================
+
+/**
+ * Check if expense has all required fields for completion
+ */
+export function isExpenseValid(expense: Expense): boolean {
+  return (
+    expense.amount !== null &&
+    expense.currency !== null &&
+    expense.merchant !== null &&
+    expense.expenseDate !== null
+  )
+}
+
+/**
+ * Check if expense needs manual review
+ */
+export function expenseNeedsReview(expense: Expense): boolean {
+  return (
+    expense.state === 'draft' &&
+    expense.receipt.extraction.status === 'done' &&
+    !isExpenseValid(expense)
+  )
+}
+
+/**
+ * Get display amount (prefer base currency conversion)
+ */
+export function getExpenseDisplayAmount(expense: Expense): number | null {
+  return expense.baseAmount ?? expense.amount
+}
+
+/**
+ * Get display date (prefer expense date, fallback to captured)
+ */
+export function getExpenseDisplayDate(expense: Expense): Date {
+  return expense.expenseDate ?? expense.receipt.capturedAt
 }

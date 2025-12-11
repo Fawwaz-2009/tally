@@ -492,10 +492,11 @@ function CategoriesSection() {
       const expensesToUpdate = expensesQuery.data.filter((e) => e.categories?.includes(selectedCategory))
 
       for (const expense of expensesToUpdate) {
+        if (!expense.id) continue
         const newCategories = expense.categories.map((c) => (c === selectedCategory ? newCategoryName.trim() : c))
         await updateExpense.mutateAsync({
           ...expense,
-          id: expense.id!,
+          id: expense.id,
           categories: newCategories,
         })
       }
