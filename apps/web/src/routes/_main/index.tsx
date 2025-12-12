@@ -5,7 +5,9 @@ import { useMemo } from 'react'
 
 import { useTRPC } from '@/integrations/trpc-react'
 import { getDateRangeBounds, type DateRange } from '@/lib/date-utils'
-import { OverviewHeader, StatusBanners, FilterBar, ExpenseList, type ExpenseCardData } from './-components'
+import { isPending, isConfirmed } from '@/lib/expense-utils'
+import { OverviewHeader, StatusBanners, FilterBar, ExpenseList } from './-components'
+import type { ConfirmedExpense } from '@repo/data-ops/schemas'
 
 const dashboardSearchSchema = z.object({
   dateRange: z.enum(['last-7-days', 'this-month', 'last-month', 'all-time']).default('this-month'),
@@ -67,7 +69,8 @@ function Dashboard() {
     const dateRange = getDateRangeBounds(filters.dateRange)
     if (dateRange) {
       result = result.filter((expense) => {
-        const dateToCheck = new Date(expense.expenseDate || expense.receipt.capturedAt)
+        // For pending expenses, use capturedAt; for others use expenseDate or capturedAt
+        const dateToCheck = isPending(expense) ? new Date(expense.capturedAt) : new Date(expense.expenseDate || expense.capturedAt)
         return dateToCheck >= dateRange.start && dateToCheck <= dateRange.end
       })
     }
@@ -77,12 +80,18 @@ function Dashboard() {
     }
 
     if (filters.category) {
-      result = result.filter((expense) => expense.categories?.includes(filters.category!))
+      result = result.filter((expense) => {
+        // Only pending-review and confirmed have categories
+        if (isPending(expense)) return false
+        return expense.categories?.includes(filters.category!)
+      })
     }
 
     if (filters.search) {
       const searchLower = filters.search.toLowerCase()
       result = result.filter((expense) => {
+        // Only pending-review and confirmed have merchant/categories
+        if (isPending(expense)) return false
         const merchantMatch = expense.merchant?.toLowerCase().includes(searchLower)
         const categoryMatch = expense.categories?.some((cat) => cat.toLowerCase().includes(searchLower))
         return merchantMatch || categoryMatch
@@ -90,23 +99,21 @@ function Dashboard() {
     }
 
     return result.sort((a, b) => {
-      const dateA = new Date(a.expenseDate || a.receipt.capturedAt).getTime()
-      const dateB = new Date(b.expenseDate || b.receipt.capturedAt).getTime()
+      const dateA = isPending(a) ? new Date(a.capturedAt).getTime() : new Date(a.expenseDate || a.capturedAt).getTime()
+      const dateB = isPending(b) ? new Date(b.capturedAt).getTime() : new Date(b.expenseDate || b.capturedAt).getTime()
       return dateB - dateA
     })
   }, [expensesQuery.data, filters.dateRange, filters.userId, filters.category, filters.search])
 
-  // Only show complete expenses in the main list
-  const displayExpenses = useMemo((): ExpenseCardData[] => {
-    return filteredExpenses.filter((expense) => expense.state === 'complete')
+  // Only show confirmed expenses in the main list
+  const displayExpenses = useMemo((): ConfirmedExpense[] => {
+    return filteredExpenses.filter(isConfirmed)
   }, [filteredExpenses])
 
-  // Count processing expenses (draft with pending/processing extraction)
+  // Count processing expenses (pending state = extraction in progress)
   const processingCount = useMemo(() => {
     if (!expensesQuery.data) return 0
-    return expensesQuery.data.filter(
-      (expense) => expense.state === 'draft' && (expense.receipt.extraction.status === 'pending' || expense.receipt.extraction.status === 'processing'),
-    ).length
+    return expensesQuery.data.filter((expense) => expense.state === 'pending').length
   }, [expensesQuery.data])
 
   const totalSpent = useMemo(() => {

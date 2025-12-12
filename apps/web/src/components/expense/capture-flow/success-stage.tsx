@@ -3,7 +3,7 @@ import { CheckCircle2, Plus, Loader2, AlertCircle } from 'lucide-react'
 
 import { useTRPC } from '@/integrations/trpc-react'
 import { Button } from '@/components/ui/button'
-import { getScreenshotUrl } from '@/lib/expense-utils'
+import { getScreenshotUrl, isConfirmed } from '@/lib/expense-utils'
 
 export interface SuccessStageProps {
   expenseId: string
@@ -49,15 +49,15 @@ export function SuccessStage({ expenseId, onAddAnother, actionButton }: SuccessS
 
   const data = expense.data
 
-  // Validate required fields for display
-  if (data.amount == null || data.currency == null) {
+  // SuccessStage should only show confirmed expenses
+  if (!isConfirmed(data)) {
     return (
       <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
         <div className="flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-destructive">Invalid expense data</p>
-            <p className="text-sm text-muted-foreground mt-1">Expense is missing required fields</p>
+            <p className="text-sm font-medium text-destructive">Invalid expense state</p>
+            <p className="text-sm text-muted-foreground mt-1">Expense is not confirmed yet</p>
             {onAddAnother && (
               <Button variant="outline" size="sm" className="mt-3" onClick={onAddAnother}>
                 Try again
@@ -82,13 +82,7 @@ export function SuccessStage({ expenseId, onAddAnother, actionButton }: SuccessS
 
       <div className="bg-muted/30 border rounded-xl p-4 mb-6">
         <div className="flex gap-4">
-          {data.receipt.imageKey && (
-            <img
-              src={getScreenshotUrl(data.receipt.imageKey)!}
-              alt="Receipt"
-              className="w-16 h-16 object-cover rounded-lg border flex-shrink-0"
-            />
-          )}
+          {data.imageKey && <img src={getScreenshotUrl(data.imageKey)!} alt="Receipt" className="w-16 h-16 object-cover rounded-lg border flex-shrink-0" />}
           <div className="flex-1 text-left min-w-0">
             <div className="font-mono text-2xl font-bold tracking-tight">
               {data.currency} {amount}

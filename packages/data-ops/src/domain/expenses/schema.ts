@@ -1,397 +1,443 @@
 /**
- * Expense domain schemas - core business model.
- * For API inputs/outputs, see dto.ts
+ * Expense domain schemas - always-valid discriminated union model.
+ * Uses Effect Schema for runtime validation and type narrowing.
  */
-import {
-  createInsertSchema,
-  createSelectSchema,
-} from "@handfish/drizzle-effect";
 import { Schema } from "effect";
 import {
   expensesTable,
   expenseState,
-  extractionStatus,
   type ExpenseState,
-  type ExtractionStatus,
+  type ExtractionMetadata,
 } from "../../db/schema";
 
-// Re-export domain enums and types
-export {
-  expenseState,
-  extractionStatus,
-  type ExpenseState,
-  type ExtractionStatus,
-};
+// Re-export domain types
+export { expenseState, type ExpenseState, type ExtractionMetadata };
 
 // ============================================================================
-// Aggregate Method Input Types
+// Drizzle Inferred Types (source of truth for persistence)
+// ============================================================================
+
+export type ExpenseRow = typeof expensesTable.$inferSelect;
+export type ExpenseInsert = typeof expensesTable.$inferInsert;
+
+// ============================================================================
+// Effect Schemas for Discriminated Union
 // ============================================================================
 
 /**
- * Input for applying extraction results to an expense.
+ * Schema for extraction metadata (stored as JSON in DB)
  */
-export interface ApplyExtractionData {
-  status: "done" | "failed";
-  ocrText?: string | null;
-  error?: string | null;
-  timing?: { ocrMs: number; llmMs: number } | null;
-  amount?: number | null;
-  currency?: string | null;
-  merchant?: string | null;
-  categories?: string[] | null;
-  expenseDate?: Date | null;
-}
+export const ExtractionMetadataSchema = Schema.Struct({
+  ocrText: Schema.NullOr(Schema.String),
+  error: Schema.NullOr(Schema.String),
+  timing: Schema.NullOr(
+    Schema.Struct({
+      ocrMs: Schema.Number,
+      llmMs: Schema.Number,
+    })
+  ),
+});
 
 /**
- * Input for completing an expense (transitioning to complete state).
- * baseAmount and baseCurrency are required - calculated by service layer.
- */
-export interface CompleteOverrides {
-  amount?: number;
-  currency?: string;
-  baseAmount: number;
-  baseCurrency: string;
-  merchant?: string;
-  description?: string | null;
-  categories?: string[] | null;
-  expenseDate?: Date | null;
-}
-
-/**
- * Input for updating expense fields.
- * Accepts null values to support clearing fields.
- */
-export interface UpdateChanges {
-  amount?: number | null;
-  currency?: string | null;
-  baseAmount?: number | null;
-  baseCurrency?: string | null;
-  merchant?: string | null;
-  description?: string | null;
-  categories?: string[] | null;
-  expenseDate?: Date | null;
-}
-
-// ============================================================================
-// Table and Domain Schemas
-// ============================================================================
-
-/**
- * Override categories field to use proper string[] type instead of generic JSON.
+ * Categories field schema (array of strings)
  */
 const CategoriesSchema = Schema.mutable(Schema.Array(Schema.String));
 
 /**
- * Expense insert schema - for creating new expenses.
+ * Pending: receipt captured, extraction not yet applied.
+ * Minimal data - just identity and receipt info.
  */
-export const ExpenseTableSchema = createInsertSchema(expensesTable, {
-  categories: CategoriesSchema,
+export const PendingExpenseSchema = Schema.Struct({
+  state: Schema.Literal("pending"),
+  id: Schema.String,
+  userId: Schema.String,
+  imageKey: Schema.NullOr(Schema.String),
+  capturedAt: Schema.DateFromSelf,
+  createdAt: Schema.DateFromSelf,
 });
-export type ExpenseInsert = Schema.Schema.Type<typeof ExpenseTableSchema>;
 
 /**
- * Expense select schema - for reading existing expenses.
+ * PendingReview: extraction applied, needs user review.
+ * All expense fields nullable - filled by extraction or user.
  */
-export const ExpenseSelectSchema = createSelectSchema(expensesTable, {
-  categories: Schema.NullOr(CategoriesSchema),
+export const PendingReviewExpenseSchema = Schema.Struct({
+  state: Schema.Literal("pending-review"),
+  id: Schema.String,
+  userId: Schema.String,
+  imageKey: Schema.NullOr(Schema.String),
+  capturedAt: Schema.DateFromSelf,
+  createdAt: Schema.DateFromSelf,
+  // Expense data - nullable, filled by extraction or user
+  amount: Schema.NullOr(Schema.Number),
+  currency: Schema.NullOr(Schema.String),
+  merchant: Schema.NullOr(Schema.String),
+  description: Schema.NullOr(Schema.String),
+  categories: CategoriesSchema,
+  expenseDate: Schema.NullOr(Schema.DateFromSelf),
+  // Extraction results for display during review
+  extractionMetadata: Schema.NullOr(ExtractionMetadataSchema),
 });
-export type ExpenseSelect = Schema.Schema.Type<typeof ExpenseSelectSchema>;
 
 /**
- * Aggregate schema - rich domain model with value objects.
- * This is the primary domain entity used by services and UI.
+ * Confirmed: all required fields present, finalized.
+ * Required fields enforced by type - no nulls for core data.
  */
-export class ExpenseAggregate extends Schema.Class<ExpenseAggregate>(
-  "ExpenseAggregate",
-)({
-  // Override id to be required (drizzle makes it optional for inserts)
-  id: Schema.NullOr(Schema.String),
-  ...ExpenseSelectSchema.omit(
-    "id",
-    "extractionStatus",
-    "extractionOcrText",
-    "extractionError",
-    "extractionOcrMs",
-    "extractionLlmMs",
-    "receiptImageKey",
-    "receiptCapturedAt",
-    "categories",
-  ).fields,
+export const ConfirmedExpenseSchema = Schema.Struct({
+  state: Schema.Literal("confirmed"),
+  id: Schema.String,
+  userId: Schema.String,
+  imageKey: Schema.NullOr(Schema.String),
+  capturedAt: Schema.DateFromSelf,
+  createdAt: Schema.DateFromSelf,
+  confirmedAt: Schema.DateFromSelf,
+  // Required expense data - NOT nullable
+  amount: Schema.Number,
+  currency: Schema.String,
+  baseAmount: Schema.Number,
+  baseCurrency: Schema.String,
+  merchant: Schema.String,
+  // Optional fields
+  description: Schema.NullOr(Schema.String),
   categories: CategoriesSchema,
-  // Receipt owns extraction lifecycle
-  receipt: Schema.Struct({
-    imageKey: Schema.NullOr(Schema.String),
-    capturedAt: Schema.DateFromSelf,
-    extraction: Schema.Struct({
-      status: Schema.Literal("pending", "processing", "done", "failed"),
-      ocrText: Schema.NullOr(Schema.String),
-      error: Schema.NullOr(Schema.String),
-      timing: Schema.NullOr(
-        Schema.Struct({
-          ocrMs: Schema.Number,
-          llmMs: Schema.Number,
-        }),
-      ),
-    }),
-  }),
-}) {
-  isValidExpense() {
-    return ExpenseAggregate.isValid(this as unknown as Expense);
+  expenseDate: Schema.DateFromSelf,
+  extractionMetadata: Schema.NullOr(ExtractionMetadataSchema),
+});
+
+/**
+ * Discriminated union of all expense states.
+ */
+export const ExpenseSchema = Schema.Union(
+  PendingExpenseSchema,
+  PendingReviewExpenseSchema,
+  ConfirmedExpenseSchema
+);
+// ============================================================================
+// TypeScript Types (inferred from Effect Schema)
+// ============================================================================
+
+export type PendingExpense = Schema.Schema.Type<typeof PendingExpenseSchema>;
+export type PendingReviewExpense = Schema.Schema.Type<typeof PendingReviewExpenseSchema>;
+export type ConfirmedExpense = Schema.Schema.Type<typeof ConfirmedExpenseSchema>;
+export type Expense = Schema.Schema.Type<typeof ExpenseSchema>;
+
+// ============================================================================
+// Type Guards
+// ============================================================================
+
+export const isPending = (expense: Expense): expense is PendingExpense =>
+  expense.state === "pending";
+
+export const isPendingReview = (expense: Expense): expense is PendingReviewExpense =>
+  expense.state === "pending-review";
+
+export const isConfirmed = (expense: Expense): expense is ConfirmedExpense =>
+  expense.state === "confirmed";
+
+// ============================================================================
+// Persistence Mapping
+// ============================================================================
+
+/**
+ * Parse a database row into the appropriate expense variant.
+ * Validates and narrows the type based on the state discriminator.
+ */
+export const fromRow = (row: ExpenseRow): Expense => {
+  switch (row.state) {
+    case "pending":
+      return {
+        state: "pending",
+        id: row.id,
+        userId: row.userId,
+        imageKey: row.imageKey,
+        capturedAt: row.capturedAt,
+        createdAt: row.createdAt,
+      };
+
+    case "pending-review":
+      return {
+        state: "pending-review",
+        id: row.id,
+        userId: row.userId,
+        imageKey: row.imageKey,
+        capturedAt: row.capturedAt,
+        createdAt: row.createdAt,
+        amount: row.amount,
+        currency: row.currency,
+        merchant: row.merchant,
+        description: row.description,
+        categories: row.categories ?? [],
+        expenseDate: row.expenseDate,
+        extractionMetadata: row.extractionMetadata,
+      };
+
+    case "confirmed":
+      // Confirmed expenses must have all required fields
+      if (
+        row.amount === null ||
+        row.currency === null ||
+        row.baseAmount === null ||
+        row.baseCurrency === null ||
+        row.merchant === null ||
+        row.confirmedAt === null ||
+        row.expenseDate === null
+      ) {
+        throw new Error(
+          `Confirmed expense ${row.id} is missing required fields`
+        );
+      }
+      return {
+        state: "confirmed",
+        id: row.id,
+        userId: row.userId,
+        imageKey: row.imageKey,
+        capturedAt: row.capturedAt,
+        createdAt: row.createdAt,
+        confirmedAt: row.confirmedAt,
+        amount: row.amount,
+        currency: row.currency,
+        baseAmount: row.baseAmount,
+        baseCurrency: row.baseCurrency,
+        merchant: row.merchant,
+        description: row.description,
+        categories: row.categories ?? [],
+        expenseDate: row.expenseDate,
+        extractionMetadata: row.extractionMetadata,
+      };
   }
-  getMissingFields() {
-    return ExpenseAggregate.getMissingFields(this as unknown as Expense);
+};
+
+/**
+ * Convert an expense variant to a database row for persistence.
+ */
+export const toRow = (expense: Expense): ExpenseInsert => {
+  switch (expense.state) {
+    case "pending":
+      return {
+        id: expense.id,
+        userId: expense.userId,
+        state: "pending",
+        imageKey: expense.imageKey,
+        capturedAt: expense.capturedAt,
+        createdAt: expense.createdAt,
+        extractionMetadata: null,
+        amount: null,
+        currency: null,
+        baseAmount: null,
+        baseCurrency: null,
+        merchant: null,
+        description: null,
+        categories: [],
+        expenseDate: null,
+        confirmedAt: null,
+      };
+
+    case "pending-review":
+      return {
+        id: expense.id,
+        userId: expense.userId,
+        state: "pending-review",
+        imageKey: expense.imageKey,
+        capturedAt: expense.capturedAt,
+        createdAt: expense.createdAt,
+        extractionMetadata: expense.extractionMetadata,
+        amount: expense.amount,
+        currency: expense.currency,
+        baseAmount: null,
+        baseCurrency: null,
+        merchant: expense.merchant,
+        description: expense.description,
+        categories: expense.categories,
+        expenseDate: expense.expenseDate,
+        confirmedAt: null,
+      };
+
+    case "confirmed":
+      return {
+        id: expense.id,
+        userId: expense.userId,
+        state: "confirmed",
+        imageKey: expense.imageKey,
+        capturedAt: expense.capturedAt,
+        createdAt: expense.createdAt,
+        confirmedAt: expense.confirmedAt,
+        extractionMetadata: expense.extractionMetadata,
+        amount: expense.amount,
+        currency: expense.currency,
+        baseAmount: expense.baseAmount,
+        baseCurrency: expense.baseCurrency,
+        merchant: expense.merchant,
+        description: expense.description,
+        categories: expense.categories,
+        expenseDate: expense.expenseDate,
+      };
   }
-  static fromPersistence(row: ExpenseSelect): ExpenseAggregate {
-    return new ExpenseAggregate({
-      // Core fields (id always exists when reading from DB)
-      id: row.id!,
-      userId: row.userId,
-      state: row.state,
-      amount: row.amount,
-      currency: row.currency,
-      baseAmount: row.baseAmount,
-      baseCurrency: row.baseCurrency,
-      merchant: row.merchant,
-      description: row.description,
-      categories: row.categories ?? [],
-      expenseDate: row.expenseDate,
-      createdAt: row.createdAt,
-      completedAt: row.completedAt,
+};
 
-      // Hydrate receipt value object (includes extraction)
-      receipt: {
-        imageKey: row.receiptImageKey ?? null,
-        capturedAt: row.receiptCapturedAt!,
-        extraction: {
-          status: row.extractionStatus ?? "pending",
-          ocrText: row.extractionOcrText ?? null,
-          error: row.extractionError ?? null,
-          timing:
-            row.extractionOcrMs !== undefined &&
-            row.extractionOcrMs !== null &&
-            row.extractionLlmMs !== undefined &&
-            row.extractionLlmMs !== null
-              ? { ocrMs: row.extractionOcrMs, llmMs: row.extractionLlmMs }
-              : null,
-        },
-      },
-    });
+// ============================================================================
+// Pure Transition Functions
+// ============================================================================
+
+/**
+ * Create a new pending expense from a receipt capture.
+ */
+export const createPending = (params: {
+  userId: string;
+  imageKey?: string | null;
+}): PendingExpense => ({
+  state: "pending",
+  id: crypto.randomUUID(),
+  userId: params.userId,
+  imageKey: params.imageKey ?? null,
+  capturedAt: new Date(),
+  createdAt: new Date(),
+});
+
+/**
+ * Apply extraction results to a pending expense.
+ * Transitions: pending → pending-review
+ */
+export const applyExtraction = (
+  expense: PendingExpense,
+  data: {
+    amount?: number | null;
+    currency?: string | null;
+    merchant?: string | null;
+    categories?: string[] | null;
+    expenseDate?: Date | null;
+    extractionMetadata: ExtractionMetadata | null;
   }
-  toPersistence(): ExpenseInsert {
-    return {
-      // Core fields from the aggregate
-      id: this.id ?? undefined,
-      userId: this.userId,
-      state: this.state,
-      amount: this.amount,
-      currency: this.currency,
-      baseAmount: this.baseAmount,
-      baseCurrency: this.baseCurrency,
-      merchant: this.merchant,
-      description: this.description,
-      categories: this.categories ?? [],
-      expenseDate: this.expenseDate,
-      createdAt: this.createdAt,
-      completedAt: this.completedAt,
+): PendingReviewExpense => ({
+  state: "pending-review",
+  id: expense.id,
+  userId: expense.userId,
+  imageKey: expense.imageKey,
+  capturedAt: expense.capturedAt,
+  createdAt: expense.createdAt,
+  amount: data.amount ?? null,
+  currency: data.currency ?? null,
+  merchant: data.merchant ?? null,
+  description: null,
+  categories: data.categories ?? [],
+  expenseDate: data.expenseDate ?? null,
+  extractionMetadata: data.extractionMetadata,
+});
 
-      // Flatten receipt.extraction
-      extractionStatus: this.receipt.extraction.status,
-      extractionOcrText: this.receipt.extraction.ocrText,
-      extractionError: this.receipt.extraction.error,
-      extractionOcrMs: this.receipt.extraction.timing?.ocrMs ?? null,
-      extractionLlmMs: this.receipt.extraction.timing?.llmMs ?? null,
-
-      // Flatten receipt fields
-      receiptImageKey: this.receipt.imageKey,
-      receiptCapturedAt: this.receipt.capturedAt,
-    };
-  }
-
-  // ==========================================================================
-  // State Transition Methods (pure, sync, infallible)
-  // ==========================================================================
-
-  /**
-   * Start extraction processing.
-   * Returns new aggregate with receipt.extraction.status = "processing".
-   */
-  startExtraction(): ExpenseAggregate {
-    return new ExpenseAggregate({
-      ...this,
-      receipt: {
-        ...this.receipt,
-        extraction: {
-          ...this.receipt.extraction,
-          status: "processing" as const,
-        },
-      },
-    });
-  }
-
-  /**
-   * Apply extraction results to the expense.
-   * Extracted data (amount, currency, etc.) goes on expense.
-   * Extraction lifecycle (status, ocrText, timing) goes on receipt.
-   */
-  applyExtraction(data: ApplyExtractionData): ExpenseAggregate {
-    return new ExpenseAggregate({
-      ...this,
-      // Extracted data goes on expense
-      amount: data.amount ?? this.amount,
-      currency: data.currency ?? this.currency,
-      merchant: data.merchant ?? this.merchant,
-      categories: data.categories ?? this.categories,
-      expenseDate: data.expenseDate ?? this.expenseDate,
-      // Extraction lifecycle goes on receipt
-      receipt: {
-        ...this.receipt,
-        extraction: {
-          status: data.status,
-          ocrText: data.ocrText ?? this.receipt.extraction.ocrText,
-          error: data.error ?? this.receipt.extraction.error,
-          timing: data.timing ?? this.receipt.extraction.timing,
-        },
-      },
-    });
-  }
-
-  /**
-   * Complete the expense (transition to complete state).
-   * Returns new aggregate with state = "complete" and completedAt set.
-   * Note: Service layer validates preconditions before calling this.
-   */
-  complete(overrides: CompleteOverrides): ExpenseAggregate {
-    return new ExpenseAggregate({
-      ...this,
-      state: "complete" as const,
-      amount: overrides.amount ?? this.amount,
-      currency: overrides.currency ?? this.currency,
-      baseAmount: overrides.baseAmount,
-      baseCurrency: overrides.baseCurrency,
-      merchant: overrides.merchant ?? this.merchant,
-      description: overrides.description ?? this.description,
-      categories: overrides.categories ?? this.categories,
-      expenseDate:
-        overrides.expenseDate ?? this.expenseDate ?? this.receipt.capturedAt,
-      completedAt: new Date(),
-    });
-  }
-
-  /**
-   * Update expense fields.
-   * Returns new aggregate with applied changes.
-   */
-  update(changes: UpdateChanges): ExpenseAggregate {
-    return new ExpenseAggregate({
-      ...this,
-      amount: changes.amount ?? this.amount,
-      currency: changes.currency ?? this.currency,
-      baseAmount: changes.baseAmount ?? this.baseAmount,
-      baseCurrency: changes.baseCurrency ?? this.baseCurrency,
-      merchant: changes.merchant ?? this.merchant,
-      description: changes.description ?? this.description,
-      categories: changes.categories ?? this.categories,
-      expenseDate: changes.expenseDate ?? this.expenseDate,
-    });
-  }
-
-  // ==========================================================================
-  // Static Query Methods (work on plain data - client & server)
-  // ==========================================================================
-
-  /** Check if expense has all required fields for completion */
-  static isValid(expense: Expense): boolean {
-    return (
-      expense.amount !== null &&
-      expense.currency !== null &&
-      expense.merchant !== null &&
-      expense.expenseDate !== null
-    );
-  }
-
-  /** Get list of missing required fields */
-  static getMissingFields(
-    expense: Expense,
-  ): ("amount" | "currency" | "merchant" | "expenseDate")[] {
-    const missing: ("amount" | "currency" | "merchant" | "expenseDate")[] = [];
-    if (expense.amount === null) missing.push("amount");
-    if (expense.currency === null) missing.push("currency");
-    if (expense.merchant === null) missing.push("merchant");
-    if (expense.expenseDate === null) missing.push("expenseDate");
-    return missing;
-  }
-
-  /** Check if expense needs manual review */
-  static needsReview(expense: Expense): boolean {
-    return (
-      expense.state === "draft" &&
-      expense.receipt.extraction.status === "done" &&
-      !ExpenseAggregate.isValid(expense)
-    );
-  }
-
-  /** Get display amount (prefer base currency conversion) */
-  static getDisplayAmount(expense: Expense): number | null {
-    return expense.baseAmount ?? expense.amount;
-  }
-
-  /** Get display date (prefer expense date, fallback to captured) */
-  static getDisplayDate(expense: Expense): Date {
-    return expense.expenseDate ?? expense.receipt.capturedAt;
-  }
-
-  // ==========================================================================
-  // Static Factory Methods
-  // ==========================================================================
-
-  /**
-   * Create a new draft expense.
-   * ID is generated client-side (UUID pattern).
-   */
-  static createDraft(params: {
-    userId: string;
-    receiptImageKey?: string;
-  }): ExpenseAggregate {
-    return new ExpenseAggregate({
-      id: crypto.randomUUID(),
-      userId: params.userId,
-      state: "draft",
-      amount: null,
-      currency: null,
-      baseAmount: null,
-      baseCurrency: null,
-      merchant: null,
-      description: null,
-      categories: [],
-      expenseDate: null,
-      createdAt: new Date(),
-      completedAt: null,
-      receipt: {
-        imageKey: params.receiptImageKey ?? null,
-        capturedAt: new Date(),
-        extraction: {
-          status: "pending",
-          ocrText: null,
-          error: null,
-          timing: null,
-        },
-      },
-    });
-  }
+/**
+ * Input for confirming an expense.
+ */
+export interface ConfirmInput {
+  amount: number;
+  currency: string;
+  baseAmount: number;
+  baseCurrency: string;
+  merchant: string;
+  description?: string | null;
+  categories?: string[];
+  expenseDate: Date;
 }
 
-// Instance methods that won't be available on plain objects (after tRPC serialization)
-type InstanceMethods =
-  | "isValidExpense"
-  | "getMissingFields"
-  | "toPersistence"
-  | "startExtraction"
-  | "applyExtraction"
-  | "complete"
-  | "update";
+/**
+ * Confirm a pending-review expense.
+ * Transitions: pending-review → confirmed
+ * All required fields must be provided.
+ */
+export const confirm = (
+  expense: PendingReviewExpense,
+  input: ConfirmInput
+): ConfirmedExpense => ({
+  state: "confirmed",
+  id: expense.id,
+  userId: expense.userId,
+  imageKey: expense.imageKey,
+  capturedAt: expense.capturedAt,
+  createdAt: expense.createdAt,
+  confirmedAt: new Date(),
+  amount: input.amount,
+  currency: input.currency,
+  baseAmount: input.baseAmount,
+  baseCurrency: input.baseCurrency,
+  merchant: input.merchant,
+  description: input.description ?? null,
+  categories: input.categories ?? expense.categories,
+  expenseDate: input.expenseDate,
+  extractionMetadata: expense.extractionMetadata,
+});
 
-/** Plain data type for client consumption and factories */
-export type Expense = Omit<
-  Schema.Schema.Type<typeof ExpenseAggregate>,
-  InstanceMethods
->;
+/**
+ * Input for updating a pending-review expense.
+ */
+export interface UpdateInput {
+  amount?: number | null;
+  currency?: string | null;
+  merchant?: string | null;
+  description?: string | null;
+  categories?: string[];
+  expenseDate?: Date | null;
+}
+
+/**
+ * Update a pending-review expense.
+ * Only pending-review expenses can be updated.
+ */
+export const update = (
+  expense: PendingReviewExpense,
+  changes: UpdateInput
+): PendingReviewExpense => ({
+  ...expense,
+  amount: changes.amount !== undefined ? changes.amount : expense.amount,
+  currency: changes.currency !== undefined ? changes.currency : expense.currency,
+  merchant: changes.merchant !== undefined ? changes.merchant : expense.merchant,
+  description: changes.description !== undefined ? changes.description : expense.description,
+  categories: changes.categories !== undefined ? changes.categories : expense.categories,
+  expenseDate: changes.expenseDate !== undefined ? changes.expenseDate : expense.expenseDate,
+});
+
+// ============================================================================
+// Query Helpers
+// ============================================================================
+
+/**
+ * Get list of missing required fields for confirmation.
+ */
+export const getMissingFields = (
+  expense: PendingReviewExpense
+): ("amount" | "currency" | "merchant" | "expenseDate")[] => {
+  const missing: ("amount" | "currency" | "merchant" | "expenseDate")[] = [];
+  if (expense.amount === null) missing.push("amount");
+  if (expense.currency === null) missing.push("currency");
+  if (expense.merchant === null) missing.push("merchant");
+  if (expense.expenseDate === null) missing.push("expenseDate");
+  return missing;
+};
+
+/**
+ * Check if a pending-review expense has all required fields for confirmation.
+ */
+export const canConfirm = (expense: PendingReviewExpense): boolean =>
+  getMissingFields(expense).length === 0;
+
+/**
+ * Get display amount (prefer base currency conversion).
+ */
+export const getDisplayAmount = (expense: Expense): number | null => {
+  if (isConfirmed(expense)) {
+    return expense.baseAmount;
+  }
+  if (isPendingReview(expense)) {
+    return expense.amount;
+  }
+  return null;
+};
+
+/**
+ * Get display date (expense date or captured date).
+ */
+export const getDisplayDate = (expense: Expense): Date => {
+  if (isConfirmed(expense)) {
+    return expense.expenseDate;
+  }
+  if (isPendingReview(expense) && expense.expenseDate) {
+    return expense.expenseDate;
+  }
+  return expense.capturedAt;
+};

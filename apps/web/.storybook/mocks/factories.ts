@@ -3,42 +3,53 @@
  * Simple defaults + overrides pattern.
  *
  * Note: We use plain objects internally since tRPC serializes to JSON anyway.
- * The exported type is ExpenseAggregate to satisfy MSW/tRPC type inference,
- * but at runtime these are just plain objects (no class methods).
+ * The exported types match the new discriminated union expense model.
  */
-import { type Expense, type ExpenseAggregate } from '@repo/data-ops/domain'
+import type { Expense, PendingExpense, PendingReviewExpense, ConfirmedExpense, ExtractionMetadata } from '@repo/data-ops/schemas'
 
 // =============================================================================
 // Mock Types
 // =============================================================================
 
-/**
- * Export type as ExpenseAggregate to satisfy tRPC mock handlers.
- * At runtime, these are plain objects (methods don't exist after serialization).
- */
-export type MockExpense = ExpenseAggregate
+export type MockExpense = Expense
+export type MockPendingExpense = PendingExpense
+export type MockPendingReviewExpense = PendingReviewExpense
+export type MockConfirmedExpense = ConfirmedExpense
 
 // =============================================================================
 // Expense Factory
 // =============================================================================
 
-const defaultExpense: Expense = {
+const defaultExtractionMetadata: ExtractionMetadata = {
+  ocrText: 'Sample OCR text from receipt',
+  error: null,
+  timing: { ocrMs: 1200, llmMs: 3400 },
+}
+
+const defaultPendingReview: PendingReviewExpense = {
+  state: 'pending-review',
   id: 'exp-123',
   userId: 'user-1',
-  state: 'draft',
-  receipt: {
-    imageKey: 'receipts/exp-123.jpg',
-    capturedAt: new Date(),
-    extraction: {
-      status: 'done',
-      ocrText: 'Sample OCR text',
-      error: null,
-      timing: {
-        ocrMs: 1200,
-        llmMs: 3400,
-      },
-    },
-  },
+  imageKey: 'receipts/exp-123.jpg',
+  capturedAt: new Date(),
+  createdAt: new Date(),
+  amount: 4599,
+  currency: 'USD',
+  merchant: 'Starbucks',
+  description: null,
+  categories: [],
+  expenseDate: new Date(),
+  extractionMetadata: defaultExtractionMetadata,
+}
+
+const defaultConfirmed: ConfirmedExpense = {
+  state: 'confirmed',
+  id: 'exp-123',
+  userId: 'user-1',
+  imageKey: 'receipts/exp-123.jpg',
+  capturedAt: new Date(),
+  createdAt: new Date(),
+  confirmedAt: new Date(),
   amount: 4599,
   currency: 'USD',
   baseAmount: 4599,
@@ -47,31 +58,60 @@ const defaultExpense: Expense = {
   description: null,
   categories: [],
   expenseDate: new Date(),
-  createdAt: new Date(),
-  completedAt: null,
+  extractionMetadata: defaultExtractionMetadata,
 }
 
 export const expenseFactory = {
-  build: (overrides: Partial<Expense> = {}): MockExpense =>
-    ({ ...defaultExpense, ...overrides }) as MockExpense,
+  /**
+   * Create a pending expense (receipt captured, extraction not yet applied)
+   */
+  pending: (overrides: Partial<PendingExpense> = {}): MockPendingExpense => ({
+    state: 'pending',
+    id: 'exp-123',
+    userId: 'user-1',
+    imageKey: 'receipts/exp-123.jpg',
+    capturedAt: new Date(),
+    createdAt: new Date(),
+    ...overrides,
+  }),
 
-  draft: (overrides: Partial<Expense> = {}): MockExpense =>
-    ({ ...defaultExpense, state: 'draft', completedAt: null, ...overrides }) as MockExpense,
+  /**
+   * Create a pending-review expense (extraction done, needs user review)
+   */
+  pendingReview: (overrides: Partial<PendingReviewExpense> = {}): MockPendingReviewExpense => ({
+    ...defaultPendingReview,
+    ...overrides,
+  }),
 
-  complete: (overrides: Partial<Expense> = {}): MockExpense =>
-    ({ ...defaultExpense, state: 'complete', completedAt: new Date(), ...overrides }) as MockExpense,
+  /**
+   * Create a confirmed expense (all required fields present)
+   */
+  confirmed: (overrides: Partial<ConfirmedExpense> = {}): MockConfirmedExpense => ({
+    ...defaultConfirmed,
+    ...overrides,
+  }),
 
-  incomplete: (overrides: Partial<Expense> = {}): MockExpense =>
-    ({
-      ...defaultExpense,
-      state: 'draft',
-      amount: null,
-      currency: null,
-      merchant: null,
-      expenseDate: null,
-      completedAt: null,
-      ...overrides,
-    }) as MockExpense,
+  /**
+   * Alias for pendingReview (backward compat for tests)
+   */
+  draft: (overrides: Partial<PendingReviewExpense> = {}): MockPendingReviewExpense => expenseFactory.pendingReview(overrides),
+
+  /**
+   * Alias for confirmed (backward compat for tests)
+   */
+  complete: (overrides: Partial<ConfirmedExpense> = {}): MockConfirmedExpense => expenseFactory.confirmed(overrides),
+
+  /**
+   * Create a pending-review expense with missing required fields
+   */
+  incomplete: (overrides: Partial<PendingReviewExpense> = {}): MockPendingReviewExpense => ({
+    ...defaultPendingReview,
+    amount: null,
+    currency: null,
+    merchant: null,
+    expenseDate: null,
+    ...overrides,
+  }),
 }
 
 // =============================================================================
@@ -79,7 +119,7 @@ export const expenseFactory = {
 // =============================================================================
 
 type MockCaptureResult = {
-  expense: MockExpense
+  expense: MockPendingReviewExpense | MockConfirmedExpense
   extraction: {
     success: boolean
     data: {
@@ -97,26 +137,32 @@ type MockCaptureResult = {
 
 export function createCaptureResult(
   overrides: {
-    expense?: Partial<MockExpense>
+    expense?: Partial<PendingReviewExpense | ConfirmedExpense>
     extraction?: Partial<MockCaptureResult['extraction']>
     needsReview?: boolean
   } = {},
 ): MockCaptureResult {
   const needsReview = overrides.needsReview ?? true
   const expense = needsReview
-    ? expenseFactory.draft(overrides.expense)
-    : expenseFactory.complete(overrides.expense)
+    ? expenseFactory.pendingReview(overrides.expense as Partial<PendingReviewExpense>)
+    : expenseFactory.confirmed(overrides.expense as Partial<ConfirmedExpense>)
+
+  const amount = 'amount' in expense ? expense.amount : null
+  const currency = 'currency' in expense ? expense.currency : null
+  const merchant = 'merchant' in expense ? expense.merchant : null
+  const expenseDate = 'expenseDate' in expense ? expense.expenseDate : null
+  const categories = 'categories' in expense ? expense.categories : []
 
   return {
     expense,
     extraction: {
       success: true,
       data: {
-        amount: expense.amount,
-        currency: expense.currency,
-        merchant: expense.merchant,
-        date: expense.expenseDate?.toISOString().split('T')[0] ?? null,
-        categories: expense.categories ?? [],
+        amount,
+        currency,
+        merchant,
+        date: expenseDate instanceof Date ? expenseDate.toISOString().split('T')[0] : null,
+        categories: categories ?? [],
       },
       error: null,
       timing: { ocrMs: 1200, llmMs: 3400 },
@@ -149,14 +195,16 @@ const defaultOllamaHealth: OllamaHealth = {
 }
 
 export const ollamaHealthFactory = {
-  ready: (overrides: Partial<OllamaHealth> = {}): OllamaHealth =>
-    ({ ...defaultOllamaHealth, ...overrides }),
+  ready: (overrides: Partial<OllamaHealth> = {}): OllamaHealth => ({ ...defaultOllamaHealth, ...overrides }),
 
-  unavailable: (overrides: Partial<OllamaHealth> = {}): OllamaHealth =>
-    ({ ...defaultOllamaHealth, available: false, modelAvailable: false, models: [], ...overrides }),
+  unavailable: (overrides: Partial<OllamaHealth> = {}): OllamaHealth => ({ ...defaultOllamaHealth, available: false, modelAvailable: false, models: [], ...overrides }),
 
-  modelMissing: (overrides: Partial<OllamaHealth> = {}): OllamaHealth =>
-    ({ ...defaultOllamaHealth, modelAvailable: false, models: ['mistral', 'codellama'], ...overrides }),
+  modelMissing: (overrides: Partial<OllamaHealth> = {}): OllamaHealth => ({
+    ...defaultOllamaHealth,
+    modelAvailable: false,
+    models: ['mistral', 'codellama'],
+    ...overrides,
+  }),
 }
 
 // =============================================================================
@@ -179,7 +227,14 @@ export const captureScenarios = {
 }
 
 export const expenseScenarios = {
-  draft: expenseFactory.draft(),
-  complete: expenseFactory.complete(),
+  /** Pending-review expense (needs user review) */
+  pendingReview: expenseFactory.pendingReview(),
+  /** Confirmed expense (all fields present) */
+  confirmed: expenseFactory.confirmed(),
+  /** Incomplete expense (missing required fields) */
   incomplete: expenseFactory.incomplete(),
+  /** Alias for backward compat */
+  draft: expenseFactory.pendingReview(),
+  /** Alias for backward compat */
+  complete: expenseFactory.confirmed(),
 }

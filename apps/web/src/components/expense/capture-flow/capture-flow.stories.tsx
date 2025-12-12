@@ -14,8 +14,8 @@ import { CaptureFlow } from './capture-flow'
 
 type HealthResponse = 'ready' | 'ollamaUnavailable' | 'modelMissing' | 'networkError'
 type CaptureResponse = 'needsReview' | 'autoComplete' | 'networkError'
-type GetByIdResponse = 'draft' | 'complete' | 'networkError'
-type CompleteResponse = 'success' | 'networkError'
+type GetByIdResponse = 'pendingReview' | 'confirmed' | 'networkError'
+type ConfirmResponse = 'success' | 'networkError'
 
 interface StoryArgs {
   userId: string
@@ -23,7 +23,7 @@ interface StoryArgs {
   healthApi: HealthResponse
   captureApi: CaptureResponse
   getByIdApi: GetByIdResponse
-  completeApi: CompleteResponse
+  confirmApi: ConfirmResponse
 }
 
 // =============================================================================
@@ -80,10 +80,10 @@ function getCaptureHandler(response: CaptureResponse) {
 
 function getByIdHandler(response: GetByIdResponse) {
   switch (response) {
-    case 'draft':
-      return trpcMsw.expenses.getById.query(() => expenseScenarios.draft)
-    case 'complete':
-      return trpcMsw.expenses.getById.query(() => expenseScenarios.complete)
+    case 'pendingReview':
+      return trpcMsw.expenses.getById.query(() => expenseScenarios.pendingReview)
+    case 'confirmed':
+      return trpcMsw.expenses.getById.query(() => expenseScenarios.confirmed)
     case 'networkError':
       return trpcMsw.expenses.getById.query(() => {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Expense not found' })
@@ -91,15 +91,15 @@ function getByIdHandler(response: GetByIdResponse) {
   }
 }
 
-function getCompleteHandler(response: CompleteResponse) {
+function getConfirmHandler(response: ConfirmResponse) {
   switch (response) {
     case 'success':
-      return trpcMsw.expenses.complete.mutation(async () => {
+      return trpcMsw.expenses.confirm.mutation(async () => {
         await delay(100)
-        return expenseFactory.complete()
+        return expenseFactory.confirmed()
       })
     case 'networkError':
-      return trpcMsw.expenses.complete.mutation(async () => {
+      return trpcMsw.expenses.confirm.mutation(async () => {
         await delay(100)
         throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to save expense' })
       })
@@ -138,15 +138,15 @@ type Story = StoryObj<StoryArgs>
  * **Flow:**
  * 1. Component loads → `checkExtractionHealth` API called
  * 2. Upload image → `capture` API called
- * 3. If needsReview → `getById` fetches expense → edit form → `complete` API called
+ * 3. If needsReview → `getById` fetches expense → edit form → `confirm` API called
  * 4. Success → `getById` fetches expense for display
  */
 export const Interactive: Story = {
   args: {
     healthApi: 'ready',
     captureApi: 'needsReview',
-    getByIdApi: 'draft',
-    completeApi: 'success',
+    getByIdApi: 'pendingReview',
+    confirmApi: 'success',
   },
   argTypes: {
     healthApi: {
@@ -166,15 +166,15 @@ export const Interactive: Story = {
     getByIdApi: {
       name: 'getById',
       control: 'select',
-      options: ['draft', 'complete', 'networkError'] satisfies GetByIdResponse[],
+      options: ['pendingReview', 'confirmed', 'networkError'] satisfies GetByIdResponse[],
       description: 'Response when fetching expense by ID (for review/success stages)',
       table: { category: 'API Responses' },
     },
-    completeApi: {
-      name: 'complete',
+    confirmApi: {
+      name: 'confirm',
       control: 'select',
-      options: ['success', 'networkError'] satisfies CompleteResponse[],
-      description: 'Response when saving reviewed expense',
+      options: ['success', 'networkError'] satisfies ConfirmResponse[],
+      description: 'Response when confirming reviewed expense',
       table: { category: 'API Responses' },
     },
     showAddAnother: {
@@ -187,12 +187,7 @@ export const Interactive: Story = {
     async ({ args }) => {
       const worker = getWorker()
       worker.resetHandlers()
-      worker.use(
-        getHealthHandler(args.healthApi),
-        getCaptureHandler(args.captureApi),
-        getByIdHandler(args.getByIdApi),
-        getCompleteHandler(args.completeApi),
-      )
+      worker.use(getHealthHandler(args.healthApi), getCaptureHandler(args.captureApi), getByIdHandler(args.getByIdApi), getConfirmHandler(args.confirmApi))
       return {}
     },
   ],

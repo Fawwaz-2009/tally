@@ -30,20 +30,26 @@ export function CaptureFlow({ userId, showAddAnother = false, successActionButto
   const [stage, setStage] = useState<FlowStage>('upload')
   const [expenseId, setExpenseId] = useState<string | null>(null)
 
-  const handleUploadComplete = useCallback((id: string, needsReview: boolean) => {
-    setExpenseId(id)
-    if (needsReview) {
-      setStage('review')
-    } else {
+  const handleUploadComplete = useCallback(
+    (id: string, needsReview: boolean) => {
+      setExpenseId(id)
+      if (needsReview) {
+        setStage('review')
+      } else {
+        setStage('success')
+        onComplete?.(id)
+      }
+    },
+    [onComplete],
+  )
+
+  const handleReviewComplete = useCallback(
+    (id: string) => {
       setStage('success')
       onComplete?.(id)
-    }
-  }, [onComplete])
-
-  const handleReviewComplete = useCallback((id: string) => {
-    setStage('success')
-    onComplete?.(id)
-  }, [onComplete])
+    },
+    [onComplete],
+  )
 
   const handleAddAnother = useCallback(() => {
     setStage('upload')
@@ -56,23 +62,11 @@ export function CaptureFlow({ userId, showAddAnother = false, successActionButto
   }, [])
 
   if (stage === 'review' && expenseId) {
-    return (
-      <ReviewStage
-        expenseId={expenseId}
-        onComplete={handleReviewComplete}
-        onBack={handleBack}
-      />
-    )
+    return <ReviewStage expenseId={expenseId} onComplete={handleReviewComplete} onBack={handleBack} />
   }
 
   if (stage === 'success' && expenseId) {
-    return (
-      <SuccessStage
-        expenseId={expenseId}
-        onAddAnother={showAddAnother ? handleAddAnother : undefined}
-        actionButton={successActionButton}
-      />
-    )
+    return <SuccessStage expenseId={expenseId} onAddAnother={showAddAnother ? handleAddAnother : undefined} actionButton={successActionButton} />
   }
 
   return <UploadStage userId={userId} onComplete={handleUploadComplete} />

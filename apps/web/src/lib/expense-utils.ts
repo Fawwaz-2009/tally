@@ -1,5 +1,9 @@
 import cc from 'currency-codes'
-import type { Expense } from '@repo/data-ops/domain'
+import type { Expense, PendingReviewExpense } from '@repo/data-ops/schemas'
+import { isPending, isPendingReview, isConfirmed, canConfirm, getMissingFields, getDisplayAmount, getDisplayDate } from '@repo/data-ops/schemas'
+
+// Re-export type guards for convenience
+export { isPending, isPendingReview, isConfirmed, canConfirm, getMissingFields }
 
 /**
  * Format amount from cents to a localized currency string
@@ -70,38 +74,22 @@ export function getScreenshotUrl(screenshotPath: string | null): string | null {
 // =============================================================================
 
 /**
- * Check if expense has all required fields for completion
+ * Check if expense needs manual review (is in pending-review state)
  */
-export function isExpenseValid(expense: Expense): boolean {
-  return (
-    expense.amount !== null &&
-    expense.currency !== null &&
-    expense.merchant !== null &&
-    expense.expenseDate !== null
-  )
-}
-
-/**
- * Check if expense needs manual review
- */
-export function expenseNeedsReview(expense: Expense): boolean {
-  return (
-    expense.state === 'draft' &&
-    expense.receipt.extraction.status === 'done' &&
-    !isExpenseValid(expense)
-  )
+export function expenseNeedsReview(expense: Expense): expense is PendingReviewExpense {
+  return isPendingReview(expense)
 }
 
 /**
  * Get display amount (prefer base currency conversion)
  */
 export function getExpenseDisplayAmount(expense: Expense): number | null {
-  return expense.baseAmount ?? expense.amount
+  return getDisplayAmount(expense)
 }
 
 /**
  * Get display date (prefer expense date, fallback to captured)
  */
 export function getExpenseDisplayDate(expense: Expense): Date {
-  return expense.expenseDate ?? expense.receipt.capturedAt
+  return getDisplayDate(expense)
 }

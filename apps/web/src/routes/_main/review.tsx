@@ -6,26 +6,23 @@ import { useTRPC } from '@/integrations/trpc-react'
 import { PageHeader } from '@/components/layout/page-header'
 import { formatDate } from '@/lib/date-utils'
 import { getScreenshotUrl } from '@/lib/expense-utils'
-import { getStatusLabel, getStatusStyle } from '@/components/expense/status-badge'
 import { LoadingState, ErrorState, SuccessState } from '@/components/expense/states'
-import { type Expense } from '@repo/data-ops/domain'
+import type { PendingReviewExpense } from '@repo/data-ops/schemas'
 
 export const Route = createFileRoute('/_main/review')({
   component: ReviewPage,
 })
 
 // Review item component
-function ReviewItem({
-  expense,
-}: {
-  expense: Expense
-}) {
-  const statusStyle = getStatusStyle(expense.state, expense.receipt.extraction.status)
-  const screenshotUrl = getScreenshotUrl(expense.receipt.imageKey)
+function ReviewItem({ expense }: { expense: PendingReviewExpense }) {
+  const screenshotUrl = getScreenshotUrl(expense.imageKey)
+  const hasError = expense.extractionMetadata?.error != null
 
   return (
-    <div className={`border-l-4 ${statusStyle.border} ${statusStyle.bg} rounded-r-lg overflow-hidden`}>
-      <Link to="/expenses/$id" params={{ id: expense.id! }} className={`flex items-start gap-4 p-4 ${statusStyle.hoverBg} transition-colors`}>
+    <div
+      className={`border-l-4 ${hasError ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/20' : 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'} rounded-r-lg overflow-hidden`}
+    >
+      <Link to="/expenses/$id" params={{ id: expense.id }} className="flex items-start gap-4 p-4 hover:bg-muted/50 transition-colors">
         {/* Screenshot thumbnail */}
         <div className="w-16 h-16 flex-shrink-0 bg-muted rounded-md overflow-hidden">
           {screenshotUrl ? (
@@ -43,17 +40,19 @@ function ReviewItem({
             <span className="font-medium truncate">{expense.merchant || 'Unknown merchant'}</span>
           </div>
           <div className="text-sm text-muted-foreground mb-2">{formatDate(expense.createdAt)}</div>
-          {expense.receipt.extraction.error && (
-            <div className="text-xs text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded">{expense.receipt.extraction.error}</div>
+          {expense.extractionMetadata?.error && (
+            <div className="text-xs text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded">{expense.extractionMetadata.error}</div>
           )}
         </div>
 
         {/* Status indicator */}
         <div className="flex flex-col items-end gap-2 flex-shrink-0">
-          <span className={`text-xs font-semibold ${statusStyle.textColor} ${statusStyle.badgeBg} px-2 py-1 rounded-full`}>
-            {getStatusLabel(expense.state, expense.receipt.extraction.status)}
+          <span
+            className={`text-xs font-semibold ${hasError ? 'text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/30' : 'text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/30'} px-2 py-1 rounded-full`}
+          >
+            {hasError ? 'Needs Review' : 'Review'}
           </span>
-          <ChevronRight className={`w-5 h-5 ${statusStyle.textColor}`} />
+          <ChevronRight className={`w-5 h-5 ${hasError ? 'text-amber-600' : 'text-blue-600'}`} />
         </div>
       </Link>
     </div>

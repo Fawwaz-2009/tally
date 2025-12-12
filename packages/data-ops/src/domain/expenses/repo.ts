@@ -1,67 +1,17 @@
 import { Effect } from "effect";
-import { eq, desc, and, isNull } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { expensesTable } from "../../db";
 import { DbClient } from "../../layers";
 import {
-  ExpenseAggregate,
-  type ExpenseState,
-  type ExtractionStatus,
+  type Expense,
+  type PendingReviewExpense,
+  type ConfirmedExpense,
+  fromRow,
+  toRow,
+  isPendingReview,
+  isConfirmed,
 } from "./schema";
 import { withDbTryPromise } from "../shared/utils";
-
-/**
- * Input for creating a new expense record
- */
-interface CreateExpenseInput {
-  userId: string;
-  receiptImageKey?: string;
-  state?: ExpenseState;
-  extractionStatus?: ExtractionStatus;
-}
-
-/**
- * Input for applying extraction results
- */
-interface ApplyExtractionInput {
-  extractionStatus: ExtractionStatus;
-  extractionOcrText?: string;
-  extractionError?: string;
-  extractionOcrMs?: number;
-  extractionLlmMs?: number;
-  amount?: number;
-  currency?: string;
-  merchant?: string;
-  categories?: string[];
-  expenseDate?: Date;
-}
-
-/**
- * Input for completing an expense (transition to complete state)
- */
-interface CompleteExpenseInput {
-  amount: number;
-  currency: string;
-  baseAmount: number;
-  baseCurrency: string;
-  merchant: string;
-  expenseDate: Date;
-  description?: string;
-  categories?: string[];
-}
-
-/**
- * Input for updating expense data
- */
-interface UpdateExpenseInput {
-  amount?: number;
-  currency?: string;
-  baseAmount?: number;
-  baseCurrency?: string;
-  merchant?: string;
-  description?: string;
-  categories?: string[];
-  expenseDate?: Date;
-}
 
 export class ExpenseRepo extends Effect.Service<ExpenseRepo>()("ExpenseRepo", {
   effect: Effect.gen(function* () {
@@ -73,32 +23,34 @@ export class ExpenseRepo extends Effect.Service<ExpenseRepo>()("ExpenseRepo", {
       // ========================================================================
 
       /**
-       * Save an expense aggregate (upsert).
-       * - If aggregate has no ID: INSERT and return aggregate with assigned ID
-       * - If aggregate has ID: UPDATE and return aggregate
+       * Save an expense (upsert).
+       * Returns the saved expense.
        */
-      save: Effect.fn("expenseRepo.save")(function* (
-        aggregate: ExpenseAggregate,
-      ) {
-        const row = aggregate.toPersistence();
+      save: Effect.fn("expenseRepo.save")(function* (expense: Expense) {
+        const row = toRow(expense);
 
-        if (row.id === undefined || row.id === null) {
+        // Check if expense exists
+        const existing = yield* withDbTryPromise(
+          db.select().from(expensesTable).where(eq(expensesTable.id, expense.id)).get(),
+        );
+
+        if (!existing) {
           // INSERT - new expense
           const result = yield* withDbTryPromise(
             db.insert(expensesTable).values(row).returning().get(),
           );
-          return ExpenseAggregate.fromPersistence(result);
+          return fromRow(result);
         } else {
           // UPDATE - existing expense
           const result = yield* withDbTryPromise(
             db
               .update(expensesTable)
               .set(row)
-              .where(eq(expensesTable.id, row.id))
+              .where(eq(expensesTable.id, expense.id))
               .returning()
               .get(),
           );
-          return ExpenseAggregate.fromPersistence(result!);
+          return fromRow(result!);
         }
       }),
 
@@ -107,49 +59,27 @@ export class ExpenseRepo extends Effect.Service<ExpenseRepo>()("ExpenseRepo", {
       // ========================================================================
 
       /**
-       * @deprecated Use repo.save(ExpenseAggregate.createDraft({...})) instead
-       */
-      create: Effect.fn("expenseRepo.create")(function* (
-        data: CreateExpenseInput,
-      ) {
-        return ExpenseAggregate.fromPersistence(
-          yield* withDbTryPromise(
-            db
-              .insert(expensesTable)
-              .values({
-                userId: data.userId,
-                receiptImageKey: data.receiptImageKey,
-                state: data.state ?? "draft",
-                extractionStatus: data.extractionStatus ?? "pending",
-              })
-              .returning()
-              .get(),
-          ),
-        );
-      }),
-
-      /**
        * Get expense by ID
        */
-       getById: Effect.fn("expenseRepo.getById")(function* (id: string) {
-               const result = yield* withDbTryPromise(
-                 db.select().from(expensesTable).where(eq(expensesTable.id, id)).get(),
-               );
-               return result ? ExpenseAggregate.fromPersistence(result) : undefined;
-             }),
+      getById: Effect.fn("expenseRepo.getById")(function* (id: string) {
+        const result = yield* withDbTryPromise(
+          db.select().from(expensesTable).where(eq(expensesTable.id, id)).get(),
+        );
+        return result ? fromRow(result) : undefined;
+      }),
 
       /**
        * Get all expenses ordered by creation date
        */
       getAll: Effect.fn("expenseRepo.getAll")(function* () {
-        const results =  yield* withDbTryPromise(
+        const results = yield* withDbTryPromise(
           db
             .select()
             .from(expensesTable)
             .orderBy(desc(expensesTable.createdAt))
             .all(),
         );
-        return results.map(ExpenseAggregate.fromPersistence);
+        return results.map(fromRow);
       }),
 
       /**
@@ -164,7 +94,7 @@ export class ExpenseRepo extends Effect.Service<ExpenseRepo>()("ExpenseRepo", {
             .orderBy(desc(expensesTable.createdAt))
             .all(),
         );
-        return results.map(ExpenseAggregate.fromPersistence);
+        return results.map(fromRow);
       }),
 
       /**
@@ -178,183 +108,41 @@ export class ExpenseRepo extends Effect.Service<ExpenseRepo>()("ExpenseRepo", {
             .returning()
             .get(),
         );
-        return result ? ExpenseAggregate.fromPersistence(result) : undefined;
+        return result ? fromRow(result) : undefined;
       }),
 
       // ========================================================================
-      // State Queries
+      // State-Specific Queries
       // ========================================================================
 
       /**
-       * Get all complete expenses (for reports)
+       * Get all confirmed expenses (for reports/dashboard)
        */
-      getComplete: Effect.fn("expenseRepo.getComplete")(function* () {
+      getConfirmed: Effect.fn("expenseRepo.getConfirmed")(function* () {
         const results = yield* withDbTryPromise(
           db
             .select()
             .from(expensesTable)
-            .where(eq(expensesTable.state, "complete"))
+            .where(eq(expensesTable.state, "confirmed"))
             .orderBy(desc(expensesTable.expenseDate))
             .all(),
         );
-        return results.map(ExpenseAggregate.fromPersistence);
+        return results.map(fromRow).filter(isConfirmed) as ConfirmedExpense[];
       }),
 
       /**
-       * Get draft expenses pending review (extraction done but missing required fields)
+       * Get expenses pending review
        */
       getPendingReview: Effect.fn("expenseRepo.getPendingReview")(function* () {
         const results = yield* withDbTryPromise(
           db
             .select()
             .from(expensesTable)
-            .where(
-              and(
-                eq(expensesTable.state, "draft"),
-                eq(expensesTable.extractionStatus, "done"),
-              ),
-            )
+            .where(eq(expensesTable.state, "pending-review"))
             .orderBy(desc(expensesTable.createdAt))
             .all(),
         );
-        return results.map(ExpenseAggregate.fromPersistence);
-      }),
-
-      /**
-       * Get draft expenses where extraction failed
-       */
-      getExtractionFailed: Effect.fn("expenseRepo.getExtractionFailed")(
-        function* () {
-          const results = yield* withDbTryPromise(
-            db
-              .select()
-              .from(expensesTable)
-              .where(
-                and(
-                  eq(expensesTable.state, "draft"),
-                  eq(expensesTable.extractionStatus, "failed"),
-                ),
-              )
-              .orderBy(desc(expensesTable.createdAt))
-              .all(),
-          );
-          return results.map(ExpenseAggregate.fromPersistence);
-        },
-      ),
-
-      /**
-       * Get next expense needing extraction (pending status)
-       */
-      getNextForExtraction: Effect.fn("expenseRepo.getNextForExtraction")(
-        function* () {
-          const result = yield* withDbTryPromise(
-            db
-              .select()
-              .from(expensesTable)
-              .where(
-                and(
-                  eq(expensesTable.state, "draft"),
-                  eq(expensesTable.extractionStatus, "pending"),
-                ),
-              )
-              .limit(1)
-              .get(),
-          );
-          return result ? ExpenseAggregate.fromPersistence(result) : undefined;
-        },
-      ),
-
-      // ========================================================================
-      // State Transitions (DEPRECATED - use aggregate methods + save())
-      // ========================================================================
-
-      /**
-       * @deprecated Use expense.startExtraction() + repo.save(expense) instead
-       */
-      setExtractionProcessing: Effect.fn("expenseRepo.setExtractionProcessing")(
-        function* (id: string) {
-          return yield* withDbTryPromise(
-            db
-              .update(expensesTable)
-              .set({ extractionStatus: "processing" })
-              .where(eq(expensesTable.id, id))
-              .returning()
-              .get(),
-          );
-        },
-      ),
-
-      /**
-       * @deprecated Use expense.applyExtraction(data) + repo.save(expense) instead
-       */
-      applyExtraction: Effect.fn("expenseRepo.applyExtraction")(function* (
-        id: string,
-        data: ApplyExtractionInput,
-      ) {
-        return yield* withDbTryPromise(
-          db
-            .update(expensesTable)
-            .set({
-              extractionStatus: data.extractionStatus,
-              extractionOcrText: data.extractionOcrText,
-              extractionError: data.extractionError,
-              extractionOcrMs: data.extractionOcrMs,
-              extractionLlmMs: data.extractionLlmMs,
-              amount: data.amount,
-              currency: data.currency,
-              merchant: data.merchant,
-              categories: data.categories,
-              expenseDate: data.expenseDate,
-            })
-            .where(eq(expensesTable.id, id))
-            .returning()
-            .get(),
-        );
-      }),
-
-      /**
-       * @deprecated Use expense.complete(overrides) + repo.save(expense) instead
-       */
-      complete: Effect.fn("expenseRepo.complete")(function* (
-        id: string,
-        data: CompleteExpenseInput,
-      ) {
-        return yield* withDbTryPromise(
-          db
-            .update(expensesTable)
-            .set({
-              state: "complete",
-              amount: data.amount,
-              currency: data.currency,
-              baseAmount: data.baseAmount,
-              baseCurrency: data.baseCurrency,
-              merchant: data.merchant,
-              description: data.description,
-              categories: data.categories,
-              expenseDate: data.expenseDate,
-              completedAt: new Date(),
-            })
-            .where(eq(expensesTable.id, id))
-            .returning()
-            .get(),
-        );
-      }),
-
-      /**
-       * @deprecated Use expense.update(changes) + repo.save(expense) instead
-       */
-      update: Effect.fn("expenseRepo.update")(function* (
-        id: string,
-        data: UpdateExpenseInput,
-      ) {
-        return yield* withDbTryPromise(
-          db
-            .update(expensesTable)
-            .set(data)
-            .where(eq(expensesTable.id, id))
-            .returning()
-            .get(),
-        );
+        return results.map(fromRow).filter(isPendingReview) as PendingReviewExpense[];
       }),
 
       // ========================================================================
@@ -370,12 +158,7 @@ export class ExpenseRepo extends Effect.Service<ExpenseRepo>()("ExpenseRepo", {
             db
               .select()
               .from(expensesTable)
-              .where(
-                and(
-                  eq(expensesTable.state, "draft"),
-                  eq(expensesTable.extractionStatus, "done"),
-                ),
-              )
+              .where(eq(expensesTable.state, "pending-review"))
               .all(),
           );
           return results.length;

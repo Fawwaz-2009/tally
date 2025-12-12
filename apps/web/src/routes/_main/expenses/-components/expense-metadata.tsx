@@ -1,18 +1,19 @@
-import { formatAmount } from '@/lib/expense-utils'
-import { type Expense } from '@repo/data-ops/domain'
+import { formatAmount, isConfirmed } from '@/lib/expense-utils'
+import type { Expense } from '@repo/data-ops/schemas'
 
 interface ExpenseMetadataProps {
   expense: Expense
 }
 
 export function ExpenseMetadata({ expense }: ExpenseMetadataProps) {
-  const showConversion = expense.amount !== null && expense.baseAmount !== null && expense.currency !== expense.baseCurrency
+  // Only confirmed expenses have baseAmount/baseCurrency
+  const showConversion = isConfirmed(expense) && expense.currency !== expense.baseCurrency
 
   return (
     <div className="mt-8 pt-6 border-t">
       <h3 className="text-sm font-medium text-muted-foreground mb-3">Details</h3>
       <dl className="space-y-2 text-sm">
-        {showConversion && (
+        {showConversion && isConfirmed(expense) && (
           <>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Original Amount</dt>
@@ -36,11 +37,11 @@ export function ExpenseMetadata({ expense }: ExpenseMetadataProps) {
             })}
           </dd>
         </div>
-        {expense.completedAt && (
+        {isConfirmed(expense) && expense.confirmedAt && (
           <div className="flex justify-between">
-            <dt className="text-muted-foreground">Completed</dt>
+            <dt className="text-muted-foreground">Confirmed</dt>
             <dd>
-              {new Date(expense.completedAt).toLocaleDateString('en-US', {
+              {new Date(expense.confirmedAt).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',

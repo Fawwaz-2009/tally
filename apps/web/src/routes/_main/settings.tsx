@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Users, Plus, Copy, Check, ExternalLink, Download, FileJson, FileSpreadsheet, Tag, Sun, Moon, Monitor } from 'lucide-react'
+import type { ConfirmedExpense } from '@repo/data-ops/schemas'
 
 import { useTRPC } from '@/integrations/trpc-react'
 import { useTheme } from '@/components/theme-provider'
@@ -422,7 +423,7 @@ function CategoriesSection() {
     const statsMap = new Map<string, { count: number; totalAmount: number }>()
 
     for (const expense of expensesQuery.data) {
-      if (expense.state !== 'complete') continue
+      if (expense.state !== 'confirmed') continue
 
       if (expense.categories && Array.isArray(expense.categories)) {
         const amount = expense.baseAmount ?? expense.amount ?? 0
@@ -495,7 +496,6 @@ function CategoriesSection() {
         if (!expense.id) continue
         const newCategories = expense.categories.map((c) => (c === selectedCategory ? newCategoryName.trim() : c))
         await updateExpense.mutateAsync({
-          ...expense,
           id: expense.id,
           categories: newCategories,
         })
@@ -576,20 +576,8 @@ function CategoriesSection() {
   )
 }
 
-interface Expense {
-  id: string
-  state: 'draft' | 'complete'
-  amount: number | null
-  currency: string | null
-  merchant: string | null
-  categories: string[] | null
-  userId: string
-  baseAmount: number | null
-  receipt: {
-    capturedAt: Date
-  }
-  completedAt: Date | null
-}
+// Local type alias for export functions
+type ExportExpense = ConfirmedExpense
 
 function ExportSection() {
   const trpc = useTRPC()
@@ -614,13 +602,13 @@ function ExportSection() {
     return user?.name || userId
   }
 
-  const generateCSV = (expenses: Expense[]): string => {
+  const generateCSV = (expenses: ExportExpense[]): string => {
     const headers = ['Date', 'Amount', 'Currency', 'Merchant', 'Categories', 'User', 'Status']
     const rows = expenses.map((expense) => [
-      formatDate(expense.receipt.capturedAt),
+      formatDate(expense.expenseDate),
       formatAmount(expense.amount),
-      expense.currency || '',
-      expense.merchant || '',
+      expense.currency,
+      expense.merchant,
       (expense.categories || []).join('; '),
       getUserName(expense.userId),
       expense.state,
@@ -638,10 +626,10 @@ function ExportSection() {
     return csvContent
   }
 
-  const generateJSON = (expenses: Expense[]): string => {
+  const generateJSON = (expenses: ExportExpense[]): string => {
     const exportData = expenses.map((expense) => ({
-      date: formatDate(expense.receipt.capturedAt),
-      amount: expense.amount !== null ? expense.amount / 100 : null,
+      date: formatDate(expense.expenseDate),
+      amount: expense.amount / 100,
       currency: expense.currency,
       merchant: expense.merchant,
       categories: expense.categories || [],
@@ -670,7 +658,8 @@ function ExportSection() {
 
     setIsExporting(true)
     try {
-      const expenses = expensesQuery.data as Expense[]
+      // list() returns ConfirmedExpense[] - no cast needed
+      const expenses = expensesQuery.data
       const timestamp = new Date().toISOString().split('T')[0]
 
       if (exportFormat === 'csv') {

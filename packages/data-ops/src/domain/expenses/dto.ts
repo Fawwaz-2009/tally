@@ -3,7 +3,12 @@
  * These represent API inputs/outputs, not the core domain model.
  */
 import { Schema } from "effect";
-import { ExpenseAggregate } from "./schema";
+import {
+  type PendingReviewExpense,
+  type ConfirmedExpense,
+  PendingReviewExpenseSchema,
+  ConfirmedExpenseSchema,
+} from "./schema";
 
 // ============================================================================
 // Operation Inputs
@@ -17,24 +22,22 @@ export interface CaptureExpenseInput {
   userId: string;
   image: File;
 }
-/**
- * Complete expense operation - transitions draft to complete state.
- * Note: id is required since we need an existing expense to complete.
- */
-export const CompleteExpensePayload = Schema.Struct({
-  id: Schema.String,
-  ...Schema.Struct({...ExpenseAggregate.fields}).pick("amount", "currency", "merchant", "description", "categories", "expenseDate").fields,
-});
-export type CompleteExpenseInput = Schema.Schema.Type<typeof CompleteExpensePayload>;
 
 /**
- * Update expense operation - modifies existing expense.
- * Note: id is required since we need an existing expense to update.
+ * Confirm expense operation - transitions pending-review to confirmed state.
+ * All required fields must be provided or already exist on the expense.
  */
-export const UpdateExpensePayload = Schema.Struct({
-  id: Schema.String,
-  ...Schema.Struct({...ExpenseAggregate.fields}).pick("amount", "currency", "merchant", "description", "categories", "expenseDate").fields,
-});
+export const ConfirmExpensePayload = PendingReviewExpenseSchema.pick("id", "amount", "currency", "merchant", "description", "categories", "expenseDate")
+export type ConfirmExpenseInput = Schema.Schema.Type<typeof ConfirmExpensePayload>;
+
+/**
+ * Update expense operation - modifies a pending-review expense.
+ * Derives from PendingReviewExpenseSchema with all fields optional except id.
+ */
+export const UpdateExpensePayload = PendingReviewExpenseSchema
+  .pick("amount", "currency", "merchant", "description", "categories", "expenseDate")
+  .pipe(Schema.partial)
+  .pipe(Schema.extend(Schema.Struct({ id: Schema.String })));
 export type UpdateExpenseInput = Schema.Schema.Type<typeof UpdateExpensePayload>;
 
 // ============================================================================
@@ -42,24 +45,23 @@ export type UpdateExpenseInput = Schema.Schema.Type<typeof UpdateExpensePayload>
 // ============================================================================
 
 /**
- * Extraction data returned from OCR/LLM processing.
- */
-const ExtractionDataSchema = Schema.Struct({
-  amount: Schema.NullOr(Schema.Number),
-  currency: Schema.NullOr(Schema.String),
-  merchant: Schema.NullOr(Schema.String),
-  date: Schema.NullOr(Schema.String), // ISO date string
-  categories: Schema.Array(Schema.String),
-});
-
-/**
  * Result of expense capture operation.
+ * Returns either a PendingReviewExpense or ConfirmedExpense depending on
+ * whether extraction was successful and auto-complete conditions were met.
  */
 export const CaptureExpenseResultSchema = Schema.Struct({
-  expense: Schema.Struct({...ExpenseAggregate.fields}),
+  expense: Schema.Union(PendingReviewExpenseSchema, ConfirmedExpenseSchema),
   extraction: Schema.Struct({
     success: Schema.Boolean,
-    data: Schema.NullOr(ExtractionDataSchema),
+    data: Schema.NullOr(
+      Schema.Struct({
+        amount: Schema.NullOr(Schema.Number),
+        currency: Schema.NullOr(Schema.String),
+        merchant: Schema.NullOr(Schema.String),
+        date: Schema.NullOr(Schema.String), // ISO date string
+        categories: Schema.Array(Schema.String),
+      })
+    ),
     error: Schema.NullOr(Schema.String),
     timing: Schema.NullOr(
       Schema.Struct({
@@ -70,4 +72,20 @@ export const CaptureExpenseResultSchema = Schema.Struct({
   }),
   needsReview: Schema.Boolean,
 });
-export type CaptureExpenseResult = Schema.Schema.Type<typeof CaptureExpenseResultSchema>;
+
+export interface CaptureExpenseResult {
+  expense: PendingReviewExpense | ConfirmedExpense;
+  extraction: {
+    success: boolean;
+    data: {
+      amount: number | null;
+      currency: string | null;
+      merchant: string | null;
+      date: string | null;
+      categories: string[];
+    } | null;
+    error: string | null;
+    timing: { ocrMs: number; llmMs: number } | null;
+  };
+  needsReview: boolean;
+}

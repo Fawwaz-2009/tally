@@ -5,7 +5,7 @@ import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react'
 
 import { useTRPC } from '@/integrations/trpc-react'
 import { Button } from '@/components/ui/button'
-import { getScreenshotUrl } from '@/lib/expense-utils'
+import { getScreenshotUrl, isPendingReview } from '@/lib/expense-utils'
 import { StatusBadge } from '@/components/expense/status-badge'
 import { ExpenseForm, type ExpenseFormData } from '@/components/expense/expense-form'
 
@@ -44,9 +44,9 @@ function ExpenseDetail() {
     }
   }
 
-  // Use complete mutation for draft expenses, update for complete expenses
-  const completeMutation = useMutation({
-    ...trpc.expenses.complete.mutationOptions(),
+  // Use confirm mutation for pending-review expenses, update for confirmed expenses
+  const confirmMutation = useMutation({
+    ...trpc.expenses.confirm.mutationOptions(),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: trpc.expenses.getById.queryKey({ id }),
@@ -122,8 +122,8 @@ function ExpenseDetail() {
           queryKey: trpc.expenses.pendingReviewCount.queryKey(),
         })
 
-        const wasDraft = expenseQuery.data?.state === 'draft'
-        if (wasDraft) {
+        const wasPendingReview = expenseQuery.data?.state === 'pending-review'
+        if (wasPendingReview) {
           navigateToNextOrReview()
         } else {
           navigate({ to: '/' })
@@ -140,23 +140,12 @@ function ExpenseDetail() {
   )
 
   const handleSubmit = (data: ExpenseFormData) => {
-    const isDraft = expenseQuery.data?.state === 'draft'
+    const needsConfirm = expenseQuery.data && isPendingReview(expenseQuery.data)
     const expenseDate = data.expenseDate ? new Date(data.expenseDate) : undefined
 
-    if (isDraft) {
-      // Use complete mutation for draft expenses
-      completeMutation.mutate({
-        id,
-        amount: data.amount,
-        currency: data.currency,
-        merchant: data.merchant ?? null,
-        description: data.description??null,
-        categories: data.categories??[],
-        expenseDate: expenseDate ?? null,
-      })
-    } else {
-      // Use update mutation for complete expenses
-      updateMutation.mutate({
+    if (needsConfirm) {
+      // Use confirm mutation for pending-review expenses
+      confirmMutation.mutate({
         id,
         amount: data.amount,
         currency: data.currency,
@@ -164,6 +153,17 @@ function ExpenseDetail() {
         description: data.description ?? null,
         categories: data.categories ?? [],
         expenseDate: expenseDate ?? null,
+      })
+    } else {
+      // Use update mutation for confirmed expenses
+      updateMutation.mutate({
+        id,
+        amount: data.amount,
+        currency: data.currency,
+        merchant: data.merchant ?? undefined,
+        description: data.description ?? undefined,
+        categories: data.categories ?? [],
+        expenseDate: expenseDate ?? undefined,
       })
     }
   }
@@ -214,8 +214,16 @@ function ExpenseDetail() {
   }
 
   const expense = expenseQuery.data
-  const isDraft = expense.state === 'draft'
-  const needsReview = isDraft && expense.receipt.extraction.status === 'done'
+  const needsConfirm = isPendingReview(expense)
+
+  // Get values that exist on pending-review and confirmed expenses
+  const amount = expense.state !== 'pending' ? expense.amount : null
+  const currency = expense.state !== 'pending' ? expense.currency : null
+  const merchant = expense.state !== 'pending' ? expense.merchant : null
+  const description = expense.state !== 'pending' ? expense.description : null
+  const categories = expense.state !== 'pending' ? expense.categories : []
+  const expenseDate = expense.state !== 'pending' ? expense.expenseDate : null
+  const extractionError = expense.state === 'pending-review' ? expense.extractionMetadata?.error : null
 
   return (
     <div className="px-6 pt-6 pb-24">
@@ -231,28 +239,28 @@ function ExpenseDetail() {
         <div className="flex-1">
           <h1 className="text-2xl font-bold tracking-tight">Expense Details</h1>
         </div>
-        <StatusBadge state={expense.state} extractionStatus={expense.receipt.extraction.status} showComplete />
+        <StatusBadge state={expense.state} />
       </div>
 
       {/* Review warning */}
-      {needsReview && expense.receipt.extraction.error && <ReviewWarning errorMessage={expense.receipt.extraction.error} />}
+      {needsConfirm && extractionError && <ReviewWarning errorMessage={extractionError} />}
 
       {/* Form */}
       <ExpenseForm
         initialData={{
-          amount: expense.amount,
-          currency: expense.currency,
-          merchant: expense.merchant,
-          description: expense.description,
-          categories: expense.categories,
-          expenseDate: expense.expenseDate,
+          amount,
+          currency,
+          merchant,
+          description,
+          categories,
+          expenseDate,
         }}
-        imageUrl={getScreenshotUrl(expense.receipt.imageKey)}
+        imageUrl={getScreenshotUrl(expense.imageKey)}
         onSubmit={handleSubmit}
         onDelete={handleDelete}
-        isSubmitting={completeMutation.isPending || updateMutation.isPending}
+        isSubmitting={confirmMutation.isPending || updateMutation.isPending}
         isDeleting={deleteMutation.isPending}
-        submitLabel={isDraft ? 'Complete Expense' : 'Save Changes'}
+        submitLabel={needsConfirm ? 'Confirm Expense' : 'Save Changes'}
         showDescription
         showCategories
         showDeleteButton

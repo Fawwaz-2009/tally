@@ -89,33 +89,10 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/review'
-    | '/settings'
-    | '/'
-    | '/setup'
-    | '/expenses/$id'
-    | '/add'
-    | '/analysis'
+  fullPaths: '/review' | '/settings' | '/' | '/setup' | '/expenses/$id' | '/add' | '/analysis'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/review'
-    | '/settings'
-    | '/'
-    | '/setup'
-    | '/expenses/$id'
-    | '/add'
-    | '/analysis'
-  id:
-    | '__root__'
-    | '/_main'
-    | '/_main/review'
-    | '/_main/settings'
-    | '/_main/'
-    | '/setup/'
-    | '/_main/expenses/$id'
-    | '/_main/add/'
-    | '/_main/analysis/'
+  to: '/review' | '/settings' | '/' | '/setup' | '/expenses/$id' | '/add' | '/analysis'
+  id: '__root__' | '/_main' | '/_main/review' | '/_main/settings' | '/_main/' | '/setup/' | '/_main/expenses/$id' | '/_main/add/' | '/_main/analysis/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -202,17 +179,13 @@ const MainRouteRouteChildren: MainRouteRouteChildren = {
   MainAnalysisIndexRoute: MainAnalysisIndexRoute,
 }
 
-const MainRouteRouteWithChildren = MainRouteRoute._addFileChildren(
-  MainRouteRouteChildren,
-)
+const MainRouteRouteWithChildren = MainRouteRoute._addFileChildren(MainRouteRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   MainRouteRoute: MainRouteRouteWithChildren,
   SetupIndexRoute: SetupIndexRoute,
 }
-export const routeTree = rootRouteImport
-  ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+export const routeTree = rootRouteImport._addFileChildren(rootRouteChildren)._addFileTypes<FileRouteTypes>()
 
 import type { getRouter } from './router.tsx'
 import type { startInstance } from './start.tsx'

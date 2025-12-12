@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 
 import { getDateRangeBounds, type DateRange } from '@/lib/date-utils'
-import { type Expense } from '@repo/data-ops/domain'
+import type { Expense, ConfirmedExpense } from '@repo/data-ops/schemas'
 
 interface User {
   id: string
@@ -33,19 +33,20 @@ export function useAnalytics(expenses: Expense[] | undefined, users: User[] | un
   return useMemo(() => {
     if (!expenses) return null
 
-    let filteredExpenses = expenses.filter((e) => e.state === 'complete' && (e.baseAmount !== null || e.amount !== null))
+    // Filter to only confirmed expenses (they have all required fields)
+    let filteredExpenses = expenses.filter((e): e is ConfirmedExpense => e.state === 'confirmed')
 
     const bounds = getDateRangeBounds(dateRange)
     if (bounds) {
       filteredExpenses = filteredExpenses.filter((expense) => {
-        const dateToCheck = new Date(expense.expenseDate || expense.receipt.capturedAt)
+        const dateToCheck = new Date(expense.expenseDate || expense.capturedAt)
         return dateToCheck >= bounds.start && dateToCheck <= bounds.end
       })
     }
 
     if (filteredExpenses.length === 0) return null
 
-    const getBaseAmount = (e: Expense) => e.baseAmount ?? e.amount ?? 0
+    const getBaseAmount = (e: ConfirmedExpense) => e.baseAmount ?? e.amount
 
     const totalSpending = filteredExpenses.reduce((sum, e) => sum + getBaseAmount(e), 0)
 
@@ -54,9 +55,9 @@ export function useAnalytics(expenses: Expense[] | undefined, users: User[] | un
     // Category breakdown
     const categoryMap = new Map<string, { amount: number; count: number }>()
     filteredExpenses.forEach((e) => {
-      const categories = e.categories || ['Uncategorized']
+      const categories = e.categories?.length ? e.categories : ['Uncategorized']
       const amountPerCategory = getBaseAmount(e) / categories.length
-      categories.forEach((cat) => {
+      categories.forEach((cat: string) => {
         const existing = categoryMap.get(cat) || { amount: 0, count: 0 }
         categoryMap.set(cat, {
           amount: existing.amount + amountPerCategory,

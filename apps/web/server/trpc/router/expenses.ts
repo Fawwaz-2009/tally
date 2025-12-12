@@ -1,17 +1,13 @@
-import { Schema, Effect } from 'effect'
+import { Effect, Schema } from 'effect'
 import { zfd } from 'zod-form-data'
 import { type TRPCRouterRecord } from '@trpc/server'
 
 import { publicProcedure } from '../init'
 import { frontendRuntime } from '@repo/data-ops/runtimes'
-import {
-  ExpenseService,
-  ExpenseRepo,
-  CompleteExpensePayload,
-  UpdateExpensePayload,
-} from '@repo/data-ops/domain'
+import { ExpenseService, ExpenseRepo, PendingReviewExpenseSchema, UpdateExpensePayload } from '@repo/data-ops/domain'
 
 // FormData schema - zod-form-data is a thin adapter for parsing FormData
+// Effect Schema doesn't have a File primitive, so we keep this as Zod
 const captureFormDataSchema = zfd.formData({
   image: zfd.file(),
   userId: zfd.text(),
@@ -34,22 +30,20 @@ export const expensesRouter = {
         image: input.image,
       })
     })
-
     return frontendRuntime.runPromise(program)
   }),
 
   /**
-   * Complete a draft expense with optional overrides.
-   * Validates required fields and transitions to complete state.
+   * Confirm a pending-review expense with optional overrides.
+   * Validates required fields and transitions to confirmed state.
    */
-  complete: publicProcedure
-    .input(Schema.decodeUnknownSync(CompleteExpensePayload))
+  confirm: publicProcedure
+    .input(Schema.decodeUnknownSync(PendingReviewExpenseSchema.pick('id', 'amount', 'currency', 'merchant', 'description', 'categories', 'expenseDate')))
     .mutation(async ({ input }) => {
       const program = Effect.gen(function* () {
         const service = yield* ExpenseService
-        return yield* service.complete(input)
+        return yield* service.confirm(input)
       })
-
       return frontendRuntime.runPromise(program)
     }),
 
@@ -58,14 +52,14 @@ export const expensesRouter = {
   // ==========================================================================
 
   /**
-   * List complete expenses (for reports/dashboard).
+   * List confirmed expenses (for reports/dashboard).
    */
   list: publicProcedure.query(async () => {
-    return frontendRuntime.runPromise(ExpenseRepo.getComplete())
+    return frontendRuntime.runPromise(ExpenseRepo.getConfirmed())
   }),
 
   /**
-   * List all expenses (both draft and complete).
+   * List all expenses (pending, pending-review, and confirmed).
    */
   listAll: publicProcedure.query(async () => {
     return frontendRuntime.runPromise(ExpenseRepo.getAll())
@@ -74,23 +68,19 @@ export const expensesRouter = {
   /**
    * Get expense by ID.
    */
-  getById: publicProcedure
-    .input(Schema.decodeUnknownSync(Schema.Struct({ id: Schema.String })))
-    .query(async ({ input }) => {
-      return frontendRuntime.runPromise(ExpenseRepo.getById(input.id))
-    }),
+  getById: publicProcedure.input(Schema.decodeUnknownSync(Schema.Struct({ id: Schema.String }))).query(async ({ input }) => {
+    return frontendRuntime.runPromise(ExpenseRepo.getById(input.id))
+  }),
 
   /**
    * Get expenses by user.
    */
-  getByUser: publicProcedure
-    .input(Schema.decodeUnknownSync(Schema.Struct({ userId: Schema.String })))
-    .query(async ({ input }) => {
-      return frontendRuntime.runPromise(ExpenseRepo.getByUser(input.userId))
-    }),
+  getByUser: publicProcedure.input(Schema.decodeUnknownSync(Schema.Struct({ userId: Schema.String }))).query(async ({ input }) => {
+    return frontendRuntime.runPromise(ExpenseRepo.getByUser(input.userId))
+  }),
 
   /**
-   * Get draft expenses pending review.
+   * Get expenses pending review.
    */
   getPendingReview: publicProcedure.query(async () => {
     return frontendRuntime.runPromise(ExpenseRepo.getPendingReview())
@@ -108,27 +98,22 @@ export const expensesRouter = {
   // ==========================================================================
 
   /**
-   * Update expense data.
+   * Update a pending-review expense's data.
    */
-  update: publicProcedure
-    .input(Schema.decodeUnknownSync(UpdateExpensePayload))
-    .mutation(async ({ input }) => {
-      const program = Effect.gen(function* () {
-        const service = yield* ExpenseService
-        return yield* service.update(input)
-      })
-
-      return frontendRuntime.runPromise(program)
-    }),
+  update: publicProcedure.input(Schema.decodeUnknownSync(UpdateExpensePayload)).mutation(async ({ input }) => {
+    const program = Effect.gen(function* () {
+      const service = yield* ExpenseService
+      return yield* service.update(input)
+    })
+    return frontendRuntime.runPromise(program)
+  }),
 
   /**
    * Delete an expense.
    */
-  delete: publicProcedure
-    .input(Schema.decodeUnknownSync(Schema.Struct({ id: Schema.String })))
-    .mutation(async ({ input }) => {
-      return frontendRuntime.runPromise(ExpenseRepo.delete(input.id))
-    }),
+  delete: publicProcedure.input(Schema.decodeUnknownSync(Schema.Struct({ id: Schema.String }))).mutation(async ({ input }) => {
+    return frontendRuntime.runPromise(ExpenseRepo.delete(input.id))
+  }),
 
   // ==========================================================================
   // Health Checks

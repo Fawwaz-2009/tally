@@ -3,8 +3,8 @@ import { motion } from 'motion/react'
 
 import { Badge } from '@/components/ui/badge'
 import { AmountDisplay } from '@/components/expense/amount-display'
-import { getExpenseDisplayDate, expenseNeedsReview, getExpenseDisplayAmount } from '@/lib/expense-utils'
-import type { Expense } from '@repo/data-ops/domain'
+import { getExpenseDisplayDate, getExpenseDisplayAmount, isPending, isPendingReview } from '@/lib/expense-utils'
+import type { Expense } from '@repo/data-ops/schemas'
 
 export type ExpenseCardData = Expense
 
@@ -18,9 +18,19 @@ interface ExpenseCardProps {
 
 export function ExpenseCard({ expense, baseCurrency, onClick, index = 0, userName }: ExpenseCardProps) {
   const displayDate = getExpenseDisplayDate(expense)
-  const needsReview = expenseNeedsReview(expense)
+  const needsReview = isPendingReview(expense)
+  const isProcessing = isPending(expense)
   const displayAmount = getExpenseDisplayAmount(expense)
-  const isDifferentCurrency = expense.currency && expense.currency !== baseCurrency
+
+  // Get merchant name - different based on state
+  const merchant = isPending(expense) ? 'Processing...' : expense.merchant || 'Unknown merchant'
+
+  // Get currency for comparison - only available on pending-review and confirmed
+  const currency = isPending(expense) ? null : expense.currency
+  const amount = isPending(expense) ? null : expense.amount
+  const categories = isPending(expense) ? [] : expense.categories
+
+  const isDifferentCurrency = currency && currency !== baseCurrency
 
   return (
     <motion.div
@@ -51,6 +61,11 @@ export function ExpenseCard({ expense, baseCurrency, onClick, index = 0, userNam
         <div className="flex flex-col gap-1 min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{format(new Date(displayDate), 'MMM dd • HH:mm')}</span>
+            {isProcessing && (
+              <Badge variant="secondary" className="h-4 px-1 text-[9px] uppercase">
+                Processing
+              </Badge>
+            )}
             {needsReview && (
               <Badge variant="destructive" className="h-4 px-1 text-[9px] uppercase">
                 Review
@@ -58,7 +73,7 @@ export function ExpenseCard({ expense, baseCurrency, onClick, index = 0, userNam
             )}
           </div>
 
-          <h3 className="text-lg font-bold leading-tight tracking-tight uppercase line-clamp-1">{expense.merchant || 'Unknown merchant'}</h3>
+          <h3 className="text-lg font-bold leading-tight tracking-tight uppercase line-clamp-1">{merchant}</h3>
 
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             {userName && (
@@ -67,22 +82,28 @@ export function ExpenseCard({ expense, baseCurrency, onClick, index = 0, userNam
               </div>
             )}
 
-            {expense.categories?.slice(0, 2).map((cat) => (
+            {categories?.slice(0, 2).map((cat) => (
               <span key={cat} className="text-[10px] font-mono text-muted-foreground uppercase">
                 #{cat}
               </span>
             ))}
-            {expense.categories && expense.categories.length > 2 && <span className="text-[10px] font-mono text-muted-foreground">+{expense.categories.length - 2}</span>}
+            {categories && categories.length > 2 && <span className="text-[10px] font-mono text-muted-foreground">+{categories.length - 2}</span>}
           </div>
         </div>
 
         {/* Right: Amount */}
         <div className="text-right shrink-0 max-w-[45%]">
-          <AmountDisplay amount={displayAmount} currency={baseCurrency} size="md" />
-          {isDifferentCurrency && expense.amount !== null && (
-            <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
-              <AmountDisplay amount={expense.amount} currency={expense.currency} size="sm" className="text-muted-foreground" />
-            </div>
+          {displayAmount !== null ? (
+            <>
+              <AmountDisplay amount={displayAmount} currency={baseCurrency} size="md" />
+              {isDifferentCurrency && amount !== null && (
+                <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
+                  <AmountDisplay amount={amount} currency={currency} size="sm" className="text-muted-foreground" />
+                </div>
+              )}
+            </>
+          ) : (
+            <span className="text-muted-foreground">—</span>
           )}
         </div>
       </div>

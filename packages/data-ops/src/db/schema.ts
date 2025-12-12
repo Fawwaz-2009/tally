@@ -19,15 +19,21 @@ export const settingsTable = sqliteTable("settings", {
     .notNull(),
 });
 
-// Tally: Expense state (draft = being processed/reviewed, complete = finalized)
-export const expenseState = ["draft", "complete"] as const;
+// Tally: Expense state (lifecycle phases)
+// - pending: receipt captured, extraction not yet applied
+// - pending-review: extraction applied, needs user review
+// - confirmed: all required fields present, finalized
+export const expenseState = ["pending", "pending-review", "confirmed"] as const;
 export type ExpenseState = (typeof expenseState)[number];
 
-// Tally: Extraction status (tracks the OCR/LLM pipeline progress)
-export const extractionStatus = ["pending", "processing", "done", "failed"] as const;
-export type ExtractionStatus = (typeof extractionStatus)[number];
+// Extraction metadata (stored as JSON, available on pending-review and confirmed)
+export interface ExtractionMetadata {
+  ocrText: string | null;
+  error: string | null;
+  timing: { ocrMs: number; llmMs: number } | null;
+}
 
-// Tally: Expenses table (aggregate root with embedded Receipt and Extraction value objects)
+// Tally: Expenses table (discriminated union based on state)
 export const expensesTable = sqliteTable("expenses", {
   id: text("id")
     .primaryKey()
@@ -35,24 +41,18 @@ export const expensesTable = sqliteTable("expenses", {
   userId: text("user_id")
     .notNull()
     .references(() => usersTable.id),
-  state: text("state", { enum: expenseState }).notNull().default("draft"),
+  state: text("state", { enum: expenseState }).notNull().default("pending"),
 
-  // Receipt (embedded value object)
-  receiptImageKey: text("receipt_image_key"),
-  receiptCapturedAt: integer("receipt_captured_at", { mode: "timestamp" })
+  // Receipt data
+  imageKey: text("image_key"),
+  capturedAt: integer("captured_at", { mode: "timestamp" })
     .$defaultFn(() => new Date())
     .notNull(),
 
-  // Extraction (embedded value object)
-  extractionStatus: text("extraction_status", { enum: extractionStatus })
-    .notNull()
-    .default("pending"),
-  extractionOcrText: text("extraction_ocr_text"),
-  extractionError: text("extraction_error"),
-  extractionOcrMs: integer("extraction_ocr_ms"),
-  extractionLlmMs: integer("extraction_llm_ms"),
+  // Extraction metadata (JSON, available after extraction)
+  extractionMetadata: text("extraction_metadata", { mode: "json" }).$type<ExtractionMetadata | null>(),
 
-  // Expense data (nullable in draft, required for complete)
+  // Expense data (nullable in pending/pending-review, required for confirmed)
   amount: integer("amount"), // Store as cents/smallest unit
   currency: text("currency"), // e.g., "USD", "EUR"
   baseAmount: integer("base_amount"), // Converted to base currency
@@ -66,7 +66,7 @@ export const expensesTable = sqliteTable("expenses", {
   createdAt: integer("created_at", { mode: "timestamp" })
     .$defaultFn(() => new Date())
     .notNull(),
-  completedAt: integer("completed_at", { mode: "timestamp" }),
+  confirmedAt: integer("confirmed_at", { mode: "timestamp" }),
 });
 
 // Tally: Relations

@@ -1,9 +1,22 @@
 import { Effect, Data } from "effect";
 import { ExpenseRepo } from "./repo";
-import { ExpenseAggregate, type Expense } from "./schema";
+import {
+  type Expense,
+  type PendingExpense,
+  type PendingReviewExpense,
+  type ConfirmedExpense,
+  type ExtractionMetadata,
+  createPending,
+  applyExtraction,
+  confirm as confirmExpense,
+  update as updateExpense,
+  canConfirm,
+  getMissingFields,
+  isPendingReview,
+} from "./schema";
 import {
   type CaptureExpenseInput,
-  type CompleteExpenseInput,
+  type ConfirmExpenseInput,
   type UpdateExpenseInput,
   type CaptureExpenseResult,
 } from "./dto";
@@ -20,10 +33,17 @@ export class ExpenseNotFoundError extends Data.TaggedError("ExpenseNotFoundError
   id: string;
 }> {}
 
-export class ExpenseAlreadyCompleteError extends Data.TaggedError(
-  "ExpenseAlreadyCompleteError"
+export class ExpenseAlreadyConfirmedError extends Data.TaggedError(
+  "ExpenseAlreadyConfirmedError"
 )<{
   id: string;
+}> {}
+
+export class ExpenseNotPendingReviewError extends Data.TaggedError(
+  "ExpenseNotPendingReviewError"
+)<{
+  id: string;
+  currentState: string;
 }> {}
 
 export class MissingRequiredFieldsError extends Data.TaggedError(
@@ -54,12 +74,10 @@ export class ExpenseService extends Effect.Service<ExpenseService>()(
 
         /**
          * Capture a receipt and process it through the extraction pipeline.
-         * Creates an expense in draft state, runs OCR/LLM, and determines if
-         * the expense can be auto-completed or needs review.
+         * Creates a pending expense, runs OCR/LLM, and transitions to
+         * pending-review (or confirmed if auto-complete conditions are met).
          */
-        capture: (
-          input: CaptureExpenseInput
-        ): Effect.Effect<CaptureExpenseResult, Error> =>
+        capture: (input: CaptureExpenseInput) =>
           Effect.gen(function* () {
             // 1. Convert File to Buffer and generate storage key
             const arrayBuffer = yield* Effect.promise(() =>
@@ -75,18 +93,14 @@ export class ExpenseService extends Effect.Service<ExpenseService>()(
               httpMetadata: { contentType },
             });
 
-            // 3. Create expense aggregate and save
-            let expense = ExpenseAggregate.createDraft({
+            // 3. Create pending expense and save
+            const pending: PendingExpense = createPending({
               userId: input.userId,
-              receiptImageKey: imageKey,
+              imageKey,
             });
-            expense = yield* repo.save(expense);
+            yield* repo.save(pending);
 
-            // 4. Start extraction and save
-            expense = expense.startExtraction();
-            expense = yield* repo.save(expense);
-
-            // 5. Run extraction with error handling
+            // 4. Run extraction with error handling
             const extractionResult = yield* extractionService
               .extractFromImage(imageBuffer)
               .pipe(
@@ -105,95 +119,119 @@ export class ExpenseService extends Effect.Service<ExpenseService>()(
                 )
               );
 
-            // 6. Handle extraction failure (fail early)
-            if (!extractionResult.success || !extractionResult.data) {
-              expense = expense.applyExtraction({
-                status: "failed",
-                ocrText: extractionResult.ocrText ?? null,
-                error: extractionResult.error ?? "Extraction failed",
-              });
-              expense = yield* repo.save(expense);
-
-              return {
-                expense,
-                extraction: {
-                  success: false,
-                  data: null,
-                  error: extractionResult.error ?? "Extraction failed",
-                  timing: null,
-                },
-                needsReview: true,
-              };
-            }
-
-            // 7. Apply successful extraction data
-            const { data, timing } = extractionResult;
-            const expenseDate = data.date ? new Date(data.date) : undefined;
-
-            expense = expense.applyExtraction({
-              status: "done",
+            // 5. Build extraction metadata
+            const extractionMetadata: ExtractionMetadata = {
               ocrText: extractionResult.ocrText ?? null,
-              timing: timing ? { ocrMs: timing.ocrMs, llmMs: timing.llmMs } : null,
-              amount: data.amount ?? null,
-              currency: data.currency ?? null,
-              merchant: data.merchant ?? null,
-              categories: data.category ?? null,
-              expenseDate: expenseDate ?? null,
+              error: extractionResult.error ?? null,
+              timing: extractionResult.timing
+                ? { ocrMs: extractionResult.timing.ocrMs, llmMs: extractionResult.timing.llmMs }
+                : null,
+            };
+
+            // 6. Apply extraction (always transitions to pending-review)
+            const expenseDate = extractionResult.data?.date
+              ? new Date(extractionResult.data.date)
+              : null;
+
+            let pendingReview: PendingReviewExpense = applyExtraction(pending, {
+              amount: extractionResult.data?.amount ?? null,
+              currency: extractionResult.data?.currency ?? null,
+              merchant: extractionResult.data?.merchant ?? null,
+              categories: extractionResult.data?.category ?? [],
+              expenseDate,
+              extractionMetadata,
             });
 
-            // 8. Auto-complete if all required fields present
-            if (expense.isValidExpense()) {
+            // 7. Check if can auto-confirm
+            if (canConfirm(pendingReview)) {
               const baseCurrency = yield* settingsService.getBaseCurrency();
               const baseAmount = yield* currencyService.convert(
-                expense.amount!,
-                expense.currency!,
+                pendingReview.amount!,
+                pendingReview.currency!,
                 baseCurrency
               );
 
-              expense = expense.complete({
+              const confirmed: ConfirmedExpense = confirmExpense(pendingReview, {
+                amount: pendingReview.amount!,
+                currency: pendingReview.currency!,
                 baseAmount,
                 baseCurrency,
+                merchant: pendingReview.merchant!,
+                expenseDate: pendingReview.expenseDate!,
+                categories: pendingReview.categories,
               });
+
+              yield* repo.save(confirmed);
+
+              return {
+                expense: confirmed,
+                extraction: {
+                  success: extractionResult.success,
+                  data: extractionResult.data
+                    ? {
+                        amount: extractionResult.data.amount ?? null,
+                        currency: extractionResult.data.currency ?? null,
+                        merchant: extractionResult.data.merchant ?? null,
+                        date: extractionResult.data.date ?? null,
+                        categories: extractionResult.data.category ?? [],
+                      }
+                    : null,
+                  error: extractionResult.error ?? null,
+                  timing: extractionResult.timing
+                    ? { ocrMs: extractionResult.timing.ocrMs, llmMs: extractionResult.timing.llmMs }
+                    : null,
+                },
+                needsReview: false,
+              };
             }
 
-            // 9. Save and return
-            expense = yield* repo.save(expense);
+            // 8. Save pending-review and return
+            const savedPendingReview = (yield* repo.save(pendingReview)) as PendingReviewExpense;
 
             return {
-              expense,
+              expense: savedPendingReview,
               extraction: {
-                success: true,
-                data: {
-                  amount: data.amount,
-                  currency: data.currency,
-                  merchant: data.merchant,
-                  date: data.date,
-                  categories: data.category,
-                },
-                error: null,
-                timing: timing ? { ocrMs: timing.ocrMs, llmMs: timing.llmMs } : null,
+                success: extractionResult.success,
+                data: extractionResult.data
+                  ? {
+                      amount: extractionResult.data.amount ?? null,
+                      currency: extractionResult.data.currency ?? null,
+                      merchant: extractionResult.data.merchant ?? null,
+                      date: extractionResult.data.date ?? null,
+                      categories: extractionResult.data.category ?? [],
+                    }
+                  : null,
+                error: extractionResult.error ?? null,
+                timing: extractionResult.timing
+                  ? { ocrMs: extractionResult.timing.ocrMs, llmMs: extractionResult.timing.llmMs }
+                  : null,
               },
-              needsReview: expense.state === "draft",
+              needsReview: true,
             };
           }),
 
         /**
-         * Complete a draft expense by validating required fields and
-         * transitioning to complete state.
+         * Confirm a pending-review expense by validating required fields and
+         * transitioning to confirmed state.
          */
-        complete: (input: CompleteExpenseInput) =>
+        confirm: (input: ConfirmExpenseInput) =>
           Effect.gen(function* () {
             const { id, ...overrides } = input;
 
             // 1. Get the expense
-            let expense = yield* repo.getById(id);
+            const expense = yield* repo.getById(id);
             if (!expense) {
               return yield* Effect.fail(new ExpenseNotFoundError({ id }));
             }
 
-            // 2. Check if already complete
-            if (expense.state === "complete") {
-              return yield* Effect.fail(new ExpenseAlreadyCompleteError({ id }));
+            // 2. Must be pending-review to confirm
+            if (!isPendingReview(expense)) {
+              if (expense.state === "confirmed") {
+                return yield* Effect.fail(new ExpenseAlreadyConfirmedError({ id }));
+              }
+              return yield* Effect.fail(
+                new ExpenseNotPendingReviewError({ id, currentState: expense.state })
+              );
             }
 
             // 3. Merge overrides with existing data
@@ -209,6 +247,7 @@ export class ExpenseService extends Effect.Service<ExpenseService>()(
             if (amount === null || amount === undefined) missingFields.push("amount");
             if (!currency) missingFields.push("currency");
             if (!merchant) missingFields.push("merchant");
+            if (!expenseDate) missingFields.push("expenseDate");
 
             if (missingFields.length > 0) {
               return yield* Effect.fail(
@@ -224,58 +263,49 @@ export class ExpenseService extends Effect.Service<ExpenseService>()(
               baseCurrency
             );
 
-            // 6. Complete via aggregate method and save
-            expense = expense.complete({
+            // 6. Confirm and save
+            const confirmed = confirmExpense(expense, {
               amount: amount!,
               currency: currency!,
               baseAmount,
               baseCurrency,
               merchant: merchant!,
-              expenseDate,
-              description: description ?? undefined,
-              categories: categories ?? undefined,
+              description,
+              categories: categories ? [...categories] : undefined,
+              expenseDate: expenseDate!,
             });
 
-            return yield* repo.save(expense);
+            return yield* repo.save(confirmed);
           }),
 
         /**
-         * Update an expense's data. If the expense is complete and amount/currency
-         * changes, recalculates baseAmount.
+         * Update a pending-review expense's data.
+         * Only pending-review expenses can be updated.
          */
-        update: (input: UpdateExpenseInput): Effect.Effect<Expense | null, Error> =>
+        update: (input: UpdateExpenseInput) =>
           Effect.gen(function* () {
             const { id, ...data } = input;
 
-            let expense = yield* repo.getById(id);
+            const expense = yield* repo.getById(id);
             if (!expense) {
               return null;
             }
 
-            // If amount or currency changed on a complete expense, recalculate base
-            if (
-              expense.state === "complete" &&
-              (data.amount !== undefined || data.currency !== undefined)
-            ) {
-              const amount = data.amount ?? expense.amount!;
-              const currency = data.currency ?? expense.currency!;
-              const baseCurrency = yield* settingsService.getBaseCurrency();
-              const baseAmount = yield* currencyService.convert(
-                amount,
-                currency,
-                baseCurrency
-              );
-
-              expense = expense.update({
-                ...data,
-                baseAmount,
-                baseCurrency,
-              });
-            } else {
-              expense = expense.update(data);
+            // Only pending-review expenses can be updated
+            if (!isPendingReview(expense)) {
+              return null;
             }
 
-            return yield* repo.save(expense);
+            const updated = updateExpense(expense, {
+              amount: data.amount,
+              currency: data.currency,
+              merchant: data.merchant,
+              description: data.description,
+              categories: data.categories ? [...data.categories] : undefined,
+              expenseDate: data.expenseDate,
+            });
+
+            return yield* repo.save(updated);
           }),
 
         // ======================================================================
@@ -283,17 +313,13 @@ export class ExpenseService extends Effect.Service<ExpenseService>()(
         // ======================================================================
 
         /**
-         * Check if an expense needs review
-         */
-        needsReview: (expense: Expense): boolean => {
-          return ExpenseAggregate.needsReview(expense);
-        },
-
-        /**
          * Get missing fields for an expense
          */
         getMissingFields: (expense: Expense): string[] => {
-          return ExpenseAggregate.getMissingFields(expense);
+          if (isPendingReview(expense)) {
+            return getMissingFields(expense);
+          }
+          return [];
         },
 
         // ======================================================================

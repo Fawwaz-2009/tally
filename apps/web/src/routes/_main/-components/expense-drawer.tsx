@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer'
-import { getScreenshotUrl, getExpenseDisplayDate, getExpenseDisplayAmount } from '@/lib/expense-utils'
+import { getScreenshotUrl, getExpenseDisplayDate, getExpenseDisplayAmount, isPending, isPendingReview } from '@/lib/expense-utils'
 import { ExpenseForm, type ExpenseFormData } from '@/components/expense/expense-form'
 import { AmountDisplay } from '@/components/expense/amount-display'
 import { ReceiptPreview } from '@/components/expense/receipt-preview'
@@ -68,13 +68,12 @@ export function ExpenseDrawer({ open, onOpenChange, expense, baseCurrency, userN
   const handleSave = (data: ExpenseFormData) => {
     if (!expense?.id) return
     updateMutation.mutate({
-      ...expense,
       id: expense.id,
       amount: data.amount,
       currency: data.currency,
-      merchant: data.merchant ?? null,
+      merchant: data.merchant ?? undefined,
       categories: data.categories ?? [],
-      expenseDate: data.expenseDate ? new Date(data.expenseDate) : null,
+      expenseDate: data.expenseDate ? new Date(data.expenseDate) : undefined,
     })
   }
 
@@ -85,17 +84,30 @@ export function ExpenseDrawer({ open, onOpenChange, expense, baseCurrency, userN
 
   if (!expense) return null
 
+  // Handle different expense states
+  const isProcessing = isPending(expense)
   const displayDate = getExpenseDisplayDate(expense)
-  const screenshotUrl = getScreenshotUrl(expense.receipt.imageKey)
   const displayAmount = getExpenseDisplayAmount(expense)
-  const isDifferentCurrency = expense.currency && expense.currency !== baseCurrency
+
+  // Properties that vary by state
+  const imageKey = expense.imageKey
+  const screenshotUrl = getScreenshotUrl(imageKey)
+  const merchant = isProcessing ? 'Processing...' : expense.merchant || 'Unknown Merchant'
+  const currency = isProcessing ? null : expense.currency
+  const amount = isProcessing ? null : expense.amount
+  const categories = isProcessing ? [] : expense.categories
+
+  const isDifferentCurrency = currency && currency !== baseCurrency
+
+  // Can only edit pending-review expenses
+  const canEdit = isPendingReview(expense)
 
   return (
     <>
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent className="bg-background border-border text-foreground max-h-[95vh] flex flex-col">
           <div className="mx-auto w-full max-w-sm flex-1 overflow-auto">
-            <ReceiptPreview imageUrl={screenshotUrl} merchantName={expense.merchant} />
+            <ReceiptPreview imageUrl={screenshotUrl} merchantName={merchant} />
 
             <DrawerHeader className="text-left pt-6 relative z-10 -mt-8">
               {isEditing ? (
@@ -104,9 +116,7 @@ export function ExpenseDrawer({ open, onOpenChange, expense, baseCurrency, userN
                 </div>
               ) : (
                 <>
-                  <DrawerTitle className="text-3xl font-bold tracking-tight uppercase break-words leading-none text-foreground">
-                    {expense.merchant || 'Unknown Merchant'}
-                  </DrawerTitle>
+                  <DrawerTitle className="text-3xl font-bold tracking-tight uppercase break-words leading-none text-foreground">{merchant}</DrawerTitle>
                   <DrawerDescription className="text-muted-foreground font-mono mt-2">
                     {format(new Date(displayDate), "EEEE, MMMM do, yyyy 'at' h:mm a")}
                   </DrawerDescription>
@@ -115,14 +125,14 @@ export function ExpenseDrawer({ open, onOpenChange, expense, baseCurrency, userN
             </DrawerHeader>
 
             <div className="p-4 space-y-6">
-              {isEditing ? (
+              {isEditing && !isProcessing ? (
                 <ExpenseForm
                   initialData={{
-                    amount: expense.amount,
-                    currency: expense.currency,
-                    merchant: expense.merchant,
-                    categories: expense.categories,
-                    expenseDate: expense.expenseDate,
+                    amount: amount,
+                    currency: currency,
+                    merchant: isPending(expense) ? null : expense.merchant,
+                    categories: categories,
+                    expenseDate: isPending(expense) ? null : expense.expenseDate,
                   }}
                   onSubmit={handleSave}
                   isSubmitting={updateMutation.isPending}
@@ -133,21 +143,27 @@ export function ExpenseDrawer({ open, onOpenChange, expense, baseCurrency, userN
                 <>
                   {/* Amount Section */}
                   <div className="border-b border-dashed border-border pb-6">
-                    <AmountDisplay amount={displayAmount} currency={baseCurrency} size="xl" />
-                    {isDifferentCurrency && expense.amount !== null && (
-                      <div className="text-sm text-muted-foreground font-mono mt-2">
-                        <AmountDisplay amount={expense.amount} currency={expense.currency} size="sm" className="text-muted-foreground" />
-                      </div>
+                    {displayAmount !== null ? (
+                      <>
+                        <AmountDisplay amount={displayAmount} currency={baseCurrency} size="xl" />
+                        {isDifferentCurrency && amount !== null && (
+                          <div className="text-sm text-muted-foreground font-mono mt-2">
+                            <AmountDisplay amount={amount} currency={currency} size="sm" className="text-muted-foreground" />
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-2xl text-muted-foreground">Processing...</span>
                     )}
                   </div>
 
                   {/* Status & Tags */}
                   <div className="space-y-4">
-                    {expense.categories && expense.categories.length > 0 && (
+                    {categories && categories.length > 0 && (
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-muted-foreground uppercase tracking-wider font-mono">Category</span>
                         <div className="flex gap-2 flex-wrap justify-end">
-                          {expense.categories.map((cat) => (
+                          {categories.map((cat) => (
                             <Badge key={cat} variant="secondary" className="bg-muted text-muted-foreground hover:bg-muted/80 font-mono uppercase text-[10px]">
                               {cat}
                             </Badge>
@@ -179,6 +195,7 @@ export function ExpenseDrawer({ open, onOpenChange, expense, baseCurrency, userN
                     <Button
                       className="bg-foreground text-background hover:bg-foreground/90 rounded-xl h-12 font-bold uppercase tracking-wider"
                       onClick={() => setIsEditing(true)}
+                      disabled={!canEdit}
                     >
                       <Pencil className="mr-2 h-3 w-3" /> Edit
                     </Button>

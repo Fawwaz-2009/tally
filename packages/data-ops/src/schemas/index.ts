@@ -6,21 +6,36 @@
  */
 
 // =============================================================================
-// Expense Types
+// Expense Types (Discriminated Union)
 // =============================================================================
 
 export type {
   Expense,
-  ExpenseInsert,
-  ExpenseSelect,
+  PendingExpense,
+  PendingReviewExpense,
+  ConfirmedExpense,
   ExpenseState,
-  ExtractionStatus,
-  ApplyExtractionData,
-  CompleteOverrides,
-  UpdateChanges,
+  ExtractionMetadata,
+  ExpenseRow,
+  ExpenseInsert,
+  ConfirmInput,
+  UpdateInput,
 } from "../domain/expenses/schema";
 
-export { ExpenseAggregate } from "../domain/expenses/schema";
+// Type guards
+export {
+  isPending,
+  isPendingReview,
+  isConfirmed,
+} from "../domain/expenses/schema";
+
+// Query helpers
+export {
+  getMissingFields,
+  canConfirm,
+  getDisplayAmount,
+  getDisplayDate,
+} from "../domain/expenses/schema";
 
 // =============================================================================
 // DTO Types
@@ -29,6 +44,6 @@ export { ExpenseAggregate } from "../domain/expenses/schema";
 export type {
   CaptureExpenseInput,
   CaptureExpenseResult,
-  CompleteExpenseInput,
+  ConfirmExpenseInput,
   UpdateExpenseInput,
 } from "../domain/expenses/dto";

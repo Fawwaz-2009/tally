@@ -7,6 +7,7 @@ import { expect, within, waitFor } from 'storybook/test'
 import { delay, http, HttpResponse } from 'msw'
 import superjson from 'superjson'
 import { TRPCError } from '@trpc/server'
+// Note: http, HttpResponse, superjson kept for createCaptureHandler which handles FormData
 
 import { trpcMsw } from '../../../../.storybook/mocks/trpc'
 import { ollamaScenarios, captureScenarios, expenseScenarios, expenseFactory } from '../../../../.storybook/mocks/factories'
@@ -57,6 +58,16 @@ function createCaptureHandler(response: typeof captureScenarios.needsReview | Er
       },
     })
   })
+}
+
+/**
+ * Stateful confirm flow state.
+ * Reset this before each story that uses it.
+ */
+let confirmFlowState = { confirmed: false }
+
+function resetConfirmFlowState() {
+  confirmFlowState = { confirmed: false }
 }
 
 // =============================================================================
@@ -124,7 +135,7 @@ export const CaptureSuccess: Story = {
       handlers: [
         trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready),
         createCaptureHandler(captureScenarios.needsReview),
-        trpcMsw.expenses.getById.query(() => expenseScenarios.draft),
+        trpcMsw.expenses.getById.query(() => expenseScenarios.pendingReview),
       ],
     },
   },
@@ -150,10 +161,7 @@ export const CaptureSuccess: Story = {
 export const CaptureError: Story = {
   parameters: {
     msw: {
-      handlers: [
-        trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready),
-        createCaptureHandler(new Error('Failed to upload')),
-      ],
+      handlers: [trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready), createCaptureHandler(new Error('Failed to upload'))],
     },
   },
   play: async ({ canvasElement }) => {
@@ -174,14 +182,14 @@ export const CaptureError: Story = {
   },
 }
 
-/** Auto-complete → skip review, show success directly */
+/** Auto-confirm → skip review, show success directly */
 export const AutoCompleteSuccess: Story = {
   parameters: {
     msw: {
       handlers: [
         trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready),
         createCaptureHandler(captureScenarios.autoComplete),
-        trpcMsw.expenses.getById.query(() => expenseScenarios.complete),
+        trpcMsw.expenses.getById.query(() => expenseScenarios.confirmed),
       ],
     },
   },
@@ -208,20 +216,28 @@ export const AutoCompleteSuccess: Story = {
 // Review → Save Flow Tests
 // =============================================================================
 
-/** Review → Save success → success view appears */
+/** Review → Confirm success → success view appears */
 export const ReviewSaveSuccess: Story = {
   parameters: {
     msw: {
       handlers: [
         trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready),
         createCaptureHandler(captureScenarios.needsReview),
-        trpcMsw.expenses.getById.query(() => expenseScenarios.draft),
-        trpcMsw.expenses.complete.mutation(async () => {
+        // Use trpcMsw for correct serialization - resolver reads shared state
+        trpcMsw.expenses.getById.query(() => {
+          return confirmFlowState.confirmed ? expenseScenarios.confirmed : expenseScenarios.pendingReview
+        }),
+        trpcMsw.expenses.confirm.mutation(async () => {
           await delay(50)
-          return expenseScenarios.complete
+          confirmFlowState.confirmed = true
+          return expenseScenarios.confirmed
         }),
       ],
     },
+  },
+  beforeEach: () => {
+    // Reset state before each run
+    resetConfirmFlowState()
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -241,8 +257,8 @@ export const ReviewSaveSuccess: Story = {
       { timeout: 3000 },
     )
 
-    // Click save
-    canvas.getByRole('button', { name: /save expense/i }).click()
+    // Click confirm
+    canvas.getByRole('button', { name: /confirm expense/i }).click()
 
     // Should show success
     await waitFor(
@@ -254,15 +270,15 @@ export const ReviewSaveSuccess: Story = {
   },
 }
 
-/** Save error → error message appears in form */
-export const CompleteError: Story = {
+/** Confirm error → error message appears in form */
+export const ConfirmError: Story = {
   parameters: {
     msw: {
       handlers: [
         trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready),
         createCaptureHandler(captureScenarios.needsReview),
-        trpcMsw.expenses.getById.query(() => expenseScenarios.draft),
-        trpcMsw.expenses.complete.mutation(() => {
+        trpcMsw.expenses.getById.query(() => expenseScenarios.pendingReview),
+        trpcMsw.expenses.confirm.mutation(() => {
           throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to save' })
         }),
       ],
@@ -284,7 +300,7 @@ export const CompleteError: Story = {
       { timeout: 3000 },
     )
 
-    canvas.getByRole('button', { name: /save expense/i }).click()
+    canvas.getByRole('button', { name: /confirm expense/i }).click()
 
     await waitFor(
       () => {
@@ -326,7 +342,7 @@ export const PartialExtraction: Story = {
       handlers: [
         trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready),
         createCaptureHandler(captureScenarios.partialExtraction),
-        trpcMsw.expenses.getById.query(() => expenseFactory.draft({ merchant: null, expenseDate: null })),
+        trpcMsw.expenses.getById.query(() => expenseFactory.pendingReview({ merchant: null, expenseDate: null })),
       ],
     },
   },
@@ -364,7 +380,7 @@ export const ReviewBackButton: Story = {
       handlers: [
         trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready),
         createCaptureHandler(captureScenarios.needsReview),
-        trpcMsw.expenses.getById.query(() => expenseScenarios.draft),
+        trpcMsw.expenses.getById.query(() => expenseScenarios.pendingReview),
       ],
     },
   },
@@ -404,10 +420,7 @@ export const ReviewBackButton: Story = {
 export const TryAgainAfterError: Story = {
   parameters: {
     msw: {
-      handlers: [
-        trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready),
-        createCaptureHandler(new Error('Server error')),
-      ],
+      handlers: [trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready), createCaptureHandler(new Error('Server error'))],
     },
   },
   play: async ({ canvasElement }) => {
@@ -449,7 +462,7 @@ export const AddAnotherResets: Story = {
       handlers: [
         trpcMsw.expenses.checkExtractionHealth.query(() => ollamaScenarios.ready),
         createCaptureHandler(captureScenarios.autoComplete),
-        trpcMsw.expenses.getById.query(() => expenseScenarios.complete),
+        trpcMsw.expenses.getById.query(() => expenseScenarios.confirmed),
       ],
     },
   },

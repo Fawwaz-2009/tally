@@ -1,10 +1,10 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react'
 
 import { useTRPC } from '@/integrations/trpc-react'
 import { Button } from '@/components/ui/button'
 import { ExpenseForm, type ExpenseFormData } from '@/components/expense/expense-form'
-import { getScreenshotUrl } from '@/lib/expense-utils'
+import { getScreenshotUrl, isPendingReview } from '@/lib/expense-utils'
 
 export interface ReviewStageProps {
   expenseId: string
@@ -16,18 +16,19 @@ export interface ReviewStageProps {
 
 export function ReviewStage({ expenseId, onComplete, onBack, hideBackButton = false }: ReviewStageProps) {
   const trpc = useTRPC()
+  const queryClient = useQueryClient()
 
   const expense = useQuery(trpc.expenses.getById.queryOptions({ id: expenseId }))
 
-  const completeExpense = useMutation(
-    trpc.expenses.complete.mutationOptions({
+  const confirmExpense = useMutation(
+    trpc.expenses.confirm.mutationOptions({
       onSuccess: (result) => {
-        // Validate required fields are present
-        const { id, amount, currency, merchant } = result
-        if (amount == null || currency == null || merchant == null) {
-          throw new Error('Completed expense is missing required fields')
-        }
-        onComplete(id!)
+        // Invalidate the getById cache so SuccessStage gets fresh data
+        queryClient.invalidateQueries({
+          queryKey: trpc.expenses.getById.queryKey({ id: expenseId }),
+        })
+        // Confirm returns a ConfirmedExpense with all required fields
+        onComplete(result.id)
       },
     }),
   )
@@ -36,13 +37,14 @@ export function ReviewStage({ expenseId, onComplete, onBack, hideBackButton = fa
     if (!expense.data?.id) {
       throw new Error('Expense data is missing')
     }
-    completeExpense.mutate({
-      ...expense.data,
+    confirmExpense.mutate({
       id: expense.data.id,
       amount: data.amount,
       currency: data.currency,
       merchant: data.merchant || null,
       expenseDate: data.expenseDate ? new Date(data.expenseDate) : null,
+      description: null,
+      categories: [],
     })
   }
 
@@ -75,6 +77,24 @@ export function ReviewStage({ expenseId, onComplete, onBack, hideBackButton = fa
 
   const data = expense.data
 
+  // Must be a pending-review expense to review
+  if (!isPendingReview(data)) {
+    return (
+      <div className="p-4 bg-muted/50 border border-border rounded-lg">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium">Expense cannot be reviewed</p>
+            <p className="text-sm text-muted-foreground mt-1">This expense is in &quot;{data.state}&quot; state and cannot be reviewed.</p>
+            <Button variant="outline" size="sm" className="mt-3" onClick={onBack}>
+              Go back
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <>
       <div className="flex items-center gap-3 mb-6">
@@ -93,11 +113,11 @@ export function ReviewStage({ expenseId, onComplete, onBack, hideBackButton = fa
           merchant: data.merchant,
           expenseDate: data.expenseDate,
         }}
-        imageUrl={getScreenshotUrl(data.receipt.imageKey)}
+        imageUrl={getScreenshotUrl(data.imageKey)}
         onSubmit={handleSubmit}
-        isSubmitting={completeExpense.isPending}
-        submitLabel="Save Expense"
-        error={completeExpense.error?.message}
+        isSubmitting={confirmExpense.isPending}
+        submitLabel="Confirm Expense"
+        error={confirmExpense.error?.message}
       />
     </>
   )
