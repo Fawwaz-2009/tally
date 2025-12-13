@@ -11,7 +11,8 @@ import { formatDateForInput } from '@/lib/date-utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { DatePicker } from '@/components/ui/date-picker'
+import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
 
 
 // Form schema - amounts are displayed/edited in dollars, stored in cents
@@ -150,8 +151,12 @@ export function ExpenseForm({
 
         {/* Transaction Date */}
         <div className="space-y-2">
-          <Label htmlFor="expenseDate">Transaction Date</Label>
-          <Input id="expenseDate" type="date" {...form.register('expenseDate')} />
+          <Label>Transaction Date</Label>
+          <DatePicker
+            value={form.watch('expenseDate')}
+            onChange={(date) => form.setValue('expenseDate', date)}
+            placeholder="Select transaction date"
+          />
         </div>
 
         {/* Categories (optional) */}
@@ -197,30 +202,12 @@ export function ExpenseForm({
         </div>
       </form>
 
-      {/* Delete confirmation dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Expense</DialogTitle>
-            <DialogDescription>Are you sure you want to delete this expense? This action cannot be undone.</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
-              {isDeleting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                'Delete'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDelete}
+        isDeleting={isDeleting}
+      />
     </>
   )
 }

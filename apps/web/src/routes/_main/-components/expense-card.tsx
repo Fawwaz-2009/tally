@@ -2,9 +2,9 @@ import { format } from 'date-fns'
 import { motion } from 'motion/react'
 
 import type { Expense } from '@repo/data-ops/schemas'
-import { Badge } from '@/components/ui/badge'
 import { AmountDisplay } from '@/components/expense/amount-display'
-import { getExpenseDisplayAmount, getExpenseDisplayDate, isPending, isPendingReview } from '@/lib/expense-utils'
+import { StatusBadge } from '@/components/expense/status-badge'
+import { getExpenseDisplayAmount, getExpenseDisplayDate, isPending } from '@/lib/expense-utils'
 
 export type ExpenseCardData = Expense
 
@@ -18,8 +18,6 @@ interface ExpenseCardProps {
 
 export function ExpenseCard({ expense, baseCurrency, onClick, index = 0, userName }: ExpenseCardProps) {
   const displayDate = getExpenseDisplayDate(expense)
-  const needsReview = isPendingReview(expense)
-  const isProcessing = isPending(expense)
   const displayAmount = getExpenseDisplayAmount(expense)
 
   // Get merchant name - different based on state
@@ -61,16 +59,7 @@ export function ExpenseCard({ expense, baseCurrency, onClick, index = 0, userNam
         <div className="flex flex-col gap-1 min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{format(new Date(displayDate), 'MMM dd • HH:mm')}</span>
-            {isProcessing && (
-              <Badge variant="secondary" className="h-4 px-1 text-[9px] uppercase">
-                Processing
-              </Badge>
-            )}
-            {needsReview && (
-              <Badge variant="destructive" className="h-4 px-1 text-[9px] uppercase">
-                Review
-              </Badge>
-            )}
+            <StatusBadge state={expense.state} size="compact" />
           </div>
 
           <h3 className="text-lg font-bold leading-tight tracking-tight uppercase line-clamp-1">{merchant}</h3>

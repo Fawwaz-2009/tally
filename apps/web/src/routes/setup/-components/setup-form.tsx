@@ -2,17 +2,13 @@ import { useNavigate } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { effectTsResolver } from '@hookform/resolvers/effect-ts'
 import { Schema } from 'effect'
-import cc from 'currency-codes'
 import { useMutation } from '@tanstack/react-query'
-import { Check, ChevronsUpDown } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 import { useTRPC } from '@/integrations/trpc-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
+import { CurrencyPicker } from '@/components/expense/currency-picker'
 
 const setupFormSchema = Schema.Struct({
   name: Schema.String.pipe(Schema.minLength(1, { message: () => 'Name is required' }), Schema.maxLength(100)),
@@ -20,15 +16,6 @@ const setupFormSchema = Schema.Struct({
 })
 
 type SetupFormValues = Schema.Schema.Type<typeof setupFormSchema>
-
-// Get all currencies with their details
-const currencies = cc.codes().map((code) => {
-  const info = cc.code(code)
-  return {
-    value: code,
-    label: `${code} - ${info?.currency ?? code}`,
-  }
-})
 
 export function SetupForm() {
   const trpc = useTRPC()
@@ -96,53 +83,9 @@ export function SetupForm() {
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Base Currency</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button variant="outline" role="combobox" className={cn('w-full justify-between', !field.value && 'text-muted-foreground')}>
-                          {field.value ? currencies.find((c) => c.value === field.value)?.label : 'Search currencies...'}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-full p-0" align="start">
-                      <Command
-                        filter={(value, search) => {
-                          // Case-insensitive search that prioritizes currency code matches
-                          const searchLower = search.toLowerCase()
-                          const valueLower = value.toLowerCase()
-
-                          // Check if the currency code (first 3 chars) starts with search
-                          const codeMatch = valueLower.slice(0, 3).startsWith(searchLower)
-                          if (codeMatch) return 1
-
-                          // Fall back to checking if search appears anywhere in value
-                          if (valueLower.includes(searchLower)) return 0.5
-
-                          return 0
-                        }}
-                      >
-                        <CommandInput placeholder="Search currency..." />
-                        <CommandList>
-                          <CommandEmpty>No currency found.</CommandEmpty>
-                          <CommandGroup>
-                            {currencies.map((currency) => (
-                              <CommandItem
-                                key={currency.value}
-                                value={currency.label}
-                                onSelect={() => {
-                                  field.onChange(currency.value)
-                                }}
-                              >
-                                <Check className={cn('mr-2 h-4 w-4', field.value === currency.value ? 'opacity-100' : 'opacity-0')} />
-                                {currency.label}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                  <FormControl>
+                    <CurrencyPicker value={field.value} onChange={field.onChange} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

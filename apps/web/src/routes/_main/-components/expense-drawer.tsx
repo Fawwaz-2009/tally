@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
-import { Loader2, Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import type { ExpenseCardData } from './expense-card'
-import type {ExpenseFormData} from '@/components/expense/expense-form';
+import type { ExpenseFormData } from '@/components/expense/expense-form'
 import { useTRPC } from '@/integrations/trpc-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { getExpenseDisplayAmount, getExpenseDisplayDate, getScreenshotUrl, isPending, isPendingReview } from '@/lib/expense-utils'
-import { ExpenseForm  } from '@/components/expense/expense-form'
+import { ExpenseForm } from '@/components/expense/expense-form'
 import { AmountDisplay } from '@/components/expense/amount-display'
 import { ReceiptPreview } from '@/components/expense/receipt-preview'
 
@@ -211,30 +211,12 @@ export function ExpenseDrawer({ open, onOpenChange, expense, baseCurrency, userN
         </DrawerContent>
       </Drawer>
 
-      {/* Delete confirmation dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Expense</DialogTitle>
-            <DialogDescription>Are you sure you want to delete this expense? This action cannot be undone.</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>
-              {deleteMutation.isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                'Delete'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDelete}
+        isDeleting={deleteMutation.isPending}
+      />
     </>
   )
 }

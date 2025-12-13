@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge'
 interface StatusBadgeProps {
   state: ExpenseState
   showConfirmed?: boolean
+  /** Size variant: 'default' shows icons, 'compact' is minimal for list items */
+  size?: 'default' | 'compact'
 }
 
 /**
@@ -13,30 +15,35 @@ interface StatusBadgeProps {
  * - pending: blue with spinner (Processing)
  * - pending-review: amber with warning icon (Needs Review)
  * - confirmed: green with checkmark (if showConfirmed is true)
+ *
+ * Use size="compact" for list items where space is limited.
  */
-export function StatusBadge({ state, showConfirmed = false }: StatusBadgeProps) {
+export function StatusBadge({ state, showConfirmed = false, size = 'default' }: StatusBadgeProps) {
+  const isCompact = size === 'compact'
+  const compactClass = 'h-4 px-1 text-[9px] uppercase'
+
   switch (state) {
     case 'pending':
       return (
-        <Badge variant="secondary" className="gap-1">
-          <Loader2 className="w-3 h-3 animate-spin" />
+        <Badge variant="secondary" className={isCompact ? compactClass : 'gap-1'}>
+          {!isCompact && <Loader2 className="w-3 h-3 animate-spin" />}
           Processing
         </Badge>
       )
 
     case 'pending-review':
       return (
-        <Badge variant="warning" className="gap-1">
-          <AlertCircle className="w-3 h-3" />
-          Needs Review
+        <Badge variant="destructive" className={isCompact ? compactClass : 'gap-1'}>
+          {!isCompact && <AlertCircle className="w-3 h-3" />}
+          {isCompact ? 'Review' : 'Needs Review'}
         </Badge>
       )
 
     case 'confirmed':
       if (showConfirmed) {
         return (
-          <Badge variant="default" className="gap-1 bg-green-600">
-            <CheckCircle className="w-3 h-3" />
+          <Badge variant="default" className={isCompact ? compactClass : 'gap-1 bg-green-600'}>
+            {!isCompact && <CheckCircle className="w-3 h-3" />}
             Confirmed
           </Badge>
         )
