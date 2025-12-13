@@ -1,7 +1,7 @@
-import { Loader2, AlertCircle, CheckCircle } from 'lucide-react'
+import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react'
 
-import { Badge } from '@/components/ui/badge'
 import type { ExpenseState } from '@repo/data-ops/schemas'
+import { Badge } from '@/components/ui/badge'
 
 interface StatusBadgeProps {
   state: ExpenseState

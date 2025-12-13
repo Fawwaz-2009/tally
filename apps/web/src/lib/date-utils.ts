@@ -65,14 +65,11 @@ export function getDateRangeBounds(dateRange: DateRange | undefined): { start: D
     }
   }
 
-  if (dateRange === 'last-month') {
-    return {
-      start: new Date(year, month - 1, 1),
-      end: new Date(year, month, 0, 23, 59, 59, 999),
-    }
+  // dateRange === 'last-month'
+  return {
+    start: new Date(year, month - 1, 1),
+    end: new Date(year, month, 0, 23, 59, 59, 999),
   }
-
-  return null
 }
 
 /**

@@ -1,9 +1,9 @@
 import { Effect, Schema } from 'effect'
-import { type TRPCRouterRecord } from '@trpc/server'
 
-import { publicProcedure } from '../init'
 import { frontendRuntime } from '@repo/data-ops/runtimes'
-import { UserService, CreateUserSchema } from '@repo/data-ops/domain'
+import { CreateUserSchema, UserService } from '@repo/data-ops/domain'
+import { publicProcedure } from '../init'
+import type {TRPCRouterRecord} from '@trpc/server';
 
 export const usersRouter = {
   list: publicProcedure.query(async () => {

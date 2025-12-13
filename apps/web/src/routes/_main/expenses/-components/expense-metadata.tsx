@@ -1,5 +1,5 @@
-import { formatAmount, isConfirmed } from '@/lib/expense-utils'
 import type { Expense } from '@repo/data-ops/schemas'
+import { formatAmount, isConfirmed } from '@/lib/expense-utils'
 
 interface ExpenseMetadataProps {
   expense: Expense
@@ -37,7 +37,7 @@ export function ExpenseMetadata({ expense }: ExpenseMetadataProps) {
             })}
           </dd>
         </div>
-        {isConfirmed(expense) && expense.confirmedAt && (
+        {isConfirmed(expense) && (
           <div className="flex justify-between">
             <dt className="text-muted-foreground">Confirmed</dt>
             <dd>

@@ -5,7 +5,7 @@
  * Note: We use plain objects internally since tRPC serializes to JSON anyway.
  * The exported types match the new discriminated union expense model.
  */
-import type { Expense, PendingExpense, PendingReviewExpense, ConfirmedExpense, ExtractionMetadata } from '@repo/data-ops/schemas'
+import type { ConfirmedExpense, Expense, ExtractionMetadata, PendingExpense, PendingReviewExpense } from '@repo/data-ops/schemas'
 
 // =============================================================================
 // Mock Types
@@ -162,7 +162,7 @@ export function createCaptureResult(
         currency,
         merchant,
         date: expenseDate instanceof Date ? expenseDate.toISOString().split('T')[0] : null,
-        categories: categories ?? [],
+        categories: categories,
       },
       error: null,
       timing: { ocrMs: 1200, llmMs: 3400 },

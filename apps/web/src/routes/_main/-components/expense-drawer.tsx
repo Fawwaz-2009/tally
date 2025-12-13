@@ -1,18 +1,19 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
-import { Pencil, Trash2, Loader2 } from 'lucide-react'
+import { Loader2, Pencil, Trash2 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
+import type { ExpenseCardData } from './expense-card'
+import type {ExpenseFormData} from '@/components/expense/expense-form';
 import { useTRPC } from '@/integrations/trpc-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer'
-import { getScreenshotUrl, getExpenseDisplayDate, getExpenseDisplayAmount, isPending, isPendingReview } from '@/lib/expense-utils'
-import { ExpenseForm, type ExpenseFormData } from '@/components/expense/expense-form'
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import { getExpenseDisplayAmount, getExpenseDisplayDate, getScreenshotUrl, isPending, isPendingReview } from '@/lib/expense-utils'
+import { ExpenseForm  } from '@/components/expense/expense-form'
 import { AmountDisplay } from '@/components/expense/amount-display'
 import { ReceiptPreview } from '@/components/expense/receipt-preview'
-import type { ExpenseCardData } from './expense-card'
 
 interface ExpenseDrawerProps {
   open: boolean
@@ -159,7 +160,7 @@ export function ExpenseDrawer({ open, onOpenChange, expense, baseCurrency, userN
 
                   {/* Status & Tags */}
                   <div className="space-y-4">
-                    {categories && categories.length > 0 && (
+                    {categories.length > 0 && (
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-muted-foreground uppercase tracking-wider font-mono">Category</span>
                         <div className="flex gap-2 flex-wrap justify-end">

@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { AnimatePresence } from 'motion/react'
 
-import { Button } from '@/components/ui/button'
-import { EmptyState, LoadingState, ErrorState } from '@/components/expense/states'
-
-import { ExpenseCard, type ExpenseCardData } from './expense-card'
+import { ExpenseCard  } from './expense-card'
 import { ExpenseDrawer } from './expense-drawer'
+import type {ExpenseCardData} from './expense-card';
+import { Button } from '@/components/ui/button'
+import { EmptyState, ErrorState, LoadingState } from '@/components/expense/states'
+
 
 interface User {
   id: string

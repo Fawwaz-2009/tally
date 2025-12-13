@@ -1,10 +1,10 @@
 import { QueryClient } from '@tanstack/react-query'
 import superjson from 'superjson'
-import { createTRPCClient, httpBatchLink, isNonJsonSerializable, httpLink, splitLink } from '@trpc/client'
+import { createTRPCClient, httpBatchLink, httpLink, isNonJsonSerializable, splitLink } from '@trpc/client'
 import { createTRPCOptionsProxy } from '@trpc/tanstack-react-query'
 
-import { TRPCProvider } from '@/integrations/trpc-react'
 import type { TRPCRouter } from '@server/trpc/router'
+import { TRPCProvider } from '@/integrations/trpc-react'
 
 // Client-side tRPC client - uses HTTP links
 function createHttpTRPCClient() {

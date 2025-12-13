@@ -1,15 +1,15 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
-import { Users, Store, Tag } from 'lucide-react'
+import { Store, Tag, Users } from 'lucide-react'
 
+import { BreakdownCard, CategoryBreakdownCard, TotalSpendingCard, merchantColors, useAnalytics, userColors } from './-components'
+import type {DateRange} from '@/lib/date-utils';
 import { useTRPC } from '@/integrations/trpc-react'
 import { PageHeader } from '@/components/layout/page-header'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { LoadingState, ErrorState, AnalyticsEmptyState } from '@/components/expense/states'
-import { type DateRange } from '@/lib/date-utils'
+import { AnalyticsEmptyState, ErrorState, LoadingState } from '@/components/expense/states'
 
-import { TotalSpendingCard, CategoryBreakdownCard, BreakdownCard, userColors, merchantColors, useAnalytics } from './-components'
 
 const analysisSearchSchema = z.object({
   dateRange: z.enum(['last-7-days', 'this-month', 'last-month', 'all-time']).default('this-month'),

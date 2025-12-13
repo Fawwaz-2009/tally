@@ -1,7 +1,8 @@
 import { useMemo } from 'react'
 
-import { getDateRangeBounds, type DateRange } from '@/lib/date-utils'
-import type { Expense, ConfirmedExpense } from '@repo/data-ops/schemas'
+import type { ConfirmedExpense, Expense } from '@repo/data-ops/schemas'
+import type {DateRange} from '@/lib/date-utils';
+import {  getDateRangeBounds } from '@/lib/date-utils'
 
 interface User {
   id: string
@@ -39,14 +40,14 @@ export function useAnalytics(expenses: Expense[] | undefined, users: User[] | un
     const bounds = getDateRangeBounds(dateRange)
     if (bounds) {
       filteredExpenses = filteredExpenses.filter((expense) => {
-        const dateToCheck = new Date(expense.expenseDate || expense.capturedAt)
+        const dateToCheck = new Date(expense.expenseDate)
         return dateToCheck >= bounds.start && dateToCheck <= bounds.end
       })
     }
 
     if (filteredExpenses.length === 0) return null
 
-    const getBaseAmount = (e: ConfirmedExpense) => e.baseAmount ?? e.amount
+    const getBaseAmount = (e: ConfirmedExpense) => e.baseAmount
 
     const totalSpending = filteredExpenses.reduce((sum, e) => sum + getBaseAmount(e), 0)
 
@@ -55,7 +56,7 @@ export function useAnalytics(expenses: Expense[] | undefined, users: User[] | un
     // Category breakdown
     const categoryMap = new Map<string, { amount: number; count: number }>()
     filteredExpenses.forEach((e) => {
-      const categories = e.categories?.length ? e.categories : ['Uncategorized']
+      const categories = e.categories.length > 0 ? e.categories : ['Uncategorized']
       const amountPerCategory = getBaseAmount(e) / categories.length
       categories.forEach((cat: string) => {
         const existing = categoryMap.get(cat) || { amount: 0, count: 0 }

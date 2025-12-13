@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useRef, useState } from 'react'
+import { Upload, X } from 'lucide-react'
 import { Input } from './input'
 import { Button } from './button'
-import { X, Upload } from 'lucide-react'
 
 interface FileUploadProps {
   value?: File
@@ -56,9 +56,8 @@ export function FileUpload({ value, onChange, accept = 'image/*', maxSize = 5 }:
     e.stopPropagation()
     setIsDragging(false)
 
-    const file = e.dataTransfer.files?.[0]
-    if (file) {
-      handleFileSelect(file)
+    if (e.dataTransfer.files.length > 0) {
+      handleFileSelect(e.dataTransfer.files[0])
     }
   }
 

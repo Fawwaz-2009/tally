@@ -1,9 +1,9 @@
 import { Effect, Schema } from 'effect'
-import { type TRPCRouterRecord } from '@trpc/server'
 
-import { publicProcedure } from '../init'
 import { frontendRuntime } from '@repo/data-ops/runtimes'
-import { SettingsService, SetBaseCurrencyInput, CompleteSetupInput } from '@repo/data-ops/domain'
+import { CompleteSetupInput, SetBaseCurrencyInput, SettingsService } from '@repo/data-ops/domain'
+import { publicProcedure } from '../init'
+import type {TRPCRouterRecord} from '@trpc/server';
 
 export const settingsRouter = {
   isSetupComplete: publicProcedure.query(async () => {

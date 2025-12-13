@@ -22,10 +22,9 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
 
 export function ThemeProvider({ children, defaultTheme = 'system', storageKey = 'tally-theme', ...props }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      return (localStorage.getItem(storageKey) as Theme) || defaultTheme
-    }
-    return defaultTheme
+    // SSR safety - window may not exist during server rendering
+    if (typeof window === 'undefined') return defaultTheme
+    return (localStorage.getItem(storageKey) ?? defaultTheme) as Theme
   })
 
   useEffect(() => {
@@ -54,9 +53,9 @@ export function ThemeProvider({ children, defaultTheme = 'system', storageKey = 
 
   const value = {
     theme,
-    setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme)
-      setTheme(theme)
+    setTheme: (newTheme: Theme) => {
+      localStorage.setItem(storageKey, newTheme)
+      setTheme(newTheme)
     },
   }
 
@@ -68,9 +67,5 @@ export function ThemeProvider({ children, defaultTheme = 'system', storageKey = 
 }
 
 export const useTheme = () => {
-  const context = useContext(ThemeProviderContext)
-
-  if (context === undefined) throw new Error('useTheme must be used within a ThemeProvider')
-
-  return context
+  return useContext(ThemeProviderContext)
 }

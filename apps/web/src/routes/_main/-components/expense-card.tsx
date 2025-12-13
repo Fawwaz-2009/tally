@@ -1,10 +1,10 @@
 import { format } from 'date-fns'
 import { motion } from 'motion/react'
 
+import type { Expense } from '@repo/data-ops/schemas'
 import { Badge } from '@/components/ui/badge'
 import { AmountDisplay } from '@/components/expense/amount-display'
-import { getExpenseDisplayDate, getExpenseDisplayAmount, isPending, isPendingReview } from '@/lib/expense-utils'
-import type { Expense } from '@repo/data-ops/schemas'
+import { getExpenseDisplayAmount, getExpenseDisplayDate, isPending, isPendingReview } from '@/lib/expense-utils'
 
 export type ExpenseCardData = Expense
 
@@ -82,12 +82,12 @@ export function ExpenseCard({ expense, baseCurrency, onClick, index = 0, userNam
               </div>
             )}
 
-            {categories?.slice(0, 2).map((cat) => (
+            {categories.slice(0, 2).map((cat) => (
               <span key={cat} className="text-[10px] font-mono text-muted-foreground uppercase">
                 #{cat}
               </span>
             ))}
-            {categories && categories.length > 2 && <span className="text-[10px] font-mono text-muted-foreground">+{categories.length - 2}</span>}
+            {categories.length > 2 && <span className="text-[10px] font-mono text-muted-foreground">+{categories.length - 2}</span>}
           </div>
         </div>
 

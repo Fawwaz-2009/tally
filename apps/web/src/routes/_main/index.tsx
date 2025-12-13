@@ -3,11 +3,12 @@ import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
 import { useMemo } from 'react'
 
-import { useTRPC } from '@/integrations/trpc-react'
-import { getDateRangeBounds, type DateRange } from '@/lib/date-utils'
-import { isPending, isConfirmed } from '@/lib/expense-utils'
-import { OverviewHeader, StatusBanners, FilterBar, ExpenseList } from './-components'
+import { ExpenseList, FilterBar, OverviewHeader, StatusBanners } from './-components'
 import type { ConfirmedExpense } from '@repo/data-ops/schemas'
+import type {DateRange} from '@/lib/date-utils';
+import { useTRPC } from '@/integrations/trpc-react'
+import {  getDateRangeBounds } from '@/lib/date-utils'
+import { isConfirmed, isPending } from '@/lib/expense-utils'
 
 const dashboardSearchSchema = z.object({
   dateRange: z.enum(['last-7-days', 'this-month', 'last-month', 'all-time']).default('this-month'),
@@ -38,7 +39,7 @@ function Dashboard() {
   const baseCurrencyQuery = useQuery(trpc.settings.getBaseCurrency.queryOptions())
   const pendingReviewQuery = useQuery(trpc.expenses.pendingReviewCount.queryOptions())
 
-  const hasActiveFilters = Boolean((filters.dateRange && filters.dateRange !== 'this-month') || filters.userId || filters.category || filters.search)
+  const hasActiveFilters = Boolean(filters.dateRange !== 'this-month' || filters.userId || filters.category || filters.search)
 
   const handleDateRangeChange = (dateRange: DateRange) => {
     navigate({
@@ -83,7 +84,7 @@ function Dashboard() {
       result = result.filter((expense) => {
         // Only pending-review and confirmed have categories
         if (isPending(expense)) return false
-        return expense.categories?.includes(filters.category!)
+        return expense.categories.includes(filters.category!)
       })
     }
 
@@ -93,7 +94,7 @@ function Dashboard() {
         // Only pending-review and confirmed have merchant/categories
         if (isPending(expense)) return false
         const merchantMatch = expense.merchant?.toLowerCase().includes(searchLower)
-        const categoryMatch = expense.categories?.some((cat) => cat.toLowerCase().includes(searchLower))
+        const categoryMatch = expense.categories.some((cat) => cat.toLowerCase().includes(searchLower))
         return merchantMatch || categoryMatch
       })
     }
@@ -117,10 +118,7 @@ function Dashboard() {
   }, [expensesQuery.data])
 
   const totalSpent = useMemo(() => {
-    return displayExpenses.reduce((sum, expense) => {
-      const amountToAdd = expense.baseAmount ?? expense.amount ?? 0
-      return sum + amountToAdd
-    }, 0)
+    return displayExpenses.reduce((sum, expense) => sum + expense.baseAmount, 0)
   }, [displayExpenses])
 
   const baseCurrency = baseCurrencyQuery.data ?? 'USD'

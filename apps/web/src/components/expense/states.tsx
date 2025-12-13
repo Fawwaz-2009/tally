@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { Loader2, AlertCircle, Plus, CheckCircle, TrendingUp } from 'lucide-react'
+import { AlertCircle, CheckCircle, Loader2, Plus, TrendingUp } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 

@@ -1,8 +1,8 @@
 import { Link } from '@tanstack/react-router'
 
+import { ProgressBar } from './progress-bar'
 import { formatAmount } from '@/lib/expense-utils'
 
-import { ProgressBar } from './progress-bar'
 
 interface BreakdownItemProps {
   label: string

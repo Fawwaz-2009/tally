@@ -2,10 +2,10 @@
 // This is the main entry point for the production server
 
 // Import env first - validates and fails fast if missing
+import { initBucket, initDatabase, initFullEnv, initRuntimeEnvs } from '@repo/data-ops/layers'
+import app from './hono'
 import { env } from '@/env'
 
-import app from './hono'
-import { initDatabase, initRuntimeEnvs, initBucket, initFullEnv } from '@repo/data-ops/layers'
 import { createServerTRPCClient } from '@/integrations/trpc-server'
 import { initTRPCClient } from '@/integrations/root-provider'
 

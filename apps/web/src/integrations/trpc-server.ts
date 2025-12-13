@@ -3,9 +3,9 @@
 import superjson from 'superjson'
 import { createTRPCClient, unstable_localLink } from '@trpc/client'
 
-import type { TRPCRouter } from '@server/trpc/router'
 import { trpcRouter } from '@server/trpc/router'
 import { getFullEnv } from '@repo/data-ops/layers'
+import type { TRPCRouter } from '@server/trpc/router'
 import type { NodeEnv } from '@server/hono'
 
 export function createServerTRPCClient() {

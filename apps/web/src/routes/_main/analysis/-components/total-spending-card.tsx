@@ -1,6 +1,7 @@
+import type {DateRange} from '@/lib/date-utils';
 import { Card, CardContent } from '@/components/ui/card'
 import { formatAmount } from '@/lib/expense-utils'
-import { getDateRangeLabel, type DateRange } from '@/lib/date-utils'
+import {  getDateRangeLabel } from '@/lib/date-utils'
 
 interface TotalSpendingCardProps {
   totalSpending: number

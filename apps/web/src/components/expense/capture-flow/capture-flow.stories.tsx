@@ -1,12 +1,12 @@
-import type { Meta, StoryObj } from '@storybook/react-vite'
 import { getWorker } from 'msw-storybook-addon'
-import { delay, http, HttpResponse } from 'msw'
+import { HttpResponse, delay, http } from 'msw'
 import superjson from 'superjson'
 import { TRPCError } from '@trpc/server'
 
 import { trpcMsw } from '../../../../.storybook/mocks/trpc'
-import { expenseFactory, ollamaScenarios, captureScenarios, expenseScenarios } from '../../../../.storybook/mocks/factories'
+import { captureScenarios, expenseFactory, expenseScenarios, ollamaScenarios } from '../../../../.storybook/mocks/factories'
 import { CaptureFlow } from './capture-flow'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 
 // =============================================================================
 // API Response Types
@@ -184,7 +184,7 @@ export const Interactive: Story = {
     },
   },
   loaders: [
-    async ({ args }) => {
+    ({ args }) => {
       const worker = getWorker()
       worker.resetHandlers()
       worker.use(getHealthHandler(args.healthApi), getCaptureHandler(args.captureApi), getByIdHandler(args.getByIdApi), getConfirmHandler(args.confirmApi))

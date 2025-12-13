@@ -1,6 +1,7 @@
+import type {DateRange} from '@/lib/date-utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { AmountDisplay } from '@/components/expense/amount-display'
-import { type DateRange, getDateRangeLabel } from '@/lib/date-utils'
+import {  getDateRangeLabel } from '@/lib/date-utils'
 
 interface OverviewHeaderProps {
   totalSpent: number

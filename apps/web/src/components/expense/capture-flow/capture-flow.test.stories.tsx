@@ -2,24 +2,24 @@
  * Automated regression tests for CaptureFlow.
  * These run as part of CI to catch breaking changes.
  */
-import type { Meta, StoryObj } from '@storybook/react-vite'
-import { expect, within, waitFor } from 'storybook/test'
-import { delay, http, HttpResponse } from 'msw'
+import { expect, waitFor, within } from 'storybook/test'
+import { HttpResponse, delay, http } from 'msw'
 import superjson from 'superjson'
 import { TRPCError } from '@trpc/server'
 // Note: http, HttpResponse, superjson kept for createCaptureHandler which handles FormData
 
 import { trpcMsw } from '../../../../.storybook/mocks/trpc'
-import { ollamaScenarios, captureScenarios, expenseScenarios, expenseFactory } from '../../../../.storybook/mocks/factories'
+import { captureScenarios, expenseFactory, expenseScenarios, ollamaScenarios } from '../../../../.storybook/mocks/factories'
 import { CaptureFlow } from './capture-flow'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 
 // =============================================================================
 // Test Helpers
 // =============================================================================
 
 /** Simulates uploading a file - triggers the capture mutation */
-async function simulateUpload(canvasElement: HTMLElement) {
-  const fileInput = canvasElement.querySelector('input[type="file"]') as HTMLInputElement
+function simulateUpload(canvasElement: HTMLElement) {
+  const fileInput = canvasElement.querySelector<HTMLInputElement>('input[type="file"]')
   if (!fileInput) throw new Error('File input not found')
 
   const mockFile = new File(['fake-image-data'], 'receipt.jpg', { type: 'image/jpeg' })
@@ -364,7 +364,7 @@ export const PartialExtraction: Story = {
     )
 
     // Merchant field should be empty (user needs to fill it)
-    const merchantInput = canvas.getByLabelText(/merchant/i) as HTMLInputElement
+    const merchantInput = canvas.getByLabelText<HTMLInputElement>(/merchant/i)
     expect(merchantInput.value).toBe('')
   },
 }

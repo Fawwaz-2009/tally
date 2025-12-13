@@ -1,8 +1,8 @@
+import * as fs from 'node:fs'
+import * as path from 'node:path'
 import { Hono } from 'hono'
 import handler from '@tanstack/react-start/server-entry'
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch'
-import * as fs from 'node:fs'
-import * as path from 'node:path'
 
 import { trpcRouter } from './trpc/router/index'
 import { env } from '@/env'

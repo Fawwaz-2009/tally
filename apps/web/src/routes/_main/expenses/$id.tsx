@@ -1,15 +1,16 @@
-import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react'
+import { AlertCircle, ArrowLeft, Loader2 } from 'lucide-react'
 
+import { ExpenseMetadata, Notification, ReviewWarning } from './-components'
+import type {ExpenseFormData} from '@/components/expense/expense-form';
 import { useTRPC } from '@/integrations/trpc-react'
 import { Button } from '@/components/ui/button'
 import { getScreenshotUrl, isPendingReview } from '@/lib/expense-utils'
 import { StatusBadge } from '@/components/expense/status-badge'
-import { ExpenseForm, type ExpenseFormData } from '@/components/expense/expense-form'
+import { ExpenseForm  } from '@/components/expense/expense-form'
 
-import { Notification, ExpenseMetadata, ReviewWarning } from './-components'
 
 export const Route = createFileRoute('/_main/expenses/$id')({
   component: ExpenseDetail,

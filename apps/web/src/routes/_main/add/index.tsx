@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { useTRPC } from '@/integrations/trpc-react'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { UploadStage, ReviewStage, SuccessStage } from '@/components/expense/capture-flow'
+import { ReviewStage, SuccessStage, UploadStage } from '@/components/expense/capture-flow'
 
 // Search params schema
 const searchSchema = z.object({

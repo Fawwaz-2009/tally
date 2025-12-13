@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { Home, PieChart, Plus, Settings, AlertCircle } from 'lucide-react'
+import { AlertCircle, Home, PieChart, Plus, Settings } from 'lucide-react'
 
 import { useTRPC } from '@/integrations/trpc-react'
 import { Button } from '@/components/ui/button'

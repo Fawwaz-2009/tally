@@ -1,10 +1,10 @@
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Users, Plus, Copy, Check, ExternalLink, Download, FileJson, FileSpreadsheet, Tag, Sun, Moon, Monitor } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Check, Copy, Download, ExternalLink, FileJson, FileSpreadsheet, Monitor, Moon, Plus, Sun, Tag, Users } from 'lucide-react'
 import type { ConfirmedExpense } from '@repo/data-ops/schemas'
 
 import { useTRPC } from '@/integrations/trpc-react'
@@ -423,10 +423,9 @@ function CategoriesSection() {
     const statsMap = new Map<string, { count: number; totalAmount: number }>()
 
     for (const expense of expensesQuery.data) {
-      if (expense.state !== 'confirmed') continue
-
-      if (expense.categories && Array.isArray(expense.categories)) {
-        const amount = expense.baseAmount ?? expense.amount ?? 0
+      // expense is already ConfirmedExpense from list() query
+      const amount = expense.baseAmount
+      if (expense.categories.length > 0) {
         // Distribute amount equally across categories
         const amountPerCategory = amount / expense.categories.length
 
@@ -490,7 +489,7 @@ function CategoriesSection() {
     setIsRenaming(true)
     try {
       // Find all expenses with this category and update them
-      const expensesToUpdate = expensesQuery.data.filter((e) => e.categories?.includes(selectedCategory))
+      const expensesToUpdate = expensesQuery.data.filter((e) => e.categories.includes(selectedCategory))
 
       for (const expense of expensesToUpdate) {
         if (!expense.id) continue
@@ -609,7 +608,7 @@ function ExportSection() {
       formatAmount(expense.amount),
       expense.currency,
       expense.merchant,
-      (expense.categories || []).join('; '),
+      expense.categories.join('; '),
       getUserName(expense.userId),
       expense.state,
     ])
@@ -632,7 +631,7 @@ function ExportSection() {
       amount: expense.amount / 100,
       currency: expense.currency,
       merchant: expense.merchant,
-      categories: expense.categories || [],
+      categories: expense.categories,
       user: getUserName(expense.userId),
       userId: expense.userId,
       state: expense.state,
@@ -653,7 +652,7 @@ function ExportSection() {
     URL.revokeObjectURL(url)
   }
 
-  const handleExport = async () => {
+  const handleExport = () => {
     if (!expensesQuery.data) return
 
     setIsExporting(true)

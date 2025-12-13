@@ -1,7 +1,7 @@
-import { Card, CardContent } from '@/components/ui/card'
 
 import { SectionHeader } from './section-header'
 import { BreakdownItem, CategoryBreakdownItem } from './breakdown-item'
+import { Card, CardContent } from '@/components/ui/card'
 
 // Colors for different breakdown sections
 export const categoryColors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-orange-500', 'bg-pink-500', 'bg-cyan-500', 'bg-amber-500', 'bg-indigo-500']

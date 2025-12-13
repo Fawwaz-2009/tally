@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { CheckCircle2, Plus, Loader2, AlertCircle } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Loader2, Plus } from 'lucide-react'
 
 import { useTRPC } from '@/integrations/trpc-react'
 import { Button } from '@/components/ui/button'
