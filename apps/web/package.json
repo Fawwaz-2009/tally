@@ -4,8 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev --port 3000",
-    "build": "vite build",
-    "start": "node .output/server/index.mjs",
+    "build": "vite build && pnpm run postbuild",
+    "postbuild": "ln -sfn ../../node_modules .output/node_modules",
+    "start": "node --env-file=.env .output/server/index.mjs",
     "serve": "vite preview",
     "test:e2e": "tsx src/test-utils/run-setup.ts && playwright test",
     "test:e2e:headed": "tsx src/test-utils/run-setup.ts && playwright test --headed",

@@ -37,9 +37,13 @@ const config = defineConfig(({ mode }) => {
         config: {
           // Node.js server preset for self-hosted deployment
           preset: 'node_server',
-          // Externalize native modules that can't be bundled
+          // Externalize native modules and packages with worker threads
+          // These will be resolved from node_modules at runtime
           externals: {
-            external: ['better-sqlite3'],
+            external: ['better-sqlite3', 'tesseract.js'],
+          },
+          rollupConfig: {
+            external: ['better-sqlite3', 'tesseract.js'],
           },
         },
       }),
@@ -99,7 +103,7 @@ const config = defineConfig(({ mode }) => {
     ],
     // SSR externals - Node.js built-ins and native modules
     ssr: {
-      external: [...nodeBuiltins, 'better-sqlite3'],
+      external: [...nodeBuiltins, 'better-sqlite3', 'tesseract.js'],
     },
     // Resolve alias for 'crypto' - react-dom imports 'crypto' without the 'node:' prefix
     resolve: {
