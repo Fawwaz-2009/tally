@@ -5,6 +5,7 @@ import viteReact from '@vitejs/plugin-react'
 import viteTsConfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
 import { nitro } from 'nitro/vite'
+import { VitePWA } from 'vite-plugin-pwa'
 
 // Node.js built-ins to externalize during SSR
 const nodeBuiltins = [...builtinModules, ...builtinModules.map((m) => `node:${m}`)]
@@ -43,6 +44,58 @@ const config = defineConfig(({ mode }) => {
         },
       }),
       viteReact(),
+      VitePWA({
+        registerType: 'autoUpdate',
+        includeAssets: ['favicon.ico', 'logo192.png', 'logo512.png', 'apple-touch-icon.png'],
+        manifest: false, // Use existing manifest.json in public/
+        workbox: {
+          // Cache app shell and static assets
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+          // Don't precache API routes or server-rendered pages
+          navigateFallback: null,
+          // Runtime caching for API responses
+          runtimeCaching: [
+            {
+              // Cache receipt images aggressively
+              urlPattern: /^.*\/api\/files\/.*/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'receipt-images',
+                expiration: {
+                  maxEntries: 100,
+                  maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+                },
+              },
+            },
+            {
+              // Cache Google Fonts
+              urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'google-fonts-stylesheets',
+                expiration: {
+                  maxEntries: 10,
+                  maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                },
+              },
+            },
+            {
+              urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'google-fonts-webfonts',
+                expiration: {
+                  maxEntries: 30,
+                  maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                },
+              },
+            },
+          ],
+        },
+        devOptions: {
+          enabled: true, // Enable in dev for testing
+        },
+      }),
     ],
     // SSR externals - Node.js built-ins and native modules
     ssr: {

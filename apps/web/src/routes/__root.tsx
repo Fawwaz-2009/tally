@@ -36,8 +36,28 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         name: 'theme-color',
         content: '#09090b',
       },
+      {
+        name: 'apple-mobile-web-app-capable',
+        content: 'yes',
+      },
+      {
+        name: 'apple-mobile-web-app-status-bar-style',
+        content: 'black-translucent',
+      },
+      {
+        name: 'apple-mobile-web-app-title',
+        content: 'Tally',
+      },
     ],
     links: [
+      {
+        rel: 'manifest',
+        href: '/manifest.json',
+      },
+      {
+        rel: 'apple-touch-icon',
+        href: '/apple-touch-icon.png',
+      },
       {
         rel: 'stylesheet',
         href: 'https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Red+Hat+Mono:wght@300;400;500;700&display=swap',
