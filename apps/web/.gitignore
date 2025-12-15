@@ -17,3 +17,8 @@ data/
 
 # Storybook build output
 storybook-static
+
+# Playwright test artifacts
+playwright-report/
+test-results/
+.test-data/

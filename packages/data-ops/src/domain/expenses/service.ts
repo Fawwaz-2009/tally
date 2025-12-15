@@ -336,7 +336,7 @@ export class ExpenseService extends Effect.Service<ExpenseService>()(
       ExpenseRepo.Default,
       CurrencyService.Default,
       SettingsService.Default,
-      ExtractionService.Default,
+      // ExtractionService provided externally via BaseLayer (allows stub swap for E2E)
       BucketClient.Default,
     ],
     accessors: true,

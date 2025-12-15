@@ -14,8 +14,7 @@ export default [
       // Config files (not in tsconfig)
       'eslint.config.js',
       'prettier.config.js',
-      // Generated/test infrastructure
-      'public/mockServiceWorker.js',
+      // Storybook
       '.storybook/**',
     ],
   },

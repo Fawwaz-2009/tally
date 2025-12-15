@@ -8,6 +8,9 @@
     "start": "node .output/server/index.mjs",
     "serve": "vite preview",
     "test": "vitest run",
+    "test:e2e": "tsx src/test-utils/run-setup.ts && playwright test",
+    "test:e2e:headed": "tsx src/test-utils/run-setup.ts && playwright test --headed",
+    "test:e2e:ui": "tsx src/test-utils/run-setup.ts && playwright test --ui",
     "lint": "eslint",
     "format": "prettier",
     "check": "prettier --write . && eslint --fix",
@@ -63,6 +66,7 @@
     "zod-form-data": "^3.0.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@storybook/addon-a11y": "10.1.4",
     "@storybook/addon-vitest": "^10.1.4",
     "@storybook/react-vite": "10.1.4",

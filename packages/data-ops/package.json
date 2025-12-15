@@ -2,6 +2,7 @@
   "name": "@repo/data-ops",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -19,9 +20,9 @@
       "types": "./dist/layers/index.d.ts",
       "import": "./dist/layers/index.js"
     },
-    "./database": {
-      "types": "./dist/database/index.d.ts",
-      "import": "./dist/database/index.js"
+    "./db": {
+      "types": "./dist/db/index.d.ts",
+      "import": "./dist/db/index.js"
     },
     "./domain": {
       "types": "./dist/domain/index.d.ts",
