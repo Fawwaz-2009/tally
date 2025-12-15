@@ -1,23 +1,38 @@
-# Development docker-compose - builds from source
-# Usage: docker compose -f docker-compose.dev.yml up --build
-
 services:
+  tailscale:
+    image: tailscale/tailscale:latest
+    container_name: tally-tailscale
+    hostname: tally
+    environment:
+      # No TS_AUTHKEY = shows login link in logs (check within 60 seconds!)
+      # To use auth key instead, uncomment and set:
+      # - TS_AUTHKEY=tskey-auth-xxxxx
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=true  # Required for macOS (no /dev/net/tun)
+      - TS_SERVE_CONFIG=/config/serve.json
+    volumes:
+      - tailscale-state:/var/lib/tailscale
+      - ./tailscale-config:/config:ro
+    restart: unless-stopped
+
   web:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
+    container_name: tally-web
+    network_mode: service:tailscale
+    depends_on:
+      - tailscale
     environment:
       - NODE_ENV=production
       - PORT=3000
       - HOST=0.0.0.0
       - DATABASE_PATH=/app/data/app.db
       - BUCKET_STORAGE_PATH=/app/data/uploads
-      - BASE_FRONTEND_URL=${BASE_FRONTEND_URL}
     volumes:
       - tally-data:/app/data
     restart: unless-stopped
 
 volumes:
   tally-data:
+  tailscale-state:
