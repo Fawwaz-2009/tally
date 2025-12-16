@@ -1,4 +1,4 @@
-import { Schema } from "effect";
+import { Schema } from 'effect'
 
 // Extracted expense data from OCR + LLM
 export const ExtractedExpenseSchema = Schema.Struct({
@@ -10,11 +10,11 @@ export const ExtractedExpenseSchema = Schema.Struct({
   ambiguous: Schema.NullOr(
     Schema.Struct({
       reason: Schema.String,
-    })
+    }),
   ),
-});
+})
 
-export type ExtractedExpense = Schema.Schema.Type<typeof ExtractedExpenseSchema>;
+export type ExtractedExpense = Schema.Schema.Type<typeof ExtractedExpenseSchema>
 
 // Extraction result with metadata
 export const ExtractionResultSchema = Schema.Struct({
@@ -28,14 +28,14 @@ export const ExtractionResultSchema = Schema.Struct({
     totalMs: Schema.Number,
   }),
   error: Schema.NullOr(Schema.String),
-});
+})
 
-export type ExtractionResult = Schema.Schema.Type<typeof ExtractionResultSchema>;
+export type ExtractionResult = Schema.Schema.Type<typeof ExtractionResultSchema>
 
 // Progress events for real-time updates
 export type ExtractionProgress =
-  | { stage: "uploading"; progress: number }
-  | { stage: "ocr"; progress: number }
-  | { stage: "extracting"; progress: number }
-  | { stage: "complete"; result: ExtractionResult }
-  | { stage: "error"; error: string };
+  | { stage: 'uploading'; progress: number }
+  | { stage: 'ocr'; progress: number }
+  | { stage: 'extracting'; progress: number }
+  | { stage: 'complete'; result: ExtractionResult }
+  | { stage: 'error'; error: string }

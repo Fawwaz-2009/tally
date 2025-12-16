@@ -1,27 +1,17 @@
 /**
  * Expense domain utilities - type guards, persistence mapping, and helpers.
  */
-import type {
-  Expense,
-  ExpenseRow,
-  ExpenseInsert,
-  PendingExpense,
-  PendingReviewExpense,
-  ConfirmedExpense,
-} from "./schema";
+import type { Expense, ExpenseRow, ExpenseInsert, PendingExpense, PendingReviewExpense, ConfirmedExpense } from './schema'
 
 // ============================================================================
 // Type Guards
 // ============================================================================
 
-export const isPending = (expense: Expense): expense is PendingExpense =>
-  expense.state === "pending";
+export const isPending = (expense: Expense): expense is PendingExpense => expense.state === 'pending'
 
-export const isPendingReview = (expense: Expense): expense is PendingReviewExpense =>
-  expense.state === "pending-review";
+export const isPendingReview = (expense: Expense): expense is PendingReviewExpense => expense.state === 'pending-review'
 
-export const isConfirmed = (expense: Expense): expense is ConfirmedExpense =>
-  expense.state === "confirmed";
+export const isConfirmed = (expense: Expense): expense is ConfirmedExpense => expense.state === 'confirmed'
 
 // ============================================================================
 // Persistence Mapping
@@ -33,19 +23,19 @@ export const isConfirmed = (expense: Expense): expense is ConfirmedExpense =>
  */
 export const fromRow = (row: ExpenseRow): Expense => {
   switch (row.state) {
-    case "pending":
+    case 'pending':
       return {
-        state: "pending",
+        state: 'pending',
         id: row.id,
         userId: row.userId,
         imageKey: row.imageKey,
         capturedAt: row.capturedAt,
         createdAt: row.createdAt,
-      };
+      }
 
-    case "pending-review":
+    case 'pending-review':
       return {
-        state: "pending-review",
+        state: 'pending-review',
         id: row.id,
         userId: row.userId,
         imageKey: row.imageKey,
@@ -58,9 +48,9 @@ export const fromRow = (row: ExpenseRow): Expense => {
         categories: row.categories ?? [],
         expenseDate: row.expenseDate,
         extractionMetadata: row.extractionMetadata,
-      };
+      }
 
-    case "confirmed":
+    case 'confirmed':
       // Confirmed expenses must have all required fields
       if (
         row.amount === null ||
@@ -71,12 +61,10 @@ export const fromRow = (row: ExpenseRow): Expense => {
         row.confirmedAt === null ||
         row.expenseDate === null
       ) {
-        throw new Error(
-          `Confirmed expense ${row.id} is missing required fields`
-        );
+        throw new Error(`Confirmed expense ${row.id} is missing required fields`)
       }
       return {
-        state: "confirmed",
+        state: 'confirmed',
         id: row.id,
         userId: row.userId,
         imageKey: row.imageKey,
@@ -92,20 +80,20 @@ export const fromRow = (row: ExpenseRow): Expense => {
         categories: row.categories ?? [],
         expenseDate: row.expenseDate,
         extractionMetadata: row.extractionMetadata,
-      };
+      }
   }
-};
+}
 
 /**
  * Convert an expense variant to a database row for persistence.
  */
 export const toRow = (expense: Expense): ExpenseInsert => {
   switch (expense.state) {
-    case "pending":
+    case 'pending':
       return {
         id: expense.id,
         userId: expense.userId,
-        state: "pending",
+        state: 'pending',
         imageKey: expense.imageKey,
         capturedAt: expense.capturedAt,
         createdAt: expense.createdAt,
@@ -119,13 +107,13 @@ export const toRow = (expense: Expense): ExpenseInsert => {
         categories: [],
         expenseDate: null,
         confirmedAt: null,
-      };
+      }
 
-    case "pending-review":
+    case 'pending-review':
       return {
         id: expense.id,
         userId: expense.userId,
-        state: "pending-review",
+        state: 'pending-review',
         imageKey: expense.imageKey,
         capturedAt: expense.capturedAt,
         createdAt: expense.createdAt,
@@ -139,13 +127,13 @@ export const toRow = (expense: Expense): ExpenseInsert => {
         categories: expense.categories,
         expenseDate: expense.expenseDate,
         confirmedAt: null,
-      };
+      }
 
-    case "confirmed":
+    case 'confirmed':
       return {
         id: expense.id,
         userId: expense.userId,
-        state: "confirmed",
+        state: 'confirmed',
         imageKey: expense.imageKey,
         capturedAt: expense.capturedAt,
         createdAt: expense.createdAt,
@@ -159,9 +147,9 @@ export const toRow = (expense: Expense): ExpenseInsert => {
         description: expense.description,
         categories: expense.categories,
         expenseDate: expense.expenseDate,
-      };
+      }
   }
-};
+}
 
 // ============================================================================
 // Query Helpers
@@ -170,45 +158,42 @@ export const toRow = (expense: Expense): ExpenseInsert => {
 /**
  * Get list of missing required fields for confirmation.
  */
-export const getMissingFields = (
-  expense: PendingReviewExpense
-): ("amount" | "currency" | "merchant" | "expenseDate")[] => {
-  const missing: ("amount" | "currency" | "merchant" | "expenseDate")[] = [];
-  if (expense.amount === null) missing.push("amount");
-  if (expense.currency === null) missing.push("currency");
-  if (expense.merchant === null) missing.push("merchant");
-  if (expense.expenseDate === null) missing.push("expenseDate");
-  return missing;
-};
+export const getMissingFields = (expense: PendingReviewExpense): ('amount' | 'currency' | 'merchant' | 'expenseDate')[] => {
+  const missing: ('amount' | 'currency' | 'merchant' | 'expenseDate')[] = []
+  if (expense.amount === null) missing.push('amount')
+  if (expense.currency === null) missing.push('currency')
+  if (expense.merchant === null) missing.push('merchant')
+  if (expense.expenseDate === null) missing.push('expenseDate')
+  return missing
+}
 
 /**
  * Check if a pending-review expense has all required fields for confirmation.
  */
-export const canConfirm = (expense: PendingReviewExpense): boolean =>
-  getMissingFields(expense).length === 0;
+export const canConfirm = (expense: PendingReviewExpense): boolean => getMissingFields(expense).length === 0
 
 /**
  * Get display amount (prefer base currency conversion).
  */
 export const getDisplayAmount = (expense: Expense): number | null => {
-  if (expense.state === "confirmed") {
-    return expense.baseAmount;
+  if (expense.state === 'confirmed') {
+    return expense.baseAmount
   }
-  if (expense.state === "pending-review") {
-    return expense.amount;
+  if (expense.state === 'pending-review') {
+    return expense.amount
   }
-  return null;
-};
+  return null
+}
 
 /**
  * Get display date (expense date or captured date).
  */
 export const getDisplayDate = (expense: Expense): Date => {
-  if (expense.state === "confirmed") {
-    return expense.expenseDate;
+  if (expense.state === 'confirmed') {
+    return expense.expenseDate
   }
-  if (expense.state === "pending-review" && expense.expenseDate) {
-    return expense.expenseDate;
+  if (expense.state === 'pending-review' && expense.expenseDate) {
+    return expense.expenseDate
   }
-  return expense.capturedAt;
-};
+  return expense.capturedAt
+}

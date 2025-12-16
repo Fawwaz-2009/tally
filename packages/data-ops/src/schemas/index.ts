@@ -18,26 +18,13 @@ export type {
   ExtractionMetadata,
   ExpenseRow,
   ExpenseInsert,
-} from "../domain/expenses/schema";
+} from '../domain/expenses/schema'
 
 // Type guards and query helpers
-export {
-  isPending,
-  isPendingReview,
-  isConfirmed,
-  getMissingFields,
-  canConfirm,
-  getDisplayAmount,
-  getDisplayDate,
-} from "../domain/expenses/utils";
+export { isPending, isPendingReview, isConfirmed, getMissingFields, canConfirm, getDisplayAmount, getDisplayDate } from '../domain/expenses/utils'
 
 // =============================================================================
 // DTO Types
 // =============================================================================
 
-export type {
-  CaptureExpenseInput,
-  CaptureExpenseResult,
-  ConfirmExpenseInput,
-  UpdateExpenseInput,
-} from "../domain/expenses/dto";
+export type { CaptureExpenseInput, CaptureExpenseResult, ConfirmExpenseInput, UpdateExpenseInput } from '../domain/expenses/dto'

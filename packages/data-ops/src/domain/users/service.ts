@@ -1,10 +1,10 @@
-import { Effect } from "effect";
-import { UserRepo } from "./repo";
-import { CreateUser } from "./schema";
+import { Effect } from 'effect'
+import { UserRepo } from './repo'
+import { CreateUser } from './schema'
 
-export class UserService extends Effect.Service<UserService>()("UserService", {
+export class UserService extends Effect.Service<UserService>()('UserService', {
   effect: Effect.gen(function* () {
-    const repo = yield* UserRepo;
+    const repo = yield* UserRepo
 
     return {
       createUser: (data: CreateUser) => repo.create(data),
@@ -12,7 +12,7 @@ export class UserService extends Effect.Service<UserService>()("UserService", {
       getAllUsers: repo.getAll,
       getUserCount: repo.count,
       updateUser: (id: string, data: { name: string }) => repo.update(id, data),
-    } as const;
+    } as const
   }),
   dependencies: [UserRepo.Default],
   accessors: true,

@@ -14,18 +14,18 @@
  * This module is isomorphic - it works in both browser and Node.js environments.
  */
 
-import DecimalJS from "decimal.js";
-import cc from "currency-codes";
+import DecimalJS from 'decimal.js'
+import cc from 'currency-codes'
 
 // For ESM compatibility, Decimal.js exports the class as default.default
-const Decimal = DecimalJS.default ?? DecimalJS;
-type Decimal = InstanceType<typeof Decimal>;
+const Decimal = DecimalJS.default ?? DecimalJS
+type Decimal = InstanceType<typeof Decimal>
 
 // Configure Decimal.js for financial calculations
 Decimal.set({
   precision: 20,
   rounding: Decimal.ROUND_HALF_UP,
-});
+})
 
 // ============================================================================
 // Types
@@ -36,18 +36,18 @@ Decimal.set({
  * Amount is always in the smallest unit (cents, yen, etc.)
  */
 export interface Money {
-  amount: number;
-  currency: string;
+  amount: number
+  currency: string
 }
 
 /**
  * Currency option for select/picker components
  */
 export interface CurrencyOption {
-  value: string;
-  label: string;
-  name: string;
-  digits: number;
+  value: string
+  label: string
+  name: string
+  digits: number
 }
 
 /**
@@ -55,8 +55,8 @@ export interface CurrencyOption {
  */
 export class InvalidCurrencyError extends Error {
   constructor(code: string) {
-    super(`Invalid ISO 4217 currency code: ${code}`);
-    this.name = "InvalidCurrencyError";
+    super(`Invalid ISO 4217 currency code: ${code}`)
+    this.name = 'InvalidCurrencyError'
   }
 }
 
@@ -73,11 +73,11 @@ export class InvalidCurrencyError extends Error {
  * @throws InvalidCurrencyError if currency code is invalid
  */
 export function getExponent(currency: string): number {
-  const data = cc.code(currency);
+  const data = cc.code(currency)
   if (!data) {
-    throw new InvalidCurrencyError(currency);
+    throw new InvalidCurrencyError(currency)
   }
-  return data.digits;
+  return data.digits
 }
 
 /**
@@ -87,12 +87,9 @@ export function getExponent(currency: string): number {
  * @param currency - ISO 4217 currency code
  * @param defaultExponent - Default to use if currency is invalid (default: 2)
  */
-export function getExponentSafe(
-  currency: string,
-  defaultExponent: number = 2
-): number {
-  const data = cc.code(currency);
-  return data?.digits ?? defaultExponent;
+export function getExponentSafe(currency: string, defaultExponent: number = 2): number {
+  const data = cc.code(currency)
+  return data?.digits ?? defaultExponent
 }
 
 /**
@@ -102,7 +99,7 @@ export function getExponentSafe(
  * @returns true if valid, false otherwise
  */
 export function isValidCurrency(code: string): boolean {
-  return cc.code(code) !== undefined;
+  return cc.code(code) !== undefined
 }
 
 /**
@@ -112,7 +109,7 @@ export function isValidCurrency(code: string): boolean {
  * @returns Currency metadata or undefined if invalid
  */
 export function getCurrencyInfo(code: string) {
-  return cc.code(code);
+  return cc.code(code)
 }
 
 /**
@@ -121,7 +118,7 @@ export function getCurrencyInfo(code: string) {
  * @returns Array of ISO 4217 currency codes
  */
 export function getCurrencyCodes(): string[] {
-  return cc.codes();
+  return cc.codes()
 }
 
 /**
@@ -131,14 +128,14 @@ export function getCurrencyCodes(): string[] {
  */
 export function getCurrencyOptions(): CurrencyOption[] {
   return cc.codes().map((code) => {
-    const info = cc.code(code);
+    const info = cc.code(code)
     return {
       value: code,
       label: `${code} - ${info?.currency ?? code}`,
       name: info?.currency ?? code,
       digits: info?.digits ?? 2,
-    };
-  });
+    }
+  })
 }
 
 // ============================================================================
@@ -153,13 +150,10 @@ export function getCurrencyOptions(): CurrencyOption[] {
  * @param currency - ISO 4217 currency code
  * @returns Amount in smallest unit (e.g., 1999)
  */
-export function toSmallestUnit(
-  displayAmount: number | string,
-  currency: string
-): number {
-  const exponent = getExponent(currency);
-  const multiplier = new Decimal(10).pow(exponent);
-  return new Decimal(displayAmount).times(multiplier).round().toNumber();
+export function toSmallestUnit(displayAmount: number | string, currency: string): number {
+  const exponent = getExponent(currency)
+  const multiplier = new Decimal(10).pow(exponent)
+  return new Decimal(displayAmount).times(multiplier).round().toNumber()
 }
 
 /**
@@ -170,13 +164,10 @@ export function toSmallestUnit(
  * @param currency - ISO 4217 currency code
  * @returns Amount as decimal number (e.g., 19.99)
  */
-export function toDisplayAmount(
-  smallestUnit: number,
-  currency: string
-): number {
-  const exponent = getExponent(currency);
-  const divisor = new Decimal(10).pow(exponent);
-  return new Decimal(smallestUnit).dividedBy(divisor).toNumber();
+export function toDisplayAmount(smallestUnit: number, currency: string): number {
+  const exponent = getExponent(currency)
+  const divisor = new Decimal(10).pow(exponent)
+  return new Decimal(smallestUnit).dividedBy(divisor).toNumber()
 }
 
 /**
@@ -187,13 +178,10 @@ export function toDisplayAmount(
  * @param currency - ISO 4217 currency code
  * @returns Formatted decimal string
  */
-export function toDisplayString(
-  smallestUnit: number,
-  currency: string
-): string {
-  const exponent = getExponent(currency);
-  const divisor = new Decimal(10).pow(exponent);
-  return new Decimal(smallestUnit).dividedBy(divisor).toFixed(exponent);
+export function toDisplayString(smallestUnit: number, currency: string): string {
+  const exponent = getExponent(currency)
+  const divisor = new Decimal(10).pow(exponent)
+  return new Decimal(smallestUnit).dividedBy(divisor).toFixed(exponent)
 }
 
 // ============================================================================
@@ -209,21 +197,17 @@ export function toDisplayString(
  * @param locale - Locale for formatting (default: "en-US")
  * @returns Formatted currency string
  */
-export function format(
-  smallestUnit: number,
-  currency: string,
-  locale: string = "en-US"
-): string {
-  const displayAmount = toDisplayAmount(smallestUnit, currency);
+export function format(smallestUnit: number, currency: string, locale: string = 'en-US'): string {
+  const displayAmount = toDisplayAmount(smallestUnit, currency)
   try {
     return new Intl.NumberFormat(locale, {
-      style: "currency",
+      style: 'currency',
       currency: currency,
-    }).format(displayAmount);
+    }).format(displayAmount)
   } catch {
     // Fallback for invalid currency codes
-    const exponent = getExponentSafe(currency);
-    return `${currency} ${displayAmount.toFixed(exponent)}`;
+    const exponent = getExponentSafe(currency)
+    return `${currency} ${displayAmount.toFixed(exponent)}`
   }
 }
 
@@ -235,36 +219,32 @@ export function format(
  * @param currency - ISO 4217 currency code
  * @returns Object with symbol, formatted number, and full string
  */
-export function formatParts(
-  smallestUnit: number,
-  currency: string,
-  locale: string = "en-US"
-): { symbol: string; value: string; full: string } {
-  const displayAmount = toDisplayAmount(smallestUnit, currency);
+export function formatParts(smallestUnit: number, currency: string, locale: string = 'en-US'): { symbol: string; value: string; full: string } {
+  const displayAmount = toDisplayAmount(smallestUnit, currency)
   try {
     const formatter = new Intl.NumberFormat(locale, {
-      style: "currency",
+      style: 'currency',
       currency: currency,
-    });
-    const parts = formatter.formatToParts(displayAmount);
-    const symbol = parts.find((p) => p.type === "currency")?.value ?? currency;
+    })
+    const parts = formatter.formatToParts(displayAmount)
+    const symbol = parts.find((p) => p.type === 'currency')?.value ?? currency
     const value = parts
-      .filter((p) => p.type !== "currency" && p.type !== "literal")
+      .filter((p) => p.type !== 'currency' && p.type !== 'literal')
       .map((p) => p.value)
-      .join("");
+      .join('')
     return {
       symbol,
       value: value.trim(),
       full: formatter.format(displayAmount),
-    };
+    }
   } catch {
-    const exponent = getExponentSafe(currency);
-    const value = displayAmount.toFixed(exponent);
+    const exponent = getExponentSafe(currency)
+    const value = displayAmount.toFixed(exponent)
     return {
       symbol: currency,
       value,
       full: `${currency} ${value}`,
-    };
+    }
   }
 }
 
@@ -280,11 +260,11 @@ export function formatParts(
  * @returns Total sum
  */
 export function sum(amounts: number[]): number {
-  if (amounts.length === 0) return 0;
+  if (amounts.length === 0) return 0
   return amounts
     .reduce((acc, val) => acc.plus(val), new Decimal(0))
     .round()
-    .toNumber();
+    .toNumber()
 }
 
 /**
@@ -294,9 +274,9 @@ export function sum(amounts: number[]): number {
  * @returns Average (rounded to nearest smallest unit)
  */
 export function average(amounts: number[]): number {
-  if (amounts.length === 0) return 0;
-  const total = amounts.reduce((acc, val) => acc.plus(val), new Decimal(0));
-  return total.dividedBy(amounts.length).round().toNumber();
+  if (amounts.length === 0) return 0
+  const total = amounts.reduce((acc, val) => acc.plus(val), new Decimal(0))
+  return total.dividedBy(amounts.length).round().toNumber()
 }
 
 /**
@@ -306,8 +286,8 @@ export function average(amounts: number[]): number {
  * @returns Maximum value, or 0 if empty
  */
 export function max(amounts: number[]): number {
-  if (amounts.length === 0) return 0;
-  return Math.max(...amounts);
+  if (amounts.length === 0) return 0
+  return Math.max(...amounts)
 }
 
 /**
@@ -317,8 +297,8 @@ export function max(amounts: number[]): number {
  * @returns Minimum value, or 0 if empty
  */
 export function min(amounts: number[]): number {
-  if (amounts.length === 0) return 0;
-  return Math.min(...amounts);
+  if (amounts.length === 0) return 0
+  return Math.min(...amounts)
 }
 
 /**
@@ -330,7 +310,7 @@ export function min(amounts: number[]): number {
  * @returns Result rounded to nearest smallest unit
  */
 export function multiply(amount: number, factor: number): number {
-  return new Decimal(amount).times(factor).round().toNumber();
+  return new Decimal(amount).times(factor).round().toNumber()
 }
 
 /**
@@ -343,9 +323,9 @@ export function multiply(amount: number, factor: number): number {
  */
 export function divide(amount: number, divisor: number): number {
   if (divisor === 0) {
-    throw new Error("Cannot divide by zero");
+    throw new Error('Cannot divide by zero')
   }
-  return new Decimal(amount).dividedBy(divisor).round().toNumber();
+  return new Decimal(amount).dividedBy(divisor).round().toNumber()
 }
 
 /**
@@ -359,7 +339,7 @@ export function subtract(minuend: number, ...subtrahends: number[]): number {
   return subtrahends
     .reduce((acc, val) => acc.minus(val), new Decimal(minuend))
     .round()
-    .toNumber();
+    .toNumber()
 }
 
 // ============================================================================
@@ -379,19 +359,17 @@ export function subtract(minuend: number, ...subtrahends: number[]): number {
  */
 export function allocateEvenly(amount: number, parts: number): number[] {
   if (parts <= 0) {
-    throw new Error("Parts must be a positive integer");
+    throw new Error('Parts must be a positive integer')
   }
   if (parts === 1) {
-    return [amount];
+    return [amount]
   }
 
-  const base = Math.floor(amount / parts);
-  const remainder = amount - base * parts;
+  const base = Math.floor(amount / parts)
+  const remainder = amount - base * parts
 
   // Distribute remainder across first N allocations
-  return Array.from({ length: parts }, (_, i) =>
-    i < remainder ? base + 1 : base
-  );
+  return Array.from({ length: parts }, (_, i) => (i < remainder ? base + 1 : base))
 }
 
 /**
@@ -407,37 +385,33 @@ export function allocateEvenly(amount: number, parts: number): number[] {
  */
 export function allocate(amount: number, weights: number[]): number[] {
   if (weights.length === 0) {
-    return [];
+    return []
   }
   if (weights.length === 1) {
-    return [amount];
+    return [amount]
   }
 
-  const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+  const totalWeight = weights.reduce((sum, w) => sum + w, 0)
   if (totalWeight === 0) {
-    throw new Error("Weights must sum to a positive number");
+    throw new Error('Weights must sum to a positive number')
   }
 
-  const results: number[] = [];
-  let remaining = amount;
+  const results: number[] = []
+  let remaining = amount
 
   for (let i = 0; i < weights.length; i++) {
     if (i === weights.length - 1) {
       // Last allocation gets remainder to preserve total
-      results.push(remaining);
+      results.push(remaining)
     } else {
-      const weight = weights[i]!; // Safe: loop bounds guarantee this exists
-      const share = new Decimal(amount)
-        .times(weight)
-        .dividedBy(totalWeight)
-        .round()
-        .toNumber();
-      results.push(share);
-      remaining -= share;
+      const weight = weights[i]! // Safe: loop bounds guarantee this exists
+      const share = new Decimal(amount).times(weight).dividedBy(totalWeight).round().toNumber()
+      results.push(share)
+      remaining -= share
     }
   }
 
-  return results;
+  return results
 }
 
 // ============================================================================
@@ -452,17 +426,9 @@ export function allocate(amount: number, weights: number[]): number[] {
  * @param decimalPlaces - Decimal places for result (default: 2)
  * @returns Percentage (e.g., 25.50 for 25.5%)
  */
-export function percentage(
-  amount: number,
-  total: number,
-  decimalPlaces: number = 2
-): number {
-  if (total === 0) return 0;
-  return new Decimal(amount)
-    .dividedBy(total)
-    .times(100)
-    .toDecimalPlaces(decimalPlaces)
-    .toNumber();
+export function percentage(amount: number, total: number, decimalPlaces: number = 2): number {
+  if (total === 0) return 0
+  return new Decimal(amount).dividedBy(total).times(100).toDecimalPlaces(decimalPlaces).toNumber()
 }
 
 /**
@@ -474,8 +440,8 @@ export function percentage(
  * @returns Integer percentage (0-100)
  */
 export function percentageInt(amount: number, total: number): number {
-  if (total === 0) return 0;
-  return new Decimal(amount).dividedBy(total).times(100).round().toNumber();
+  if (total === 0) return 0
+  return new Decimal(amount).dividedBy(total).times(100).round().toNumber()
 }
 
 /**
@@ -487,7 +453,7 @@ export function percentageInt(amount: number, total: number): number {
  * @returns Calculated amount (rounded to smallest unit)
  */
 export function percentageOf(amount: number, percent: number): number {
-  return new Decimal(amount).times(percent).dividedBy(100).round().toNumber();
+  return new Decimal(amount).times(percent).dividedBy(100).round().toNumber()
 }
 
 // ============================================================================
@@ -508,29 +474,24 @@ export function percentageOf(amount: number, percent: number): number {
  * // Convert 1000 JPY to USD at rate 0.0067
  * convert(1000, "JPY", "USD", 0.0067) // → 670 cents ($6.70)
  */
-export function convert(
-  amount: number,
-  fromCurrency: string,
-  toCurrency: string,
-  rate: number
-): number {
+export function convert(amount: number, fromCurrency: string, toCurrency: string, rate: number): number {
   if (fromCurrency === toCurrency) {
-    return amount;
+    return amount
   }
 
-  const fromExponent = getExponent(fromCurrency);
-  const toExponent = getExponent(toCurrency);
+  const fromExponent = getExponent(fromCurrency)
+  const toExponent = getExponent(toCurrency)
 
   // Convert to display amount (e.g., dollars from cents)
-  const fromDivisor = new Decimal(10).pow(fromExponent);
-  const displayAmount = new Decimal(amount).dividedBy(fromDivisor);
+  const fromDivisor = new Decimal(10).pow(fromExponent)
+  const displayAmount = new Decimal(amount).dividedBy(fromDivisor)
 
   // Apply exchange rate
-  const convertedDisplay = displayAmount.times(rate);
+  const convertedDisplay = displayAmount.times(rate)
 
   // Convert to smallest unit of target currency
-  const toMultiplier = new Decimal(10).pow(toExponent);
-  return convertedDisplay.times(toMultiplier).round().toNumber();
+  const toMultiplier = new Decimal(10).pow(toExponent)
+  return convertedDisplay.times(toMultiplier).round().toNumber()
 }
 
 // ============================================================================
@@ -546,27 +507,23 @@ export function convert(
  * @param getAmount - Function to extract amount
  * @returns Map of key to summed amount
  */
-export function groupAndSum<T>(
-  items: T[],
-  getKey: (item: T) => string,
-  getAmount: (item: T) => number
-): Map<string, number> {
-  const groups = new Map<string, number[]>();
+export function groupAndSum<T>(items: T[], getKey: (item: T) => string, getAmount: (item: T) => number): Map<string, number> {
+  const groups = new Map<string, number[]>()
 
   for (const item of items) {
-    const key = getKey(item);
-    const amount = getAmount(item);
-    const existing = groups.get(key) ?? [];
-    existing.push(amount);
-    groups.set(key, existing);
+    const key = getKey(item)
+    const amount = getAmount(item)
+    const existing = groups.get(key) ?? []
+    existing.push(amount)
+    groups.set(key, existing)
   }
 
-  const result = new Map<string, number>();
+  const result = new Map<string, number>()
   for (const [key, amounts] of groups) {
-    result.set(key, sum(amounts));
+    result.set(key, sum(amounts))
   }
 
-  return result;
+  return result
 }
 
 /**
@@ -577,27 +534,23 @@ export function groupAndSum<T>(
  * @param getAmount - Function to extract amount
  * @returns Map of key to average amount
  */
-export function groupAndAverage<T>(
-  items: T[],
-  getKey: (item: T) => string,
-  getAmount: (item: T) => number
-): Map<string, number> {
-  const groups = new Map<string, number[]>();
+export function groupAndAverage<T>(items: T[], getKey: (item: T) => string, getAmount: (item: T) => number): Map<string, number> {
+  const groups = new Map<string, number[]>()
 
   for (const item of items) {
-    const key = getKey(item);
-    const amount = getAmount(item);
-    const existing = groups.get(key) ?? [];
-    existing.push(amount);
-    groups.set(key, existing);
+    const key = getKey(item)
+    const amount = getAmount(item)
+    const existing = groups.get(key) ?? []
+    existing.push(amount)
+    groups.set(key, existing)
   }
 
-  const result = new Map<string, number>();
+  const result = new Map<string, number>()
   for (const [key, amounts] of groups) {
-    result.set(key, average(amounts));
+    result.set(key, average(amounts))
   }
 
-  return result;
+  return result
 }
 
 /**
@@ -607,14 +560,10 @@ export function groupAndAverage<T>(
  * @param previous - Previous value
  * @returns Object with absolute change and percentage change
  */
-export function change(
-  current: number,
-  previous: number
-): { absolute: number; percentage: number } {
-  const absolute = current - previous;
-  const pct =
-    previous === 0 ? (current > 0 ? 100 : 0) : percentage(absolute, previous);
-  return { absolute, percentage: pct };
+export function change(current: number, previous: number): { absolute: number; percentage: number } {
+  const absolute = current - previous
+  const pct = previous === 0 ? (current > 0 ? 100 : 0) : percentage(absolute, previous)
+  return { absolute, percentage: pct }
 }
 
 /**
@@ -624,9 +573,9 @@ export function change(
  * @returns String in YYYY-MM format
  */
 export function toMonthKey(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  return `${year}-${month}`;
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  return `${year}-${month}`
 }
 
 /**
@@ -636,15 +585,15 @@ export function toMonthKey(date: Date): string {
  * @returns Date object for the first of that month
  */
 export function fromMonthKey(monthKey: string): Date {
-  const parts = monthKey.split("-").map(Number);
-  const year = parts[0];
-  const month = parts[1];
+  const parts = monthKey.split('-').map(Number)
+  const year = parts[0]
+  const month = parts[1]
 
   if (year === undefined || month === undefined || Number.isNaN(year) || Number.isNaN(month)) {
-    throw new Error(`Invalid month key format: "${monthKey}". Expected "YYYY-MM"`);
+    throw new Error(`Invalid month key format: "${monthKey}". Expected "YYYY-MM"`)
   }
 
-  return new Date(year, month - 1, 1);
+  return new Date(year, month - 1, 1)
 }
 
 // ============================================================================
@@ -656,40 +605,40 @@ export function fromMonthKey(monthKey: string): Date {
  * Handles floating point comparison safely.
  */
 export function equals(a: number, b: number): boolean {
-  return new Decimal(a).equals(b);
+  return new Decimal(a).equals(b)
 }
 
 /**
  * Check if amount a is greater than amount b.
  */
 export function greaterThan(a: number, b: number): boolean {
-  return new Decimal(a).greaterThan(b);
+  return new Decimal(a).greaterThan(b)
 }
 
 /**
  * Check if amount a is less than amount b.
  */
 export function lessThan(a: number, b: number): boolean {
-  return new Decimal(a).lessThan(b);
+  return new Decimal(a).lessThan(b)
 }
 
 /**
  * Check if an amount is zero.
  */
 export function isZero(amount: number): boolean {
-  return new Decimal(amount).isZero();
+  return new Decimal(amount).isZero()
 }
 
 /**
  * Check if an amount is positive (greater than zero).
  */
 export function isPositive(amount: number): boolean {
-  return new Decimal(amount).isPositive() && !new Decimal(amount).isZero();
+  return new Decimal(amount).isPositive() && !new Decimal(amount).isZero()
 }
 
 /**
  * Check if an amount is negative.
  */
 export function isNegative(amount: number): boolean {
-  return new Decimal(amount).isNegative();
+  return new Decimal(amount).isNegative()
 }

@@ -7,8 +7,8 @@
  */
 
 // Re-export money module
-export * as money from "./money/index.js";
+export * as money from './money/index.js'
 
 // Also export commonly used types directly
-export type { Money, CurrencyOption } from "./money/index.js";
-export { InvalidCurrencyError } from "./money/index.js";
+export type { Money, CurrencyOption } from './money/index.js'
+export { InvalidCurrencyError } from './money/index.js'

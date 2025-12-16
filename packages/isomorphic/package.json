@@ -17,13 +17,16 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "lint": "eslint src/",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write src/",
+    "check": "prettier --check src/"
   },
   "dependencies": {
     "currency-codes": "^2.2.0",
     "decimal.js": "^10.6.0"
   },
   "devDependencies": {
+    "prettier": "^3.5.3",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^20.19.23",

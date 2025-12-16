@@ -1,6 +1,6 @@
-import { Effect, Layer } from "effect";
-import type { ExtractionResult } from "./schema";
-import { ExtractionService } from "./service";
+import { Effect, Layer } from 'effect'
+import type { ExtractionResult } from './schema'
+import { ExtractionService } from './service'
 
 /**
  * Stub extraction data for E2E tests.
@@ -13,13 +13,13 @@ const stubExtractionResult: ExtractionResult = {
   success: true,
   data: {
     amount: 4599,
-    currency: "USD",
-    merchant: "Starbucks",
+    currency: 'USD',
+    merchant: 'Starbucks',
     date: null, // Missing date requires user review
-    category: ["Food & Dining", "Coffee"],
+    category: ['Food & Dining', 'Coffee'],
     ambiguous: null,
   },
-  ocrText: "Starbucks Coffee\n$45.99\nThank you!",
+  ocrText: 'Starbucks Coffee\n$45.99\nThank you!',
   rawLlmResponse: '{"amount": 4599, "currency": "USD", "merchant": "Starbucks"}',
   timing: {
     ocrMs: 100,
@@ -27,21 +27,21 @@ const stubExtractionResult: ExtractionResult = {
     totalMs: 300,
   },
   error: null,
-};
+}
 
 const stubHealthCheck = {
   available: true,
   configured: true,
   modelAvailable: true,
-  models: ["llava:13b", "mistral"],
-  host: "http://localhost:11434",
-  model: "llava:13b",
-};
+  models: ['llava:13b', 'mistral'],
+  host: 'http://localhost:11434',
+  model: 'llava:13b',
+}
 
 const stubConfig = {
-  ollamaHost: "http://localhost:11434",
-  ollamaModel: "llava:13b",
-};
+  ollamaHost: 'http://localhost:11434',
+  ollamaModel: 'llava:13b',
+}
 
 /**
  * Stub implementation of ExtractionService for E2E tests.
@@ -66,9 +66,8 @@ export const ExtractionServiceStub = Layer.succeed(
         durationMs: stubExtractionResult.timing.llmMs,
       }),
 
-    extractFromImage: (_imagePathOrBuffer: string | Buffer) =>
-      Effect.succeed(stubExtractionResult),
+    extractFromImage: (_imagePathOrBuffer: string | Buffer) => Effect.succeed(stubExtractionResult),
 
     checkOllamaHealth: () => Effect.succeed(stubHealthCheck),
-  })
-);
+  }),
+)

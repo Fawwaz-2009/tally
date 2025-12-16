@@ -346,6 +346,9 @@ importers:
       drizzle-kit:
         specifier: ^0.31.5
         version: 0.31.5
+      prettier:
+        specifier: ^3.5.3
+        version: 3.6.2
       typescript:
         specifier: ^5.8.3
         version: 5.9.2
@@ -407,6 +410,9 @@ importers:
       '@types/node':
         specifier: ^20.19.23
         version: 20.19.23
+      prettier:
+        specifier: ^3.5.3
+        version: 3.6.2
       typescript:
         specifier: ^5.8.3
         version: 5.9.2
