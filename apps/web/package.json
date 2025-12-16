@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite dev --port 3000",
     "build": "vite build && pnpm run postbuild",
-    "postbuild": "ln -sfn ../../node_modules .output/node_modules",
+    "postbuild": "ln -sfn ../node_modules .output/node_modules",
     "start": "node --env-file=.env .output/server/index.mjs",
     "serve": "vite preview",
     "test:e2e": "tsx src/test-utils/run-setup.ts && playwright test",
@@ -56,6 +56,7 @@
     "superjson": "^2.2.2",
     "tailwind-merge": "^3.0.2",
     "tailwindcss": "^4.0.6",
+    "tesseract.js": "^6.0.1",
     "tw-animate-css": "^1.3.6",
     "vaul": "^1.1.2",
     "vite-tsconfig-paths": "^5.1.4",

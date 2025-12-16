@@ -162,6 +162,9 @@ importers:
       tailwindcss:
         specifier: ^4.0.6
         version: 4.1.15
+      tesseract.js:
+        specifier: ^6.0.1
+        version: 6.0.1
       tw-animate-css:
         specifier: ^1.3.6
         version: 1.4.0
