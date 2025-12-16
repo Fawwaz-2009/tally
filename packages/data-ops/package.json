@@ -53,6 +53,7 @@
     "@effect/opentelemetry": "^0.59.2",
     "@effect/platform": "^0.93.3",
     "@handfish/drizzle-effect": "^0.0.17",
+    "@repo/isomorphic": "workspace:*",
     "better-sqlite3": "^12.5.0",
     "drizzle-orm": "^0.44.6",
     "effect": "^3.19.5",

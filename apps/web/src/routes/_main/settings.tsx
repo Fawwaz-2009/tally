@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, Copy, Download, ExternalLink, FileJson, FileSpreadsheet, Monitor, Moon, Plus, Sun, Tag, Users } from 'lucide-react'
+import { allocateEvenly, format, toDisplayAmount } from '@repo/isomorphic/money'
 import type { ConfirmedExpense } from '@repo/data-ops/schemas'
 
 import { useTRPC } from '@/integrations/trpc-react'
@@ -426,10 +427,11 @@ function CategoriesSection() {
       // expense is already ConfirmedExpense from list() query
       const amount = expense.baseAmount
       if (expense.categories.length > 0) {
-        // Distribute amount equally across categories
-        const amountPerCategory = amount / expense.categories.length
+        // Distribute amount equally across categories using allocateEvenly
+        // This preserves the total (no lost cents from rounding)
+        const allocations = allocateEvenly(amount, expense.categories.length)
 
-        for (const category of expense.categories) {
+        expense.categories.forEach((category, index) => {
           const normalized = category.trim()
           if (normalized) {
             const existing = statsMap.get(normalized) || {
@@ -438,10 +440,10 @@ function CategoriesSection() {
             }
             statsMap.set(normalized, {
               count: existing.count + 1,
-              totalAmount: existing.totalAmount + amountPerCategory,
+              totalAmount: existing.totalAmount + allocations[index],
             })
           }
-        }
+        })
       }
     }
 
@@ -457,18 +459,9 @@ function CategoriesSection() {
 
   const baseCurrency = baseCurrencyQuery.data ?? 'USD'
 
-  const formatAmount = (amountInCents: number): string => {
-    const amount = amountInCents / 100
-    try {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: baseCurrency,
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      }).format(amount)
-    } catch {
-      return `${baseCurrency} ${amount.toFixed(0)}`
-    }
+  // Use the centralized format function for currency-aware formatting
+  const formatCategoryAmount = (amountInSmallestUnit: number): string => {
+    return format(amountInSmallestUnit, baseCurrency)
   }
 
   const handleRenameClick = (category: string, e: React.MouseEvent) => {
@@ -528,7 +521,7 @@ function CategoriesSection() {
                   <a href={`/?dateRange=all-time&category=${encodeURIComponent(category)}`} className="flex-1 min-w-0">
                     <div className="font-medium truncate">{category}</div>
                     <div className="text-sm text-muted-foreground">
-                      {count} expense{count !== 1 ? 's' : ''} · {formatAmount(totalAmount)}
+                      {count} expense{count !== 1 ? 's' : ''} · {formatCategoryAmount(totalAmount)}
                     </div>
                   </a>
                   <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => handleRenameClick(category, e)}>
@@ -586,9 +579,11 @@ function ExportSection() {
   const expensesQuery = useQuery(trpc.expenses.list.queryOptions())
   const usersQuery = useQuery(trpc.users.list.queryOptions())
 
-  const formatAmount = (amountInCents: number | null): string => {
-    if (amountInCents === null) return ''
-    return (amountInCents / 100).toFixed(2)
+  // Currency-aware amount formatting for export
+  const formatExportAmount = (amount: number | null, currency: string): string => {
+    if (amount === null) return ''
+    // Use toDisplayAmount for currency-aware conversion
+    return String(toDisplayAmount(amount, currency))
   }
 
   const formatDate = (date: Date | null): string => {
@@ -605,7 +600,7 @@ function ExportSection() {
     const headers = ['Date', 'Amount', 'Currency', 'Merchant', 'Categories', 'User', 'Status']
     const rows = expenses.map((expense) => [
       formatDate(expense.expenseDate),
-      formatAmount(expense.amount),
+      formatExportAmount(expense.amount, expense.currency),
       expense.currency,
       expense.merchant,
       expense.categories.join('; '),
@@ -628,7 +623,8 @@ function ExportSection() {
   const generateJSON = (expenses: ExportExpense[]): string => {
     const exportData = expenses.map((expense) => ({
       date: formatDate(expense.expenseDate),
-      amount: expense.amount / 100,
+      // Use currency-aware conversion for proper decimal places
+      amount: toDisplayAmount(expense.amount, expense.currency),
       currency: expense.currency,
       merchant: expense.merchant,
       categories: expense.categories,

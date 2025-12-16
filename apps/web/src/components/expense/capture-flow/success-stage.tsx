@@ -3,7 +3,7 @@ import { AlertCircle, CheckCircle2, Loader2, Plus } from 'lucide-react'
 
 import { useTRPC } from '@/integrations/trpc-react'
 import { Button } from '@/components/ui/button'
-import { getScreenshotUrl, isConfirmed } from '@/lib/expense-utils'
+import { formatAmount, getScreenshotUrl, isConfirmed } from '@/lib/expense-utils'
 
 export interface SuccessStageProps {
   expenseId: string
@@ -69,8 +69,6 @@ export function SuccessStage({ expenseId, onAddAnother, actionButton }: SuccessS
     )
   }
 
-  const amount = (data.amount / 100).toFixed(2)
-
   return (
     <div className="text-center">
       <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
@@ -85,7 +83,7 @@ export function SuccessStage({ expenseId, onAddAnother, actionButton }: SuccessS
           {data.imageKey && <img src={getScreenshotUrl(data.imageKey)!} alt="Receipt" className="w-16 h-16 object-cover rounded-lg border flex-shrink-0" />}
           <div className="flex-1 text-left min-w-0">
             <div className="font-mono text-2xl font-bold tracking-tight">
-              {data.currency} {amount}
+              {formatAmount(data.amount, data.currency)}
             </div>
             {data.merchant && <div className="text-sm text-muted-foreground truncate">{data.merchant}</div>}
           </div>

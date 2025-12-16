@@ -1,64 +1,60 @@
-import cc from 'currency-codes'
 import { canConfirm, getDisplayAmount, getDisplayDate, getMissingFields, isConfirmed, isPending, isPendingReview } from '@repo/data-ops/schemas'
+import { format, getCurrencyOptions, getExponentSafe, isValidCurrency, toDisplayString, toSmallestUnit } from '@repo/isomorphic/money'
 import type { Expense, PendingReviewExpense } from '@repo/data-ops/schemas'
+import type { CurrencyOption } from '@repo/isomorphic/money'
 
 // Re-export type guards for convenience
 export { isPending, isPendingReview, isConfirmed, canConfirm, getMissingFields }
 
-/**
- * Format amount from cents to a localized currency string
- */
-export function formatAmount(amountInCents: number | null, currency: string | null = 'USD'): string {
-  if (amountInCents === null) return '$0.00'
+// Re-export money utilities that are commonly used in the web app
+export { format as formatMoney, toSmallestUnit, toDisplayString, isValidCurrency, getCurrencyOptions }
+export type { CurrencyOption }
 
-  const amount = amountInCents / 100
+/**
+ * Format amount from smallest unit to a localized currency string.
+ * Currency-aware: handles different decimal places (USD=2, JPY=0, KWD=3)
+ */
+export function formatAmount(amountInSmallestUnit: number | null, currency: string | null = 'USD'): string {
+  if (amountInSmallestUnit === null) return '$0.00'
   const currencyCode = currency || 'USD'
+  return format(amountInSmallestUnit, currencyCode)
+}
 
-  try {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currencyCode,
-    }).format(amount)
-  } catch {
-    // Fallback if currency code is invalid
-    return `${currencyCode} ${amount.toFixed(2)}`
+/**
+ * Convert display amount to smallest unit for storage.
+ * Currency-aware: handles different decimal places.
+ *
+ * @param displayAmount - Amount as shown to user (e.g., 19.99 for USD, 1000 for JPY)
+ * @param currency - ISO 4217 currency code
+ * @returns Amount in smallest unit
+ */
+export function displayToSmallestUnit(displayAmount: number | string, currency: string = 'USD'): number {
+  const value = typeof displayAmount === 'string' ? parseFloat(displayAmount) : displayAmount
+  if (Number.isNaN(value)) {
+    return 0
   }
+  return toSmallestUnit(value, currency)
 }
 
 /**
- * Convert dollars to cents
+ * Convert smallest unit to display string (for form inputs).
+ * Currency-aware: uses correct decimal places.
+ *
+ * @param smallestUnit - Amount in smallest unit
+ * @param currency - ISO 4217 currency code
+ * @returns String with correct decimal places (e.g., "19.99" for USD, "1000" for JPY)
  */
-export function dollarsToCents(dollars: number | string): number {
-  const value = typeof dollars === 'string' ? parseFloat(dollars) : dollars
-  return Math.round(value * 100)
+export function smallestUnitToDisplay(smallestUnit: number | null, currency: string = 'USD'): string {
+  if (smallestUnit === null) return ''
+  return toDisplayString(smallestUnit, currency)
 }
 
 /**
- * Convert cents to dollars string (for form inputs)
+ * Get the number of decimal places for a currency.
+ * Safe version that returns 2 for invalid currencies.
  */
-export function centsToDollars(cents: number | null): string {
-  if (cents === null) return ''
-  return (cents / 100).toFixed(2)
-}
-
-/**
- * Get all currency options for select components
- */
-export interface CurrencyOption {
-  value: string
-  label: string
-  name: string
-}
-
-export function getCurrencyOptions(): CurrencyOption[] {
-  return cc.codes().map((code) => {
-    const info = cc.code(code)
-    return {
-      value: code,
-      label: `${code} - ${info?.currency ?? code}`,
-      name: info?.currency ?? code,
-    }
-  })
+export function getCurrencyDecimalPlaces(currency: string): number {
+  return getExponentSafe(currency, 2)
 }
 
 /**

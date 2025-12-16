@@ -6,7 +6,7 @@ import { Loader2, Save, Trash2 } from 'lucide-react'
 
 import { CurrencyPicker } from './currency-picker'
 import { ImagePreviewDialog, ImagePreviewThumbnail } from './image-preview-dialog'
-import { centsToDollars, dollarsToCents } from '@/lib/expense-utils'
+import { displayToSmallestUnit, smallestUnitToDisplay } from '@/lib/expense-utils'
 import { formatDateForInput } from '@/lib/date-utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,7 +15,7 @@ import { DatePicker } from '@/components/ui/date-picker'
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
 
 
-// Form schema - amounts are displayed/edited in dollars, stored in cents
+// Form schema - amounts are displayed/edited in display format, stored in smallest unit
 const expenseFormSchema = Schema.Struct({
   amount: Schema.String.pipe(Schema.minLength(1, { message: () => 'Amount is required' })),
   currency: Schema.String.pipe(Schema.length(3, { message: () => 'Currency must be 3 characters' })),
@@ -28,7 +28,7 @@ const expenseFormSchema = Schema.Struct({
 type ExpenseFormValues = Schema.Schema.Type<typeof expenseFormSchema>
 
 export interface ExpenseFormData {
-  amount: number // in cents
+  amount: number // in smallest unit (cents for USD, yen for JPY, etc.)
   currency: string
   merchant?: string
   description?: string
@@ -39,7 +39,7 @@ export interface ExpenseFormData {
 interface ExpenseFormProps {
   // Initial data (for edit mode)
   initialData?: {
-    amount: number | null // in cents
+    amount: number | null // in smallest unit
     currency: string | null
     merchant: string | null
     description?: string | null
@@ -79,11 +79,14 @@ export function ExpenseForm({
   const [imageDialogOpen, setImageDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
+  // Get currency for proper decimal handling
+  const currency = initialData?.currency || 'USD'
+
   const form = useForm<ExpenseFormValues>({
     resolver: effectTsResolver(expenseFormSchema),
     defaultValues: {
-      amount: centsToDollars(initialData?.amount ?? null),
-      currency: initialData?.currency || 'USD',
+      amount: smallestUnitToDisplay(initialData?.amount ?? null, currency),
+      currency: currency,
       merchant: initialData?.merchant || '',
       description: initialData?.description || '',
       categories: initialData?.categories?.join(', ') || '',
@@ -92,7 +95,8 @@ export function ExpenseForm({
   })
 
   const handleSubmit = (data: ExpenseFormValues) => {
-    const amountInCents = dollarsToCents(data.amount)
+    // Convert display amount to smallest unit using the selected currency
+    const amountInSmallestUnit = displayToSmallestUnit(data.amount, data.currency)
 
     const categories = data.categories
       ? data.categories
@@ -102,7 +106,7 @@ export function ExpenseForm({
       : undefined
 
     onSubmit({
-      amount: amountInCents,
+      amount: amountInSmallestUnit,
       currency: data.currency,
       merchant: data.merchant || undefined,
       description: data.description || undefined,
