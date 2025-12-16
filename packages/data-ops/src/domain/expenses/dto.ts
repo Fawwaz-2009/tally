@@ -1,28 +1,21 @@
 /**
  * Data Transfer Objects for Expense operations.
- * These represent API inputs/outputs, not the core domain model.
+ * These represent API inputs/outputs, derived from domain schemas.
  */
 import { Schema } from "effect";
 import {
-  type PendingReviewExpense,
-  type ConfirmedExpense,
   PendingReviewExpenseSchema,
   ConfirmedExpenseSchema,
 } from "./schema";
+
+// ============================================================================
+// Capture (create new expense from image)
+// ============================================================================
 
 export interface CaptureExpenseInput {
   userId: string;
   image: File;
 }
-
-export const ConfirmExpensePayload = PendingReviewExpenseSchema.pick("id", "amount", "currency", "merchant", "description", "categories", "expenseDate")
-export type ConfirmExpenseInput = Schema.Schema.Type<typeof ConfirmExpensePayload>;
-
-export const UpdateExpensePayload = PendingReviewExpenseSchema
-  .pick("amount", "currency", "merchant", "description", "categories", "expenseDate")
-  .pipe(Schema.partial)
-  .pipe(Schema.extend(Schema.Struct({ id: Schema.String })));
-export type UpdateExpenseInput = Schema.Schema.Type<typeof UpdateExpensePayload>;
 
 export const CaptureExpenseResultSchema = Schema.Struct({
   expense: Schema.Union(PendingReviewExpenseSchema, ConfirmedExpenseSchema),
@@ -47,20 +40,30 @@ export const CaptureExpenseResultSchema = Schema.Struct({
   }),
   needsReview: Schema.Boolean,
 });
+export type CaptureExpenseResult = Schema.Schema.Type<typeof CaptureExpenseResultSchema>;
 
-export interface CaptureExpenseResult {
-  expense: PendingReviewExpense | ConfirmedExpense;
-  extraction: {
-    success: boolean;
-    data: {
-      amount: number | null;
-      currency: string | null;
-      merchant: string | null;
-      date: string | null;
-      categories: string[];
-    } | null;
-    error: string | null;
-    timing: { ocrMs: number; llmMs: number } | null;
-  };
-  needsReview: boolean;
-}
+// ============================================================================
+// Confirm (pending-review → confirmed)
+// ============================================================================
+
+/**
+ * Payload for confirming a pending-review expense.
+ * Picks editable fields from PendingReviewExpenseSchema + requires id.
+ */
+export const ConfirmExpensePayload = PendingReviewExpenseSchema
+  .pick("id", "amount", "currency", "merchant", "description", "categories", "expenseDate");
+export type ConfirmExpenseInput = Schema.Schema.Type<typeof ConfirmExpensePayload>;
+
+// ============================================================================
+// Update (edit confirmed expense)
+// ============================================================================
+
+/**
+ * Payload for updating a confirmed expense.
+ * Picks editable fields from ConfirmedExpenseSchema, makes them partial, + requires id.
+ */
+export const UpdateExpensePayload = ConfirmedExpenseSchema
+  .pick("amount", "currency", "merchant", "description", "categories", "expenseDate")
+  .pipe(Schema.partial)
+  .pipe(Schema.extend(Schema.Struct({ id: Schema.String })));
+export type UpdateExpenseInput = Schema.Schema.Type<typeof UpdateExpensePayload>;

@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
-import { getExpenseDisplayAmount, getExpenseDisplayDate, getScreenshotUrl, isPending, isPendingReview } from '@/lib/expense-utils'
+import { getExpenseDisplayAmount, getExpenseDisplayDate, getScreenshotUrl, isPending, isConfirmed } from '@/lib/expense-utils'
 import { ExpenseForm } from '@/components/expense/expense-form'
 import { AmountDisplay } from '@/components/expense/amount-display'
 import { ReceiptPreview } from '@/components/expense/receipt-preview'
@@ -100,8 +100,8 @@ export function ExpenseDrawer({ open, onOpenChange, expense, baseCurrency, userN
 
   const isDifferentCurrency = currency && currency !== baseCurrency
 
-  // Can only edit pending-review expenses
-  const canEdit = isPendingReview(expense)
+  // Can only edit confirmed expenses
+  const canEdit = isConfirmed(expense)
 
   return (
     <>

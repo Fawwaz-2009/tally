@@ -1,26 +1,9 @@
-import { Effect, Data } from "effect";
+import { Effect } from "effect";
 import Tesseract from "tesseract.js";
 import { Ollama } from "ollama";
 import type { ExtractedExpense, ExtractionResult } from "./schema";
 import { RuntimeEnvs } from "../../layers";
-
-// Error types
-export class OcrError extends Data.TaggedError("OcrError")<{
-  message: string;
-}> {}
-
-export class LlmError extends Data.TaggedError("LlmError")<{
-  message: string;
-}> {}
-
-export class ParseError extends Data.TaggedError("ParseError")<{
-  message: string;
-  rawResponse: string;
-}> {}
-
-export class ConfigError extends Data.TaggedError("ConfigError")<{
-  message: string;
-}> {}
+import { OcrError, LlmError, ParseError, ConfigError } from "../../errors";
 
 // OCR prompt for extracting expense data from OCR text
 const OCR_TO_JSON_PROMPT = `Extract expense information from this OCR text of a payment screenshot.

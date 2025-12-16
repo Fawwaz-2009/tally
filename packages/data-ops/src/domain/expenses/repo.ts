@@ -6,11 +6,8 @@ import {
   type Expense,
   type PendingReviewExpense,
   type ConfirmedExpense,
-  fromRow,
-  toRow,
-  isPendingReview,
-  isConfirmed,
 } from "./schema";
+import { fromRow, toRow, isPendingReview, isConfirmed } from "./utils";
 import { withDbTryPromise } from "../shared/utils";
 
 export class ExpenseRepo extends Effect.Service<ExpenseRepo>()("ExpenseRepo", {

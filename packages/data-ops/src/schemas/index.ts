@@ -18,24 +18,18 @@ export type {
   ExtractionMetadata,
   ExpenseRow,
   ExpenseInsert,
-  ConfirmInput,
-  UpdateInput,
 } from "../domain/expenses/schema";
 
-// Type guards
+// Type guards and query helpers
 export {
   isPending,
   isPendingReview,
   isConfirmed,
-} from "../domain/expenses/schema";
-
-// Query helpers
-export {
   getMissingFields,
   canConfirm,
   getDisplayAmount,
   getDisplayDate,
-} from "../domain/expenses/schema";
+} from "../domain/expenses/utils";
 
 // =============================================================================
 // DTO Types
