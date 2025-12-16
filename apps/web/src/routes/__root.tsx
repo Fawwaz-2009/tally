@@ -27,10 +27,14 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
       {
         name: 'viewport',
-        content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0',
+        content: 'width=device-width, initial-scale=1',
       },
       {
         title: 'Tally',
+      },
+      {
+        name: 'description',
+        content: 'Tally - Track your expenses effortlessly with receipt scanning and smart categorization',
       },
       {
         name: 'theme-color',
@@ -50,6 +54,15 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
     ],
     links: [
+      {
+        rel: 'preconnect',
+        href: 'https://fonts.googleapis.com',
+      },
+      {
+        rel: 'preconnect',
+        href: 'https://fonts.gstatic.com',
+        crossOrigin: 'anonymous',
+      },
       {
         rel: 'manifest',
         href: '/manifest.json',
