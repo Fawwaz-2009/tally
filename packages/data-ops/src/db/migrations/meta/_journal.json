@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1761227437238,
-      "tag": "0000_old_valkyrie",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1761308523612,
-      "tag": "0001_wild_tarot",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1764509259077,
-      "tag": "0002_ambiguous_rawhide_kid",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1764562331683,
-      "tag": "0003_chief_molecule_man",
+      "when": 1765854039824,
+      "tag": "0000_wonderful_ricochet",
       "breakpoints": true
     }
   ]

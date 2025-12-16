@@ -47,7 +47,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:reset": "rm -rf ../../apps/web/data && mkdir -p ../../apps/web/data && drizzle-kit push"
+    "db:reset": "rm -rf ../../apps/web/data && mkdir -p ../../apps/web/data && drizzle-kit migrate"
   },
   "dependencies": {
     "@effect/opentelemetry": "^0.59.2",
