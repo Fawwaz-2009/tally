@@ -54,6 +54,13 @@ FROM node:22-slim AS runner
 
 WORKDIR /app
 
+# Install build dependencies for native modules (better-sqlite3, tesseract.js)
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
 # Create non-root user for security
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 app
@@ -64,10 +71,9 @@ RUN mkdir -p /app/data && chown -R app:nodejs /app/data
 # Copy the built application from builder
 COPY --from=builder --chown=app:nodejs /app/apps/web/.output /app/.output
 
-# Copy node_modules from builder (includes drizzle-orm for migrations)
-# Note: Using builder instead of prod-deps because pnpm's strict structure
-# doesn't hoist dependencies properly for standalone migration scripts
-COPY --from=builder --chown=app:nodejs /app/node_modules /app/node_modules
+# Install externalized packages directly (pnpm symlinks don't survive Docker COPY)
+# These are marked as external in vite.config.ts and need to be in node_modules at runtime
+RUN npm install --no-save better-sqlite3 tesseract.js drizzle-orm
 
 # Copy database migrations (includes meta/_journal.json for Drizzle)
 COPY --from=builder --chown=app:nodejs /app/packages/data-ops/src/db/migrations /app/migrations
@@ -81,6 +87,9 @@ ENV PORT=3000
 ENV HOST=0.0.0.0
 ENV DATABASE_PATH=/app/data/app.db
 ENV BUCKET_STORAGE_PATH=/app/data/uploads
+# NODE_PATH allows externalized packages (tesseract.js, better-sqlite3) to be found
+# when the server runs from .output/server/
+ENV NODE_PATH=/app/node_modules
 
 # Expose port
 EXPOSE 3000

@@ -10,6 +10,9 @@ services:
       - TS_STATE_DIR=/var/lib/tailscale
       - TS_USERSPACE=true  # Required for macOS (no /dev/net/tun)
       - TS_SERVE_CONFIG=/config/serve.json
+    ports:
+      # Local access (web container shares this network)
+      - "3000:3000"
     volumes:
       - tailscale-state:/var/lib/tailscale
       - ./tailscale-config:/config:ro
@@ -23,7 +26,10 @@ services:
     network_mode: service:tailscale
     depends_on:
       - tailscale
+    env_file:
+      - .env
     environment:
+      # These override .env for Docker-specific paths
       - NODE_ENV=production
       - PORT=3000
       - HOST=0.0.0.0
