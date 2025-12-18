@@ -1,73 +1,73 @@
-import { readFileSync, existsSync } from "node:fs";
-import { join, dirname } from "node:path";
-import fg from "fast-glob";
-import ignore from "ignore";
+import fg from "fast-glob"
+import { existsSync, readFileSync } from "node:fs"
 
 /**
  * Find all .gitignore files in a directory tree
  */
-export async function findGitignoreFiles(rootDir: string): Promise<string[]> {
+export async function findGitignoreFiles(rootDir: string): Promise<Array<string>> {
   const gitignoreFiles = await fg("**/.gitignore", {
     cwd: rootDir,
     absolute: true,
     dot: true,
-    followSymbolicLinks: false,
-  });
+    followSymbolicLinks: false
+  })
 
-  return gitignoreFiles;
+  return gitignoreFiles
 }
 
 /**
  * Parse a .gitignore file and return its patterns
  */
-export function parseGitignoreFile(filePath: string): string[] {
+export function parseGitignoreFile(filePath: string): Array<string> {
   if (!existsSync(filePath)) {
-    return [];
+    return []
   }
 
-  const content = readFileSync(filePath, "utf-8");
-  const lines = content.split("\n");
+  const content = readFileSync(filePath, "utf-8")
+  const lines = content.split("\n")
 
-  return lines.map((line) => line.trim()).filter((line) => line && !line.startsWith("#")); // Remove empty lines and comments
+  return lines.map((line) => line.trim()).filter((line) => line && !line.startsWith("#")) // Remove empty lines and comments
 }
 
 /**
  * Collect all gitignore patterns from a directory and its subdirectories
  */
-export async function collectGitignorePatterns(rootDir: string): Promise<string[]> {
-  const gitignoreFiles = await findGitignoreFiles(rootDir);
-  const allPatterns: string[] = [];
+export async function collectGitignorePatterns(rootDir: string): Promise<Array<string>> {
+  const gitignoreFiles = await findGitignoreFiles(rootDir)
+  const allPatterns: Array<string> = []
 
   for (const gitignoreFile of gitignoreFiles) {
-    const patterns = parseGitignoreFile(gitignoreFile);
-    allPatterns.push(...patterns);
+    const patterns = parseGitignoreFile(gitignoreFile)
+    for (const pattern of patterns) {
+      allPatterns.push(pattern)
+    }
   }
 
   // Remove duplicates
-  return [...new Set(allPatterns)];
+  return [...new Set(allPatterns)]
 }
 
 /**
  * Convert gitignore patterns to rsync exclude patterns
  */
-export function gitignoreToRsyncExcludes(patterns: string[]): string[] {
+export function gitignoreToRsyncExcludes(patterns: Array<string>): Array<string> {
   // Only add minimal essentials that must always be excluded
   const essentialExcludes = [
     ".git", // Never copy git repository
-    "packages/cli/dist", // Don't copy the CLI's own build output
-  ];
+    "packages/cli/dist" // Don't copy the CLI's own build output
+  ]
 
   // Combine with gitignore patterns (which should cover everything else)
-  const allPatterns = [...essentialExcludes, ...patterns];
+  const allPatterns = [...essentialExcludes, ...patterns]
 
   // Convert to rsync format and remove duplicates
-  return [...new Set(allPatterns)];
+  return [...new Set(allPatterns)]
 }
 
 /**
  * Main utility function to get all exclude patterns from gitignore files
  */
-export async function getExcludesFromGitignore(rootDir: string): Promise<string[]> {
-  const patterns = await collectGitignorePatterns(rootDir);
-  return gitignoreToRsyncExcludes(patterns);
+export async function getExcludesFromGitignore(rootDir: string): Promise<Array<string>> {
+  const patterns = await collectGitignorePatterns(rootDir)
+  return gitignoreToRsyncExcludes(patterns)
 }

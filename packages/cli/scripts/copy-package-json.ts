@@ -1,11 +1,11 @@
-import { readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { readFileSync, writeFileSync } from "node:fs"
+import { join } from "node:path"
 
-console.log("[Build] Copying package.json ...");
+console.log("[Build] Copying package.json ...")
 
 // Read the package.json
-const packageJsonPath = join(process.cwd(), "package.json");
-const json = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+const packageJsonPath = join(process.cwd(), "package.json")
+const json = JSON.parse(readFileSync(packageJsonPath, "utf-8"))
 
 // Create a minimal package.json for distribution
 const pkg = {
@@ -24,11 +24,11 @@ const pkg = {
   bugs: json.bugs,
   homepage: json.homepage,
   tags: json.tags,
-  keywords: json.keywords,
-};
+  keywords: json.keywords
+}
 
 // Write to dist
-const distPackageJsonPath = join(process.cwd(), "dist", "package.json");
-writeFileSync(distPackageJsonPath, JSON.stringify(pkg, null, 2));
+const distPackageJsonPath = join(process.cwd(), "dist", "package.json")
+writeFileSync(distPackageJsonPath, JSON.stringify(pkg, null, 2))
 
-console.log("[Build] Build completed.");
+console.log("[Build] Build completed.")

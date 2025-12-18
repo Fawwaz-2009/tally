@@ -23,7 +23,7 @@ interface Fixtures {
 export const test = base.extend<Fixtures>({
   // Auto-reset database before each test
   resetDb: [
-    async ({}, use) => {
+    async (_, use) => {
       await resetTestDatabase()
       await use()
     },
@@ -31,7 +31,7 @@ export const test = base.extend<Fixtures>({
   ],
 
   // Expose seedExpense helper for tests that need specific data
-  seedExpense: async ({}, use) => {
+  seedExpense: async (_, use) => {
     await use(seedExpense)
   },
 })

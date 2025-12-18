@@ -10,6 +10,7 @@ export default [
       '.output/**',
       '.vinxi/**',
       'dist/**',
+      'dev-dist/**',
       'storybook-static/**',
       // Config files (not in tsconfig)
       'eslint.config.js',
