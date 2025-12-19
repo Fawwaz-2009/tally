@@ -2,8 +2,8 @@ import { Effect } from 'effect'
 import { eq, desc } from 'drizzle-orm'
 import { expensesTable } from '../../db'
 import { DbClient } from '../../layers'
-import { type Expense, type PendingReviewExpense, type ConfirmedExpense } from './schema'
-import { fromRow, toRow, isPendingReview, isConfirmed } from './utils'
+import { type Expense } from './schema'
+import { fromRow, toRow } from './utils'
 import { withDbTryPromise } from '../shared/utils'
 
 export class ExpenseRepo extends Effect.Service<ExpenseRepo>()('ExpenseRepo', {
@@ -12,7 +12,7 @@ export class ExpenseRepo extends Effect.Service<ExpenseRepo>()('ExpenseRepo', {
 
     return {
       // ========================================================================
-      // Unified Persistence
+      // Persistence
       // ========================================================================
 
       /**
@@ -37,7 +37,7 @@ export class ExpenseRepo extends Effect.Service<ExpenseRepo>()('ExpenseRepo', {
       }),
 
       // ========================================================================
-      // Basic CRUD
+      // Queries
       // ========================================================================
 
       /**
@@ -49,10 +49,10 @@ export class ExpenseRepo extends Effect.Service<ExpenseRepo>()('ExpenseRepo', {
       }),
 
       /**
-       * Get all expenses ordered by creation date
+       * Get all expenses ordered by expense date (most recent first)
        */
       getAll: Effect.fn('expenseRepo.getAll')(function* () {
-        const results = yield* withDbTryPromise(db.select().from(expensesTable).orderBy(desc(expensesTable.createdAt)).all())
+        const results = yield* withDbTryPromise(db.select().from(expensesTable).orderBy(desc(expensesTable.expenseDate)).all())
         return results.map(fromRow)
       }),
 
@@ -60,7 +60,7 @@ export class ExpenseRepo extends Effect.Service<ExpenseRepo>()('ExpenseRepo', {
        * Get expenses by user
        */
       getByUser: Effect.fn('expenseRepo.getByUser')(function* (userId: string) {
-        const results = yield* withDbTryPromise(db.select().from(expensesTable).where(eq(expensesTable.userId, userId)).orderBy(desc(expensesTable.createdAt)).all())
+        const results = yield* withDbTryPromise(db.select().from(expensesTable).where(eq(expensesTable.userId, userId)).orderBy(desc(expensesTable.expenseDate)).all())
         return results.map(fromRow)
       }),
 
@@ -72,42 +72,6 @@ export class ExpenseRepo extends Effect.Service<ExpenseRepo>()('ExpenseRepo', {
         return result ? fromRow(result) : undefined
       }),
 
-      // ========================================================================
-      // State-Specific Queries
-      // ========================================================================
-
-      /**
-       * Get all confirmed expenses (for reports/dashboard)
-       */
-      getConfirmed: Effect.fn('expenseRepo.getConfirmed')(function* () {
-        const results = yield* withDbTryPromise(
-          db.select().from(expensesTable).where(eq(expensesTable.state, 'confirmed')).orderBy(desc(expensesTable.expenseDate)).all(),
-        )
-        return results.map(fromRow).filter(isConfirmed) as ConfirmedExpense[]
-      }),
-
-      /**
-       * Get expenses pending review
-       */
-      getPendingReview: Effect.fn('expenseRepo.getPendingReview')(function* () {
-        const results = yield* withDbTryPromise(
-          db.select().from(expensesTable).where(eq(expensesTable.state, 'pending-review')).orderBy(desc(expensesTable.createdAt)).all(),
-        )
-        return results.map(fromRow).filter(isPendingReview) as PendingReviewExpense[]
-      }),
-
-      // ========================================================================
-      // Counts
-      // ========================================================================
-
-      /**
-       * Count expenses pending review
-       */
-      countPendingReview: Effect.fn('expenseRepo.countPendingReview')(function* () {
-        const results = yield* withDbTryPromise(db.select().from(expensesTable).where(eq(expensesTable.state, 'pending-review')).all())
-        return results.length
-      }),
-
       /**
        * Get unique merchants sorted by most recent expense date
        */
@@ -116,7 +80,6 @@ export class ExpenseRepo extends Effect.Service<ExpenseRepo>()('ExpenseRepo', {
           db
             .selectDistinct({ merchant: expensesTable.merchant })
             .from(expensesTable)
-            .where(eq(expensesTable.state, 'confirmed'))
             .orderBy(desc(expensesTable.expenseDate))
             .all(),
         )

@@ -1,5 +1,5 @@
 import { Effect } from 'effect'
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { usersTable } from '../../db'
 import { DbClient } from '../../layers'
 import { CreateUser } from './schema'
@@ -16,6 +16,13 @@ export class UserRepo extends Effect.Service<UserRepo>()('UserRepo', {
 
       getById: Effect.fn('userRepo.getById')(function* (id: string) {
         return yield* withDbTryPromise(db.select().from(usersTable).where(eq(usersTable.id, id)).get())
+      }),
+
+      getByName: Effect.fn('userRepo.getByName')(function* (name: string) {
+        // Case-insensitive name lookup using SQLite LOWER()
+        return yield* withDbTryPromise(
+          db.select().from(usersTable).where(sql`LOWER(${usersTable.name}) = ${name.toLowerCase()}`).get()
+        )
       }),
 
       getAll: Effect.fn('userRepo.getAll')(function* () {

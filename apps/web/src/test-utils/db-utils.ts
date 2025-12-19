@@ -47,21 +47,26 @@ export async function resetTestDatabase(): Promise<void> {
  * Seed a specific expense for testing
  */
 export async function seedExpense(expense: {
-  id: string
   userId: string
-  state: 'pending' | 'pending-review' | 'confirmed'
-  amount?: number
-  currency?: string
-  merchant?: string
+  amount: number
+  currency: string
+  merchant: string
+  imageKey: string
+  baseAmount: number
+  baseCurrency: string
+  expenseDate: Date
 }): Promise<void> {
   const db = getTestDb()
 
   db.insert(expensesTable).values({
-    id: expense.id,
     userId: expense.userId,
-    state: expense.state,
-    amount: expense.amount ?? null,
-    currency: expense.currency ?? null,
-    merchant: expense.merchant ?? null,
+    imageKey: expense.imageKey,
+    amount: expense.amount,
+    currency: expense.currency,
+    baseAmount: expense.baseAmount,
+    baseCurrency: expense.baseCurrency,
+    merchant: expense.merchant,
+    categories: [],
+    expenseDate: expense.expenseDate,
   }).run()
 }

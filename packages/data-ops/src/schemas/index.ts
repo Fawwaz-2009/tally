@@ -6,25 +6,13 @@
  */
 
 // =============================================================================
-// Expense Types (Discriminated Union)
+// Expense Types
 // =============================================================================
 
-export type {
-  Expense,
-  PendingExpense,
-  PendingReviewExpense,
-  ConfirmedExpense,
-  ExpenseState,
-  ExtractionMetadata,
-  ExpenseRow,
-  ExpenseInsert,
-} from '../domain/expenses/schema'
-
-// Type guards and query helpers
-export { isPending, isPendingReview, isConfirmed, getMissingFields, canConfirm, getDisplayAmount, getDisplayDate } from '../domain/expenses/utils'
+export type { Expense, ExpenseRow, ExpenseInsert } from '../domain/expenses/schema'
 
 // =============================================================================
 // DTO Types
 // =============================================================================
 
-export type { CaptureExpenseInput, CaptureExpenseResult, ConfirmExpenseInput, UpdateExpenseInput } from '../domain/expenses/dto'
+export type { CreateExpenseInput, UpdateExpenseInput } from '../domain/expenses/dto'

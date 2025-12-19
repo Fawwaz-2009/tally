@@ -3,8 +3,6 @@ import { motion } from 'motion/react'
 
 import type { Expense } from '@repo/data-ops/schemas'
 import { AmountDisplay } from '@/components/expense/amount-display'
-import { StatusBadge } from '@/components/expense/status-badge'
-import { getExpenseDisplayAmount, getExpenseDisplayDate, isPending } from '@/lib/expense-utils'
 
 export type ExpenseCardData = Expense
 
@@ -17,18 +15,7 @@ interface ExpenseCardProps {
 }
 
 export function ExpenseCard({ expense, baseCurrency, onClick, index = 0, userName }: ExpenseCardProps) {
-  const displayDate = getExpenseDisplayDate(expense)
-  const displayAmount = getExpenseDisplayAmount(expense)
-
-  // Get merchant name - different based on state
-  const merchant = isPending(expense) ? 'Processing...' : expense.merchant || 'Unknown merchant'
-
-  // Get currency for comparison - only available on pending-review and confirmed
-  const currency = isPending(expense) ? null : expense.currency
-  const amount = isPending(expense) ? null : expense.amount
-  const categories = isPending(expense) ? [] : expense.categories
-
-  const isDifferentCurrency = currency && currency !== baseCurrency
+  const isDifferentCurrency = expense.currency !== baseCurrency
 
   return (
     <motion.div
@@ -58,11 +45,12 @@ export function ExpenseCard({ expense, baseCurrency, onClick, index = 0, userNam
         {/* Left: Date & Merchant */}
         <div className="flex flex-col gap-1 min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{format(new Date(displayDate), 'MMM dd • HH:mm')}</span>
-            <StatusBadge state={expense.state} size="compact" />
+            <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+              {format(new Date(expense.expenseDate), 'MMM dd • HH:mm')}
+            </span>
           </div>
 
-          <h3 className="text-lg font-bold leading-tight tracking-tight uppercase line-clamp-1">{merchant}</h3>
+          <h3 className="text-lg font-bold leading-tight tracking-tight uppercase line-clamp-1">{expense.merchant}</h3>
 
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             {userName && (
@@ -71,28 +59,22 @@ export function ExpenseCard({ expense, baseCurrency, onClick, index = 0, userNam
               </div>
             )}
 
-            {categories.slice(0, 2).map((cat) => (
+            {expense.categories.slice(0, 2).map((cat) => (
               <span key={cat} className="text-[10px] font-mono text-muted-foreground uppercase">
                 #{cat}
               </span>
             ))}
-            {categories.length > 2 && <span className="text-[10px] font-mono text-muted-foreground">+{categories.length - 2}</span>}
+            {expense.categories.length > 2 && <span className="text-[10px] font-mono text-muted-foreground">+{expense.categories.length - 2}</span>}
           </div>
         </div>
 
         {/* Right: Amount */}
         <div className="text-right shrink-0 max-w-[45%]">
-          {displayAmount !== null ? (
-            <>
-              <AmountDisplay amount={displayAmount} currency={baseCurrency} size="md" />
-              {isDifferentCurrency && amount !== null && (
-                <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
-                  <AmountDisplay amount={amount} currency={currency} size="sm" className="text-muted-foreground" />
-                </div>
-              )}
-            </>
-          ) : (
-            <span className="text-muted-foreground">—</span>
+          <AmountDisplay amount={expense.baseAmount} currency={baseCurrency} size="md" />
+          {isDifferentCurrency && (
+            <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
+              <AmountDisplay amount={expense.amount} currency={expense.currency} size="sm" className="text-muted-foreground" />
+            </div>
           )}
         </div>
       </div>

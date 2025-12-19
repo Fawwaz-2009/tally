@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 
 import { allocateEvenly, percentage as calcPercentage, sum } from '@repo/isomorphic/money'
-import type { ConfirmedExpense, Expense } from '@repo/data-ops/schemas'
+import type { Expense } from '@repo/data-ops/schemas'
 import type { DateRange } from '@/lib/date-utils'
 import { getDateRangeBounds } from '@/lib/date-utils'
 
@@ -33,10 +33,10 @@ interface Analytics {
 
 export function useAnalytics(expenses: Expense[] | undefined, users: User[] | undefined, dateRange: DateRange): Analytics | null {
   return useMemo(() => {
-    if (!expenses) return null
+    if (!expenses || expenses.length === 0) return null
 
-    // Filter to only confirmed expenses (they have all required fields)
-    let filteredExpenses = expenses.filter((e): e is ConfirmedExpense => e.state === 'confirmed')
+    // Filter by date range
+    let filteredExpenses = [...expenses]
 
     const bounds = getDateRangeBounds(dateRange)
     if (bounds) {
@@ -48,7 +48,7 @@ export function useAnalytics(expenses: Expense[] | undefined, users: User[] | un
 
     if (filteredExpenses.length === 0) return null
 
-    const getBaseAmount = (e: ConfirmedExpense) => e.baseAmount
+    const getBaseAmount = (e: Expense) => e.baseAmount
 
     // Calculate total using money utility for precision
     const totalSpending = sum(filteredExpenses.map(getBaseAmount))

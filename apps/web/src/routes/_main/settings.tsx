@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, Copy, Download, ExternalLink, FileJson, FileSpreadsheet, Monitor, Moon, Plus, Sun, Tag, Users } from 'lucide-react'
 import { allocateEvenly, format, toDisplayAmount } from '@repo/isomorphic/money'
-import type { ConfirmedExpense } from '@repo/data-ops/schemas'
+import type { Expense } from '@repo/data-ops/schemas'
 
 import { useTRPC } from '@/integrations/trpc-react'
 import { useTheme } from '@/components/theme-provider'
@@ -569,7 +569,7 @@ function CategoriesSection() {
 }
 
 // Local type alias for export functions
-type ExportExpense = ConfirmedExpense
+type ExportExpense = Expense
 
 function ExportSection() {
   const trpc = useTRPC()
@@ -597,7 +597,7 @@ function ExportSection() {
   }
 
   const generateCSV = (expenses: ExportExpense[]): string => {
-    const headers = ['Date', 'Amount', 'Currency', 'Merchant', 'Categories', 'User', 'Status']
+    const headers = ['Date', 'Amount', 'Currency', 'Merchant', 'Categories', 'User']
     const rows = expenses.map((expense) => [
       formatDate(expense.expenseDate),
       formatExportAmount(expense.amount, expense.currency),
@@ -605,7 +605,6 @@ function ExportSection() {
       expense.merchant,
       expense.categories.join('; '),
       getUserName(expense.userId),
-      expense.state,
     ])
 
     const escapeCSV = (value: string): string => {
@@ -630,7 +629,6 @@ function ExportSection() {
       categories: expense.categories,
       user: getUserName(expense.userId),
       userId: expense.userId,
-      state: expense.state,
     }))
 
     return JSON.stringify(exportData, null, 2)

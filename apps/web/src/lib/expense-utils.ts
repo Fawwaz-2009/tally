@@ -1,10 +1,5 @@
-import { canConfirm, getDisplayAmount, getDisplayDate, getMissingFields, isConfirmed, isPending, isPendingReview } from '@repo/data-ops/schemas'
 import { format, getCurrencyOptions, getExponentSafe, isValidCurrency, toDisplayString, toSmallestUnit } from '@repo/isomorphic/money'
-import type { Expense, PendingReviewExpense } from '@repo/data-ops/schemas'
 import type { CurrencyOption } from '@repo/isomorphic/money'
-
-// Re-export type guards for convenience
-export { isPending, isPendingReview, isConfirmed, canConfirm, getMissingFields }
 
 // Re-export money utilities that are commonly used in the web app
 export { format as formatMoney, toSmallestUnit, toDisplayString, isValidCurrency, getCurrencyOptions }
@@ -63,29 +58,4 @@ export function getCurrencyDecimalPlaces(currency: string): number {
 export function getScreenshotUrl(screenshotPath: string | null): string | null {
   if (!screenshotPath) return null
   return `/api/files/${screenshotPath}`
-}
-
-// =============================================================================
-// Expense Display Utilities
-// =============================================================================
-
-/**
- * Check if expense needs manual review (is in pending-review state)
- */
-export function expenseNeedsReview(expense: Expense): expense is PendingReviewExpense {
-  return isPendingReview(expense)
-}
-
-/**
- * Get display amount (prefer base currency conversion)
- */
-export function getExpenseDisplayAmount(expense: Expense): number | null {
-  return getDisplayAmount(expense)
-}
-
-/**
- * Get display date (prefer expense date, fallback to captured)
- */
-export function getExpenseDisplayDate(expense: Expense): Date {
-  return getDisplayDate(expense)
 }

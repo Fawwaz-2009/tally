@@ -31,15 +31,8 @@ export function SetupForm() {
 
   const completeSetup = useMutation(
     trpc.settings.completeSetup.mutationOptions({
-      onSuccess: (result) => {
-        navigate({
-          to: '/setup',
-          search: {
-            completed: true,
-            userId: result.userId,
-            userName: form.getValues('name'),
-          },
-        })
+      onSuccess: () => {
+        navigate({ to: '/' })
       },
     }),
   )

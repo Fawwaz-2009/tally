@@ -13,7 +13,6 @@ import { Route as MainRouteRouteImport } from './routes/_main/route'
 import { Route as SetupIndexRouteImport } from './routes/setup/index'
 import { Route as MainIndexRouteImport } from './routes/_main/index'
 import { Route as MainSettingsRouteImport } from './routes/_main/settings'
-import { Route as MainReviewRouteImport } from './routes/_main/review'
 import { Route as MainAnalysisIndexRouteImport } from './routes/_main/analysis/index'
 import { Route as MainAddIndexRouteImport } from './routes/_main/add/index'
 import { Route as MainExpensesIdRouteImport } from './routes/_main/expenses/$id'
@@ -37,11 +36,6 @@ const MainSettingsRoute = MainSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => MainRouteRoute,
 } as any)
-const MainReviewRoute = MainReviewRouteImport.update({
-  id: '/review',
-  path: '/review',
-  getParentRoute: () => MainRouteRoute,
-} as any)
 const MainAnalysisIndexRoute = MainAnalysisIndexRouteImport.update({
   id: '/analysis/',
   path: '/analysis/',
@@ -59,7 +53,6 @@ const MainExpensesIdRoute = MainExpensesIdRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/review': typeof MainReviewRoute
   '/settings': typeof MainSettingsRoute
   '/': typeof MainIndexRoute
   '/setup': typeof SetupIndexRoute
@@ -68,7 +61,6 @@ export interface FileRoutesByFullPath {
   '/analysis': typeof MainAnalysisIndexRoute
 }
 export interface FileRoutesByTo {
-  '/review': typeof MainReviewRoute
   '/settings': typeof MainSettingsRoute
   '/': typeof MainIndexRoute
   '/setup': typeof SetupIndexRoute
@@ -79,7 +71,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_main': typeof MainRouteRouteWithChildren
-  '/_main/review': typeof MainReviewRoute
   '/_main/settings': typeof MainSettingsRoute
   '/_main/': typeof MainIndexRoute
   '/setup/': typeof SetupIndexRoute
@@ -90,7 +81,6 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/review'
     | '/settings'
     | '/'
     | '/setup'
@@ -98,18 +88,10 @@ export interface FileRouteTypes {
     | '/add'
     | '/analysis'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/review'
-    | '/settings'
-    | '/'
-    | '/setup'
-    | '/expenses/$id'
-    | '/add'
-    | '/analysis'
+  to: '/settings' | '/' | '/setup' | '/expenses/$id' | '/add' | '/analysis'
   id:
     | '__root__'
     | '/_main'
-    | '/_main/review'
     | '/_main/settings'
     | '/_main/'
     | '/setup/'
@@ -153,13 +135,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainSettingsRouteImport
       parentRoute: typeof MainRouteRoute
     }
-    '/_main/review': {
-      id: '/_main/review'
-      path: '/review'
-      fullPath: '/review'
-      preLoaderRoute: typeof MainReviewRouteImport
-      parentRoute: typeof MainRouteRoute
-    }
     '/_main/analysis/': {
       id: '/_main/analysis/'
       path: '/analysis'
@@ -185,7 +160,6 @@ declare module '@tanstack/react-router' {
 }
 
 interface MainRouteRouteChildren {
-  MainReviewRoute: typeof MainReviewRoute
   MainSettingsRoute: typeof MainSettingsRoute
   MainIndexRoute: typeof MainIndexRoute
   MainExpensesIdRoute: typeof MainExpensesIdRoute
@@ -194,7 +168,6 @@ interface MainRouteRouteChildren {
 }
 
 const MainRouteRouteChildren: MainRouteRouteChildren = {
-  MainReviewRoute: MainReviewRoute,
   MainSettingsRoute: MainSettingsRoute,
   MainIndexRoute: MainIndexRoute,
   MainExpensesIdRoute: MainExpensesIdRoute,

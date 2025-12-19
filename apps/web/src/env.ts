@@ -7,8 +7,6 @@ export const env = createEnv({
     DATABASE_PATH: z.string().min(1),
     BUCKET_STORAGE_PATH: z.string().min(1),
     BASE_FRONTEND_URL: z.string().url(),
-    OLLAMA_HOST: z.string().url(),
-    OLLAMA_MODEL: z.string().min(1),
   },
 
   /**
@@ -32,8 +30,6 @@ export const env = createEnv({
     DATABASE_PATH: process.env.DATABASE_PATH,
     BUCKET_STORAGE_PATH: process.env.BUCKET_STORAGE_PATH,
     BASE_FRONTEND_URL: process.env.BASE_FRONTEND_URL,
-    OLLAMA_HOST: process.env.OLLAMA_HOST,
-    OLLAMA_MODEL: process.env.OLLAMA_MODEL,
     // Client variables (from import.meta.env)
     VITE_APP_TITLE: import.meta.env.VITE_APP_TITLE,
     VITE_BASE_FRONTEND_URL: import.meta.env.VITE_BASE_FRONTEND_URL,

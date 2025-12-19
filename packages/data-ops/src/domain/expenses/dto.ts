@@ -3,75 +3,17 @@
  * These represent API inputs/outputs, derived from domain schemas.
  */
 import { Schema } from 'effect'
-import { PendingReviewExpenseSchema, ConfirmedExpenseSchema } from './schema'
+import { ExpenseSchema } from './schema'
 
 // ============================================================================
-// Capture (create new expense from image)
-// ============================================================================
-
-export interface CaptureExpenseInput {
-  userId: string
-  image: File
-}
-
-export const CaptureExpenseResultSchema = Schema.Struct({
-  expense: Schema.Union(PendingReviewExpenseSchema, ConfirmedExpenseSchema),
-  extraction: Schema.Struct({
-    success: Schema.Boolean,
-    data: Schema.NullOr(
-      Schema.Struct({
-        amount: Schema.NullOr(Schema.Number),
-        currency: Schema.NullOr(Schema.String),
-        merchant: Schema.NullOr(Schema.String),
-        date: Schema.NullOr(Schema.String), // ISO date string
-        categories: Schema.Array(Schema.String),
-      }),
-    ),
-    error: Schema.NullOr(Schema.String),
-    timing: Schema.NullOr(
-      Schema.Struct({
-        ocrMs: Schema.Number,
-        llmMs: Schema.Number,
-      }),
-    ),
-  }),
-  needsReview: Schema.Boolean,
-})
-export type CaptureExpenseResult = Schema.Schema.Type<typeof CaptureExpenseResultSchema>
-
-// ============================================================================
-// Confirm (pending-review → confirmed)
+// Create (create new expense)
 // ============================================================================
 
 /**
- * Payload for confirming a pending-review expense.
- * Picks editable fields from PendingReviewExpenseSchema + requires id.
+ * Input for creating a new expense.
+ * Used by both web app and iOS shortcuts.
  */
-export const ConfirmExpensePayload = PendingReviewExpenseSchema.pick('id', 'amount', 'currency', 'merchant', 'description', 'categories', 'expenseDate')
-export type ConfirmExpenseInput = Schema.Schema.Type<typeof ConfirmExpensePayload>
-
-// ============================================================================
-// Update (edit confirmed expense)
-// ============================================================================
-
-/**
- * Payload for updating a confirmed expense.
- * Picks editable fields from ConfirmedExpenseSchema, makes them partial, + requires id.
- */
-export const UpdateExpensePayload = ConfirmedExpenseSchema.pick('amount', 'currency', 'merchant', 'description', 'categories', 'expenseDate')
-  .pipe(Schema.partial)
-  .pipe(Schema.extend(Schema.Struct({ id: Schema.String })))
-export type UpdateExpenseInput = Schema.Schema.Type<typeof UpdateExpensePayload>
-
-// ============================================================================
-// Create Direct (create confirmed expense directly, bypassing extraction)
-// ============================================================================
-
-/**
- * Input for creating a confirmed expense directly (from iOS shortcut etc.)
- * Bypasses the extraction pipeline.
- */
-export interface CreateDirectExpenseInput {
+export interface CreateExpenseInput {
   userName: string // Will be trimmed and lowercased to match user ID
   merchant: string
   currency: string // Will be trimmed and uppercased (e.g., "USD", "IDR")
@@ -79,3 +21,16 @@ export interface CreateDirectExpenseInput {
   image: File
   expenseDate?: Date // Optional, defaults to now
 }
+
+// ============================================================================
+// Update (edit existing expense)
+// ============================================================================
+
+/**
+ * Payload for updating an existing expense.
+ * Picks editable fields from ExpenseSchema, makes them partial, + requires id.
+ */
+export const UpdateExpensePayload = ExpenseSchema.pick('amount', 'currency', 'merchant', 'description', 'categories', 'expenseDate')
+  .pipe(Schema.partial)
+  .pipe(Schema.extend(Schema.Struct({ id: Schema.String })))
+export type UpdateExpenseInput = Schema.Schema.Type<typeof UpdateExpensePayload>

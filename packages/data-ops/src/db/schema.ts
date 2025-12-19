@@ -19,21 +19,7 @@ export const settingsTable = sqliteTable('settings', {
     .notNull(),
 })
 
-// Tally: Expense state (lifecycle phases)
-// - pending: receipt captured, extraction not yet applied
-// - pending-review: extraction applied, needs user review
-// - confirmed: all required fields present, finalized
-export const expenseState = ['pending', 'pending-review', 'confirmed'] as const
-export type ExpenseState = (typeof expenseState)[number]
-
-// Extraction metadata (stored as JSON, available on pending-review and confirmed)
-export interface ExtractionMetadata {
-  ocrText: string | null
-  error: string | null
-  timing: { ocrMs: number; llmMs: number } | null
-}
-
-// Tally: Expenses table (discriminated union based on state)
+// Tally: Expenses table (simplified - no state machine)
 export const expensesTable = sqliteTable('expenses', {
   id: text('id')
     .primaryKey()
@@ -41,32 +27,26 @@ export const expensesTable = sqliteTable('expenses', {
   userId: text('user_id')
     .notNull()
     .references(() => usersTable.id),
-  state: text('state', { enum: expenseState }).notNull().default('pending'),
 
-  // Receipt data
-  imageKey: text('image_key'),
-  capturedAt: integer('captured_at', { mode: 'timestamp' })
-    .$defaultFn(() => new Date())
-    .notNull(),
+  // Receipt image (required)
+  imageKey: text('image_key').notNull(),
 
-  // Extraction metadata (JSON, available after extraction)
-  extractionMetadata: text('extraction_metadata', { mode: 'json' }).$type<ExtractionMetadata | null>(),
+  // Expense data (all required)
+  amount: integer('amount').notNull(), // Store as cents/smallest unit
+  currency: text('currency').notNull(), // e.g., "USD", "EUR"
+  baseAmount: integer('base_amount').notNull(), // Converted to base currency
+  baseCurrency: text('base_currency').notNull(),
+  merchant: text('merchant').notNull(),
 
-  // Expense data (nullable in pending/pending-review, required for confirmed)
-  amount: integer('amount'), // Store as cents/smallest unit
-  currency: text('currency'), // e.g., "USD", "EUR"
-  baseAmount: integer('base_amount'), // Converted to base currency
-  baseCurrency: text('base_currency'),
-  merchant: text('merchant'),
+  // Optional fields
   description: text('description'),
   categories: text('categories', { mode: 'json' }).$type<string[]>(),
-  expenseDate: integer('expense_date', { mode: 'timestamp' }),
+  expenseDate: integer('expense_date', { mode: 'timestamp' }).notNull(),
 
   // Timestamps
   createdAt: integer('created_at', { mode: 'timestamp' })
     .$defaultFn(() => new Date())
     .notNull(),
-  confirmedAt: integer('confirmed_at', { mode: 'timestamp' }),
 })
 
 // Tally: Relations

@@ -21,8 +21,6 @@ initFullEnv(env)
 initRuntimeEnvs({
   BASE_FRONTEND_URL: env.BASE_FRONTEND_URL,
   NODE_ENV: env.NODE_ENV,
-  OLLAMA_HOST: env.OLLAMA_HOST,
-  OLLAMA_MODEL: env.OLLAMA_MODEL,
 })
 
 // Initialize tRPC client with server-side direct calls (avoids HTTP self-request)

@@ -252,10 +252,7 @@ export class BucketClient extends Effect.Service<BucketClient>()('BucketClient',
 export type RUNTIME_ENVS = {
   BASE_FRONTEND_URL: string
   NODE_ENV: string
-  // Ollama config for AI extraction
-  OLLAMA_HOST: string
-  OLLAMA_MODEL: string
-  // Telemetry
+  // Telemetry (optional)
   ENABLE_TELEMETRY?: string
   SIGNOZ_ACCESS_TOKEN?: string
   SIGNOZ_ENDPOINT?: string
