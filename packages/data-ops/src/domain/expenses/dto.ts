@@ -62,3 +62,20 @@ export const UpdateExpensePayload = ConfirmedExpenseSchema.pick('amount', 'curre
   .pipe(Schema.partial)
   .pipe(Schema.extend(Schema.Struct({ id: Schema.String })))
 export type UpdateExpenseInput = Schema.Schema.Type<typeof UpdateExpensePayload>
+
+// ============================================================================
+// Create Direct (create confirmed expense directly, bypassing extraction)
+// ============================================================================
+
+/**
+ * Input for creating a confirmed expense directly (from iOS shortcut etc.)
+ * Bypasses the extraction pipeline.
+ */
+export interface CreateDirectExpenseInput {
+  userName: string // Will be trimmed and lowercased to match user ID
+  merchant: string
+  currency: string // Will be trimmed and uppercased (e.g., "USD", "IDR")
+  amount: number // Amount in smallest unit (cents)
+  image: File
+  expenseDate?: Date // Optional, defaults to now
+}

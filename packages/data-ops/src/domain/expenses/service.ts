@@ -2,7 +2,7 @@ import { Effect, Option } from 'effect'
 import { ExpenseRepo } from './repo'
 import { type Expense, type PendingReviewExpense, type ConfirmedExpense, type ExtractionMetadata } from './schema'
 import { canConfirm, getMissingFields, isPendingReview, isConfirmed } from './utils'
-import { type CaptureExpenseInput, type CaptureExpenseResult, type ConfirmExpenseInput, type UpdateExpenseInput } from './dto'
+import { type CaptureExpenseInput, type CaptureExpenseResult, type ConfirmExpenseInput, type UpdateExpenseInput, type CreateDirectExpenseInput } from './dto'
 import { CurrencyService } from '../currency'
 import { SettingsService } from '../settings'
 import { ExtractionService, type ExtractionResult } from '../extraction'
@@ -285,6 +285,52 @@ export class ExpenseService extends Effect.Service<ExpenseService>()('ExpenseSer
        * Check if the extraction service (Ollama) is available
        */
       checkExtractionHealth: () => extractionService.checkOllamaHealth(),
+
+      /**
+       * Create a confirmed expense directly, bypassing the extraction pipeline.
+       * Used for iOS shortcuts and other external integrations.
+       */
+      createDirect: (input: CreateDirectExpenseInput) =>
+        Effect.gen(function* () {
+          // Normalize inputs
+          const userId = input.userName.trim().toLowerCase()
+          const currency = input.currency.trim().toUpperCase()
+          const merchant = input.merchant.trim()
+          const expenseDate = input.expenseDate ?? new Date()
+
+          // Validate currency by trying to get its exponent
+          // This will throw if the currency code is invalid
+          yield* currencyService.getExponent(currency)
+
+          // Save the image
+          const { key: imageKey } = yield* saveImage(input.image)
+
+          // Get base currency and convert
+          const baseCurrency = yield* settingsService.getBaseCurrency()
+          const baseAmount = yield* currencyService.convert(input.amount, currency, baseCurrency)
+
+          const now = new Date()
+          const confirmed: ConfirmedExpense = {
+            state: 'confirmed',
+            id: crypto.randomUUID(),
+            userId,
+            imageKey,
+            capturedAt: now,
+            createdAt: now,
+            confirmedAt: now,
+            amount: input.amount,
+            currency,
+            baseAmount,
+            baseCurrency,
+            merchant,
+            description: null,
+            categories: [],
+            expenseDate,
+            extractionMetadata: null,
+          }
+
+          return yield* repo.save(confirmed)
+        }),
     } as const
   }),
   dependencies: [ExpenseRepo.Default, CurrencyService.Default, SettingsService.Default, BucketClient.Default],

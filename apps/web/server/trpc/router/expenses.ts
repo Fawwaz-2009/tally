@@ -2,7 +2,7 @@ import { Effect, Schema } from 'effect'
 import { zfd } from 'zod-form-data'
 
 import { frontendRuntime } from '@repo/data-ops/runtimes'
-import { ExpenseRepo, ExpenseService, PendingReviewExpenseSchema, UpdateExpensePayload } from '@repo/data-ops/domain'
+import { ExpenseRepo, ExpenseService, PendingReviewExpenseSchema, UpdateExpensePayload, UserRepo } from '@repo/data-ops/domain'
 import { publicProcedure } from '../init'
 import type {TRPCRouterRecord} from '@trpc/server';
 
@@ -11,6 +11,16 @@ import type {TRPCRouterRecord} from '@trpc/server';
 const captureFormDataSchema = zfd.formData({
   image: zfd.file(),
   userId: zfd.text(),
+})
+
+// FormData schema for creating expense directly (iOS shortcut)
+const createDirectFormDataSchema = zfd.formData({
+  image: zfd.file(),
+  userName: zfd.text(),
+  merchant: zfd.text(),
+  currency: zfd.text(),
+  amount: zfd.numeric(),
+  expenseDate: zfd.text().optional(), // ISO date string, optional
 })
 
 export const expensesRouter = {
@@ -93,6 +103,21 @@ export const expensesRouter = {
     return frontendRuntime.runPromise(ExpenseRepo.countPendingReview())
   }),
 
+  /**
+   * Get unique merchants sorted by most recent expense date.
+   */
+  getUniqueMerchants: publicProcedure.query(async () => {
+    return frontendRuntime.runPromise(ExpenseRepo.getUniqueMerchants())
+  }),
+
+  /**
+   * Get all user names for iOS shortcut.
+   */
+  getUsers: publicProcedure.query(async () => {
+    const users = await frontendRuntime.runPromise(UserRepo.getAll())
+    return users.map((u) => u.name)
+  }),
+
   // ==========================================================================
   // Mutations
   // ==========================================================================
@@ -126,6 +151,26 @@ export const expensesRouter = {
     const program = Effect.gen(function* () {
       const service = yield* ExpenseService
       return yield* service.checkExtractionHealth()
+    })
+    return frontendRuntime.runPromise(program)
+  }),
+
+  /**
+   * Create a confirmed expense directly, bypassing extraction.
+   * Used for iOS shortcuts and other external integrations.
+   * Accepts FormData with image file + expense details.
+   */
+  createDirect: publicProcedure.input(createDirectFormDataSchema).mutation(async ({ input }) => {
+    const program = Effect.gen(function* () {
+      const service = yield* ExpenseService
+      return yield* service.createDirect({
+        userName: input.userName,
+        merchant: input.merchant,
+        currency: input.currency,
+        amount: input.amount,
+        image: input.image,
+        expenseDate: input.expenseDate ? new Date(input.expenseDate) : undefined,
+      })
     })
     return frontendRuntime.runPromise(program)
   }),

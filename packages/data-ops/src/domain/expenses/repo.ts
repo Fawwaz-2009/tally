@@ -107,6 +107,24 @@ export class ExpenseRepo extends Effect.Service<ExpenseRepo>()('ExpenseRepo', {
         const results = yield* withDbTryPromise(db.select().from(expensesTable).where(eq(expensesTable.state, 'pending-review')).all())
         return results.length
       }),
+
+      /**
+       * Get unique merchants sorted by most recent expense date
+       */
+      getUniqueMerchants: Effect.fn('expenseRepo.getUniqueMerchants')(function* () {
+        const results = yield* withDbTryPromise(
+          db
+            .selectDistinct({ merchant: expensesTable.merchant })
+            .from(expensesTable)
+            .where(eq(expensesTable.state, 'confirmed'))
+            .orderBy(desc(expensesTable.expenseDate))
+            .all(),
+        )
+        // Filter out null/empty merchants and extract unique names
+        return results
+          .map((r) => r.merchant)
+          .filter((m): m is string => m !== null && m !== undefined && m.trim() !== '')
+      }),
     } as const
   }),
   accessors: true,
