@@ -27,6 +27,7 @@ jobs:
           PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
           SRC_ENVIRONMENT_NAME: production
           DEST_ENV_NAME: pr-${{ github.event.pull_request.number }}
+          branch_name: ${{ github.head_ref }}
 
       - name: Comment on PR
         uses: actions/github-script@v7
