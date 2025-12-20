@@ -20,6 +20,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Delete existing PR environment (if any)
+        continue-on-error: true
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          npm install -g @railway/cli
+          railway link ${{ secrets.RAILWAY_PROJECT_ID }}
+          railway environment delete pr-${{ github.event.pull_request.number }} --yes || echo "No existing environment to delete"
+          sleep 5
+
       - name: Deploy to Railway
         id: railway
         uses: Faolain/railway-pr-deploy@v2.0.4
