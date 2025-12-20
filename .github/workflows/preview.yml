@@ -26,8 +26,8 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           npm install -g @railway/cli
-          railway link ${{ secrets.RAILWAY_PROJECT_ID }}
-          railway environment delete pr-${{ github.event.pull_request.number }} --yes || echo "No existing environment to delete"
+          railway link -p ${{ secrets.RAILWAY_PROJECT_ID }}
+          railway environment delete pr-${{ github.event.pull_request.number }} --yes 2>&1 || echo "No existing environment to delete"
           sleep 5
 
       - name: Deploy to Railway
