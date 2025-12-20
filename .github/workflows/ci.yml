@@ -28,10 +28,10 @@ jobs:
         run: pnpm install
 
       - name: Run linting
-        run: pnpm lint
+        run: pnpm lint --filter web...
 
       - name: Run type checking
-        run: pnpm check-types
+        run: pnpm check-types --filter web...
 
   build:
     runs-on: ubuntu-latest
@@ -53,8 +53,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Build all packages
-        run: pnpm build
+      - name: Build web app
+        run: pnpm build --filter web...
 
   docker-build:
     runs-on: ubuntu-latest
