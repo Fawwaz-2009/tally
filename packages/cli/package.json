@@ -2,7 +2,6 @@
   "name": "@template/cli",
   "version": "0.0.0",
   "type": "module",
-  "packageManager": "pnpm@10.14.0",
   "license": "MIT",
   "description": "A basic Effect CLI application",
   "repository": {
@@ -49,8 +48,5 @@
     "tsx": "^4.19.1",
     "typescript": "^5.6.2",
     "vitest": "^3.2.0"
-  },
-  "pnpm": {
-    "patchedDependencies": {}
   }
 }
