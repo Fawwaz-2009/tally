@@ -6,7 +6,6 @@ export const env = createEnv({
     NODE_ENV: z.enum(['development', 'production', 'test']),
     DATABASE_PATH: z.string().min(1),
     BUCKET_STORAGE_PATH: z.string().min(1),
-    BASE_FRONTEND_URL: z.string().url(),
   },
 
   /**
@@ -17,7 +16,6 @@ export const env = createEnv({
 
   client: {
     VITE_APP_TITLE: z.string().min(1).optional(),
-    VITE_BASE_FRONTEND_URL: z.string().url().optional(),
   },
 
   /**
@@ -29,10 +27,8 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     DATABASE_PATH: process.env.DATABASE_PATH,
     BUCKET_STORAGE_PATH: process.env.BUCKET_STORAGE_PATH,
-    BASE_FRONTEND_URL: process.env.BASE_FRONTEND_URL,
     // Client variables (from import.meta.env)
     VITE_APP_TITLE: import.meta.env.VITE_APP_TITLE,
-    VITE_BASE_FRONTEND_URL: import.meta.env.VITE_BASE_FRONTEND_URL,
   },
 
   emptyStringAsUndefined: true,

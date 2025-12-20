@@ -19,7 +19,6 @@ initBucket(env.BUCKET_STORAGE_PATH)
 console.log('[Server] Initializing environment...')
 initFullEnv(env)
 initRuntimeEnvs({
-  BASE_FRONTEND_URL: env.BASE_FRONTEND_URL,
   NODE_ENV: env.NODE_ENV,
 })
 

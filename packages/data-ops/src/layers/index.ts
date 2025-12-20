@@ -250,7 +250,6 @@ export class BucketClient extends Effect.Service<BucketClient>()('BucketClient',
 }) {}
 
 export type RUNTIME_ENVS = {
-  BASE_FRONTEND_URL: string
   NODE_ENV: string
   // Telemetry (optional)
   ENABLE_TELEMETRY?: string
