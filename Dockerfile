@@ -28,6 +28,7 @@ RUN apt-get update && apt-get install -y \
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json ./apps/web/
 COPY packages/data-ops/package.json ./packages/data-ops/
+COPY packages/isomorphic/package.json ./packages/isomorphic/
 COPY packages/cli/package.json ./packages/cli/
 COPY packages/eslint-config/package.json ./packages/eslint-config/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
@@ -39,12 +40,12 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 # Copy source code
 COPY . .
 
-# Build the data-ops package first, then the web app
+# Build packages in dependency order: isomorphic -> data-ops -> web
 # Set NODE_ENV=production for correct JSX runtime and optimizations
 # Increase Node.js heap size for Vite/Rollup build
 ENV NODE_ENV=production
 ENV NODE_OPTIONS="--max-old-space-size=4096"
-RUN pnpm --filter @repo/data-ops build && pnpm --filter web build
+RUN pnpm --filter @repo/isomorphic build && pnpm --filter @repo/data-ops build && pnpm --filter web build
 
 
 # ============================================================================
