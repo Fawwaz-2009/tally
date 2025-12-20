@@ -5,6 +5,7 @@ import { type CreateExpenseInput, type UpdateExpenseInput } from './dto'
 import { CurrencyService } from '../currency'
 import { SettingsService } from '../settings'
 import { UserRepo } from '../users'
+import { MerchantService } from '../merchants'
 import { BucketClient } from '../../layers'
 import { UserNotFoundError } from '../../errors'
 
@@ -16,6 +17,7 @@ export class ExpenseService extends Effect.Service<ExpenseService>()('ExpenseSer
   effect: Effect.gen(function* () {
     const repo = yield* ExpenseRepo
     const userRepo = yield* UserRepo
+    const merchantService = yield* MerchantService
     const currencyService = yield* CurrencyService
     const settingsService = yield* SettingsService
     const bucket = yield* BucketClient
@@ -51,7 +53,7 @@ export class ExpenseService extends Effect.Service<ExpenseService>()('ExpenseSer
           // Normalize inputs
           const userName = input.userName.trim().toLowerCase()
           const currency = input.currency.trim().toUpperCase()
-          const merchant = input.merchant.trim()
+          const merchantName = input.merchantName.trim()
           const expenseDate = input.expenseDate ?? new Date()
 
           // Look up user by name (case-insensitive)
@@ -60,6 +62,9 @@ export class ExpenseService extends Effect.Service<ExpenseService>()('ExpenseSer
             return yield* Effect.fail(new UserNotFoundError({ userName }))
           }
           const userId = user.id
+
+          // Get or create merchant
+          const merchant = yield* merchantService.getOrCreate(merchantName)
 
           // Validate currency by trying to get its exponent
           // This will throw if the currency code is invalid
@@ -76,14 +81,13 @@ export class ExpenseService extends Effect.Service<ExpenseService>()('ExpenseSer
           const expense: Expense = {
             id: crypto.randomUUID(),
             userId,
+            merchantId: merchant.id,
             imageKey,
             amount: input.amount,
             currency,
             baseAmount,
             baseCurrency,
-            merchant,
             description: null,
-            categories: [],
             expenseDate,
             createdAt: now,
           }
@@ -96,11 +100,18 @@ export class ExpenseService extends Effect.Service<ExpenseService>()('ExpenseSer
        */
       update: (input: UpdateExpenseInput) =>
         Effect.gen(function* () {
-          const { id, ...data } = input
+          const { id, merchantName, ...data } = input
 
           const expense = yield* repo.getById(id)
           if (!expense) {
             return null
+          }
+
+          // Handle merchant change if provided
+          let merchantId = expense.merchantId
+          if (merchantName !== undefined && merchantName.trim() !== '') {
+            const merchant = yield* merchantService.getOrCreate(merchantName.trim())
+            merchantId = merchant.id
           }
 
           // Check if amount or currency changed - need to recalculate baseAmount
@@ -120,11 +131,10 @@ export class ExpenseService extends Effect.Service<ExpenseService>()('ExpenseSer
 
           const updated: Expense = {
             ...expense,
+            merchantId,
             amount: newAmount,
             currency: newCurrency,
-            merchant: data.merchant ?? expense.merchant,
             description: data.description !== undefined ? data.description : expense.description,
-            categories: data.categories ? [...data.categories] : expense.categories,
             expenseDate: data.expenseDate ?? expense.expenseDate,
             baseAmount,
             baseCurrency,
@@ -134,6 +144,6 @@ export class ExpenseService extends Effect.Service<ExpenseService>()('ExpenseSer
         }),
     } as const
   }),
-  dependencies: [ExpenseRepo.Default, UserRepo.Default, CurrencyService.Default, SettingsService.Default, BucketClient.Default],
+  dependencies: [ExpenseRepo.Default, UserRepo.Default, MerchantService.Default, CurrencyService.Default, SettingsService.Default, BucketClient.Default],
   accessors: true,
 }) {}

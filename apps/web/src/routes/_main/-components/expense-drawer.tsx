@@ -26,6 +26,7 @@ interface ExpenseDrawerProps {
 export function ExpenseDrawer({ open, onOpenChange, expense, baseCurrency, userName }: ExpenseDrawerProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const trpc = useTRPC()
   const queryClient = useQueryClient()
 
@@ -33,6 +34,7 @@ export function ExpenseDrawer({ open, onOpenChange, expense, baseCurrency, userN
   useEffect(() => {
     if (open && expense) {
       setIsEditing(false)
+      setError(null)
     }
   }, [open, expense])
 
@@ -40,7 +42,12 @@ export function ExpenseDrawer({ open, onOpenChange, expense, baseCurrency, userN
     ...trpc.expenses.update.mutationOptions(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: trpc.expenses.list.queryKey() })
+      queryClient.invalidateQueries({ queryKey: trpc.merchants.list.queryKey() })
       setIsEditing(false)
+      setError(null)
+    },
+    onError: (err) => {
+      setError(err.message || 'Failed to update expense')
     },
   })
 
@@ -56,12 +63,13 @@ export function ExpenseDrawer({ open, onOpenChange, expense, baseCurrency, userN
 
   const handleSave = (data: ExpenseFormData) => {
     if (!expense?.id) return
+    setError(null)
+
     updateMutation.mutate({
       id: expense.id,
       amount: data.amount,
       currency: data.currency,
-      merchant: data.merchant ?? undefined,
-      categories: data.categories ?? [],
+      merchantName: data.merchantName,
       expenseDate: data.expenseDate ? new Date(data.expenseDate) : undefined,
     })
   }
@@ -81,98 +89,110 @@ export function ExpenseDrawer({ open, onOpenChange, expense, baseCurrency, userN
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent className="bg-background border-border text-foreground max-h-[95vh] flex flex-col">
           <div className="mx-auto w-full max-w-sm flex-1 overflow-auto">
-            <ReceiptPreview imageUrl={screenshotUrl} merchantName={expense.merchant} />
-
-            <DrawerHeader className="text-left pt-6 relative z-10 -mt-8">
-              {isEditing ? (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-mono uppercase tracking-wider text-muted-foreground">Editing Expense</span>
+            {isEditing ? (
+              // Edit mode - full form
+              <div className="p-4 pt-6">
+                <div className="flex items-center justify-between mb-6">
+                  <span className="text-sm font-mono uppercase tracking-wider text-muted-foreground">
+                    Edit Expense
+                  </span>
                 </div>
-              ) : (
-                <>
-                  <DrawerTitle className="text-3xl font-bold tracking-tight uppercase break-words leading-none text-foreground">{expense.merchant}</DrawerTitle>
-                  <DrawerDescription className="text-muted-foreground font-mono mt-2">
-                    {format(new Date(expense.expenseDate), "EEEE, MMMM do, yyyy 'at' h:mm a")}
-                  </DrawerDescription>
-                </>
-              )}
-            </DrawerHeader>
 
-            <div className="p-4 space-y-6">
-              {isEditing ? (
                 <ExpenseForm
+                  mode="edit"
                   initialData={{
                     amount: expense.amount,
                     currency: expense.currency,
-                    merchant: expense.merchant,
-                    categories: expense.categories,
+                    merchantName: expense.merchantName,
+                    category: expense.category,
                     expenseDate: expense.expenseDate,
+                    imageUrl: screenshotUrl,
                   }}
                   onSubmit={handleSave}
+                  onCancel={() => setIsEditing(false)}
                   isSubmitting={updateMutation.isPending}
-                  submitLabel="Save Changes"
-                  showCategories
+                  error={error}
                 />
-              ) : (
-                <>
+              </div>
+            ) : (
+              // View mode
+              <>
+                <ReceiptPreview imageUrl={screenshotUrl} merchantName={expense.merchantName} />
+
+                <DrawerHeader className="text-left pt-6 relative z-10 -mt-8">
+                  <DrawerTitle className="text-3xl font-bold tracking-tight uppercase break-words leading-none text-foreground">
+                    {expense.merchantName}
+                  </DrawerTitle>
+                  <DrawerDescription className="text-muted-foreground font-mono mt-2">
+                    {format(new Date(expense.expenseDate), "EEEE, MMMM do, yyyy 'at' h:mm a")}
+                  </DrawerDescription>
+                </DrawerHeader>
+
+                <div className="p-4 space-y-6">
                   {/* Amount Section */}
                   <div className="border-b border-dashed border-border pb-6">
                     <AmountDisplay amount={expense.baseAmount} currency={baseCurrency} size="xl" />
                     {isDifferentCurrency && (
                       <div className="text-sm text-muted-foreground font-mono mt-2">
-                        <AmountDisplay amount={expense.amount} currency={expense.currency} size="sm" className="text-muted-foreground" />
+                        <AmountDisplay
+                          amount={expense.amount}
+                          currency={expense.currency}
+                          size="sm"
+                          className="text-muted-foreground"
+                        />
                       </div>
                     )}
                   </div>
 
                   {/* Status & Tags */}
                   <div className="space-y-4">
-                    {expense.categories.length > 0 && (
+                    {expense.category && (
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground uppercase tracking-wider font-mono">Category</span>
-                        <div className="flex gap-2 flex-wrap justify-end">
-                          {expense.categories.map((cat) => (
-                            <Badge key={cat} variant="secondary" className="bg-muted text-muted-foreground hover:bg-muted/80 font-mono uppercase text-[10px]">
-                              {cat}
-                            </Badge>
-                          ))}
-                        </div>
+                        <span className="text-sm text-muted-foreground uppercase tracking-wider font-mono">
+                          Category
+                        </span>
+                        <Badge
+                          variant="secondary"
+                          className="bg-muted text-muted-foreground hover:bg-muted/80 font-mono uppercase text-[10px]"
+                        >
+                          {expense.category}
+                        </Badge>
                       </div>
                     )}
 
                     {userName && (
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground uppercase tracking-wider font-mono">Paid By</span>
+                        <span className="text-sm text-muted-foreground uppercase tracking-wider font-mono">
+                          Paid By
+                        </span>
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-bold uppercase text-foreground">{userName}</span>
                         </div>
                       </div>
                     )}
                   </div>
-                </>
-              )}
 
-              {/* Actions */}
-              <div className="pt-4 space-y-3 pb-8">
-                {isEditing ? (
-                  <Button variant="outline" className="w-full rounded-xl h-12 font-bold uppercase tracking-wider" onClick={() => setIsEditing(false)}>
-                    Cancel
-                  </Button>
-                ) : (
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button
-                      className="bg-foreground text-background hover:bg-foreground/90 rounded-xl h-12 font-bold uppercase tracking-wider"
-                      onClick={() => setIsEditing(true)}
-                    >
-                      <Pencil className="mr-2 h-3 w-3" /> Edit
-                    </Button>
-                    <Button variant="destructive" className="rounded-xl h-12 font-bold uppercase tracking-wider" onClick={() => setDeleteDialogOpen(true)}>
-                      <Trash2 className="mr-2 h-3 w-3" /> Delete
-                    </Button>
+                  {/* Actions */}
+                  <div className="pt-4 space-y-3 pb-8">
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button
+                        className="bg-foreground text-background hover:bg-foreground/90 rounded-xl h-12 font-bold uppercase tracking-wider"
+                        onClick={() => setIsEditing(true)}
+                      >
+                        <Pencil className="mr-2 h-3 w-3" /> Edit
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        className="rounded-xl h-12 font-bold uppercase tracking-wider"
+                        onClick={() => setDeleteDialogOpen(true)}
+                      >
+                        <Trash2 className="mr-2 h-3 w-3" /> Delete
+                      </Button>
+                    </div>
                   </div>
-                )}
-              </div>
-            </div>
+                </div>
+              </>
+            )}
           </div>
         </DrawerContent>
       </Drawer>

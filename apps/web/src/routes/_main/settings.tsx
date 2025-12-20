@@ -1,12 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Check, Copy, Download, ExternalLink, FileJson, FileSpreadsheet, Monitor, Moon, Plus, Sun, Tag, Users } from 'lucide-react'
-import { allocateEvenly, format, toDisplayAmount } from '@repo/isomorphic/money'
-import type { Expense } from '@repo/data-ops/schemas'
+import { Check, Copy, Download, ExternalLink, FileJson, FileSpreadsheet, Monitor, Moon, Plus, Store, Sun, Users } from 'lucide-react'
+import { toDisplayAmount } from '@repo/isomorphic/money'
 
 import { useTRPC } from '@/integrations/trpc-react'
 import { useTheme } from '@/components/theme-provider'
@@ -255,8 +254,8 @@ function Settings() {
         {/* Shortcut Setup Instructions */}
         {selectedUserId && <ShortcutInstructions userId={selectedUserId} />}
 
-        {/* Categories Section */}
-        <CategoriesSection />
+        {/* Merchants Section */}
+        <MerchantsSection />
 
         {/* Export Section */}
         <ExportSection />
@@ -390,176 +389,139 @@ function ShortcutInstructions({ userId }: ShortcutInstructionsProps) {
   )
 }
 
-interface CategoryStats {
-  category: string
-  count: number
-  totalAmount: number
-}
-
-function CategoriesSection() {
+function MerchantsSection() {
   const trpc = useTRPC()
   const queryClient = useQueryClient()
-  const expensesQuery = useQuery(trpc.expenses.list.queryOptions())
-  const baseCurrencyQuery = useQuery(trpc.settings.getBaseCurrency.queryOptions())
+  const merchantsQuery = useQuery(trpc.merchants.list.queryOptions())
 
-  const [renameDialogOpen, setRenameDialogOpen] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-  const [newCategoryName, setNewCategoryName] = useState('')
-  const [isRenaming, setIsRenaming] = useState(false)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [selectedMerchant, setSelectedMerchant] = useState<{ id: string; displayName: string; category: string | null } | null>(null)
+  const [newCategory, setNewCategory] = useState('')
+  const [isUpdating, setIsUpdating] = useState(false)
 
-  const updateExpense = useMutation(
-    trpc.expenses.update.mutationOptions({
+  const updateCategory = useMutation(
+    trpc.merchants.updateCategory.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: trpc.expenses.list.queryKey(),
-        })
+        queryClient.invalidateQueries({ queryKey: trpc.merchants.list.queryKey() })
+        queryClient.invalidateQueries({ queryKey: trpc.expenses.list.queryKey() })
       },
     }),
   )
 
-  // Extract and count categories from expenses with totals
-  const categoryStats: CategoryStats[] = useMemo(() => {
-    if (!expensesQuery.data) return []
-
-    const statsMap = new Map<string, { count: number; totalAmount: number }>()
-
-    for (const expense of expensesQuery.data) {
-      // expense is already ConfirmedExpense from list() query
-      const amount = expense.baseAmount
-      if (expense.categories.length > 0) {
-        // Distribute amount equally across categories using allocateEvenly
-        // This preserves the total (no lost cents from rounding)
-        const allocations = allocateEvenly(amount, expense.categories.length)
-
-        expense.categories.forEach((category, index) => {
-          const normalized = category.trim()
-          if (normalized) {
-            const existing = statsMap.get(normalized) || {
-              count: 0,
-              totalAmount: 0,
-            }
-            statsMap.set(normalized, {
-              count: existing.count + 1,
-              totalAmount: existing.totalAmount + allocations[index],
-            })
-          }
-        })
-      }
-    }
-
-    // Convert to array and sort by total amount (descending)
-    return Array.from(statsMap.entries())
-      .map(([category, stats]) => ({
-        category,
-        count: stats.count,
-        totalAmount: Math.round(stats.totalAmount),
-      }))
-      .sort((a, b) => b.totalAmount - a.totalAmount)
-  }, [expensesQuery.data])
-
-  const baseCurrency = baseCurrencyQuery.data ?? 'USD'
-
-  // Use the centralized format function for currency-aware formatting
-  const formatCategoryAmount = (amountInSmallestUnit: number): string => {
-    return format(amountInSmallestUnit, baseCurrency)
-  }
-
-  const handleRenameClick = (category: string, e: React.MouseEvent) => {
+  const handleEditClick = (merchant: { id: string; displayName: string; category: string | null }, e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    setSelectedCategory(category)
-    setNewCategoryName(category)
-    setRenameDialogOpen(true)
+    setSelectedMerchant(merchant)
+    setNewCategory(merchant.category || '')
+    setEditDialogOpen(true)
   }
 
-  const handleRename = async () => {
-    if (!selectedCategory || !newCategoryName.trim() || !expensesQuery.data) return
-    if (newCategoryName.trim() === selectedCategory) {
-      setRenameDialogOpen(false)
-      return
-    }
+  const handleSave = async () => {
+    if (!selectedMerchant) return
 
-    setIsRenaming(true)
+    setIsUpdating(true)
     try {
-      // Find all expenses with this category and update them
-      const expensesToUpdate = expensesQuery.data.filter((e) => e.categories.includes(selectedCategory))
-
-      for (const expense of expensesToUpdate) {
-        if (!expense.id) continue
-        const newCategories = expense.categories.map((c) => (c === selectedCategory ? newCategoryName.trim() : c))
-        await updateExpense.mutateAsync({
-          id: expense.id,
-          categories: newCategories,
-        })
-      }
-
-      setRenameDialogOpen(false)
-      setSelectedCategory(null)
-      setNewCategoryName('')
+      await updateCategory.mutateAsync({
+        id: selectedMerchant.id,
+        category: newCategory.trim() || null,
+      })
+      setEditDialogOpen(false)
+      setSelectedMerchant(null)
+      setNewCategory('')
     } finally {
-      setIsRenaming(false)
+      setIsUpdating(false)
     }
   }
+
+  // Group merchants: uncategorized first, then by category
+  const uncategorized = merchantsQuery.data?.filter((m) => !m.category) || []
+  const categorized = merchantsQuery.data?.filter((m) => m.category) || []
 
   return (
     <>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Tag className="w-5 h-5" />
-            Categories
+            <Store className="w-5 h-5" />
+            Merchants
           </CardTitle>
-          <CardDescription>Tap a category to filter expenses. Click rename to merge similar categories.</CardDescription>
+          <CardDescription>Assign categories to merchants. Categories are inherited by all expenses from that merchant.</CardDescription>
         </CardHeader>
         <CardContent>
-          {expensesQuery.isLoading ? (
-            <div className="text-muted-foreground">Loading categories...</div>
-          ) : categoryStats.length > 0 ? (
-            <div className="space-y-2">
-              {categoryStats.map(({ category, count, totalAmount }) => (
-                <div key={category} className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors group">
-                  <a href={`/?dateRange=all-time&category=${encodeURIComponent(category)}`} className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{category}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {count} expense{count !== 1 ? 's' : ''} · {formatCategoryAmount(totalAmount)}
+          {merchantsQuery.isLoading ? (
+            <div className="text-muted-foreground">Loading merchants...</div>
+          ) : merchantsQuery.data && merchantsQuery.data.length > 0 ? (
+            <div className="space-y-4">
+              {/* Uncategorized merchants (highlighted) */}
+              {uncategorized.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-sm font-medium text-amber-600">Uncategorized ({uncategorized.length})</div>
+                  {uncategorized.map((merchant) => (
+                    <div
+                      key={merchant.id}
+                      className="flex items-center justify-between p-3 rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-950/30 transition-colors group"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate">{merchant.displayName}</div>
+                        <div className="text-sm text-muted-foreground">{merchant.expenseCount} expense{merchant.expenseCount !== 1 ? 's' : ''}</div>
+                      </div>
+                      <Button variant="outline" size="sm" onClick={(e) => handleEditClick(merchant, e)}>
+                        Set Category
+                      </Button>
                     </div>
-                  </a>
-                  <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => handleRenameClick(category, e)}>
-                    Rename
-                  </Button>
+                  ))}
                 </div>
-              ))}
+              )}
+
+              {/* Categorized merchants */}
+              {categorized.length > 0 && (
+                <div className="space-y-2">
+                  {uncategorized.length > 0 && <div className="text-sm font-medium text-muted-foreground">Categorized ({categorized.length})</div>}
+                  {categorized.map((merchant) => (
+                    <div key={merchant.id} className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors group">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate">{merchant.displayName}</div>
+                        <div className="text-sm text-muted-foreground flex items-center gap-2">
+                          <span className="px-2 py-0.5 bg-secondary rounded text-xs">{merchant.category}</span>
+                          <span>· {merchant.expenseCount} expense{merchant.expenseCount !== 1 ? 's' : ''}</span>
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => handleEditClick(merchant, e)}>
+                        Edit
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-6 text-muted-foreground">
-              <Tag className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>No categories yet</p>
-              <p className="text-sm">Categories will appear here once you add expenses</p>
+              <Store className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p>No merchants yet</p>
+              <p className="text-sm">Merchants will appear here once you add expenses</p>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Rename Dialog */}
-      <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+      {/* Edit Category Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rename Category</DialogTitle>
-            <DialogDescription>Rename "{selectedCategory}" across all expenses. Use this to merge similar categories (e.g., "Food" and "food").</DialogDescription>
+            <DialogTitle>Set Category for {selectedMerchant?.displayName}</DialogTitle>
+            <DialogDescription>Assign a category to this merchant. All expenses from this merchant will inherit this category.</DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <label className="text-sm font-medium mb-2 block">New Category Name</label>
-            <Input value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} placeholder="Enter new name" autoFocus />
-            {categoryStats.some((c) => c.category.toLowerCase() === newCategoryName.toLowerCase() && c.category !== selectedCategory) && (
-              <p className="text-sm text-amber-600 mt-2">This will merge with the existing "{newCategoryName}" category</p>
-            )}
+            <label className="text-sm font-medium mb-2 block">Category</label>
+            <Input value={newCategory} onChange={(e) => setNewCategory(e.target.value)} placeholder="e.g., Food, Transport, Shopping" autoFocus />
+            <p className="text-xs text-muted-foreground mt-2">Leave blank to remove the category</p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRenameDialogOpen(false)} disabled={isRenaming}>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)} disabled={isUpdating}>
               Cancel
             </Button>
-            <Button onClick={handleRename} disabled={isRenaming || !newCategoryName.trim()}>
-              {isRenaming ? 'Renaming...' : 'Rename'}
+            <Button onClick={handleSave} disabled={isUpdating}>
+              {isUpdating ? 'Saving...' : 'Save'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -567,9 +529,6 @@ function CategoriesSection() {
     </>
   )
 }
-
-// Local type alias for export functions
-type ExportExpense = Expense
 
 function ExportSection() {
   const trpc = useTRPC()
@@ -596,14 +555,14 @@ function ExportSection() {
     return user?.name || userId
   }
 
-  const generateCSV = (expenses: ExportExpense[]): string => {
-    const headers = ['Date', 'Amount', 'Currency', 'Merchant', 'Categories', 'User']
+  const generateCSV = (expenses: NonNullable<typeof expensesQuery.data>): string => {
+    const headers = ['Date', 'Amount', 'Currency', 'Merchant', 'Category', 'User']
     const rows = expenses.map((expense) => [
       formatDate(expense.expenseDate),
       formatExportAmount(expense.amount, expense.currency),
       expense.currency,
-      expense.merchant,
-      expense.categories.join('; '),
+      expense.merchantName,
+      expense.category || '',
       getUserName(expense.userId),
     ])
 
@@ -619,14 +578,14 @@ function ExportSection() {
     return csvContent
   }
 
-  const generateJSON = (expenses: ExportExpense[]): string => {
+  const generateJSON = (expenses: NonNullable<typeof expensesQuery.data>): string => {
     const exportData = expenses.map((expense) => ({
       date: formatDate(expense.expenseDate),
       // Use currency-aware conversion for proper decimal places
       amount: toDisplayAmount(expense.amount, expense.currency),
       currency: expense.currency,
-      merchant: expense.merchant,
-      categories: expense.categories,
+      merchant: expense.merchantName,
+      category: expense.category,
       user: getUserName(expense.userId),
       userId: expense.userId,
     }))
@@ -720,7 +679,7 @@ function ExportSection() {
 
         <div className="text-xs text-muted-foreground border-t pt-4">
           <p className="font-medium mb-1">Exported fields:</p>
-          <p>Date, Amount, Currency, Merchant, Categories, User, Status</p>
+          <p>Date, Amount, Currency, Merchant, Category, User</p>
         </div>
       </CardContent>
     </Card>

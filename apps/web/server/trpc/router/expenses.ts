@@ -2,7 +2,7 @@ import { Effect, Schema } from 'effect'
 import { zfd } from 'zod-form-data'
 
 import { frontendRuntime } from '@repo/data-ops/runtimes'
-import { ExpenseRepo, ExpenseService, UpdateExpensePayload, UserRepo } from '@repo/data-ops/domain'
+import { ExpenseRepo, ExpenseService, MerchantRepo, UpdateExpensePayload, UserRepo } from '@repo/data-ops/domain'
 import { publicProcedure } from '../init'
 import type { TRPCRouterRecord } from '@trpc/server'
 
@@ -10,7 +10,7 @@ import type { TRPCRouterRecord } from '@trpc/server'
 const createFormDataSchema = zfd.formData({
   image: zfd.file(),
   userName: zfd.text(),
-  merchant: zfd.text(),
+  merchantName: zfd.text(),
   currency: zfd.text(),
   amount: zfd.numeric(),
   expenseDate: zfd.text().optional(), // ISO date string, optional
@@ -22,17 +22,17 @@ export const expensesRouter = {
   // ==========================================================================
 
   /**
-   * List all expenses (ordered by expense date, most recent first).
+   * List all expenses with merchant info (ordered by expense date, most recent first).
    */
   list: publicProcedure.query(async () => {
-    return frontendRuntime.runPromise(ExpenseRepo.getAll())
+    return frontendRuntime.runPromise(ExpenseRepo.getAllWithMerchants())
   }),
 
   /**
-   * Get expense by ID.
+   * Get expense by ID with merchant info.
    */
   getById: publicProcedure.input(Schema.decodeUnknownSync(Schema.Struct({ id: Schema.String }))).query(async ({ input }) => {
-    return frontendRuntime.runPromise(ExpenseRepo.getById(input.id))
+    return frontendRuntime.runPromise(ExpenseRepo.getByIdWithMerchant(input.id))
   }),
 
   /**
@@ -43,18 +43,20 @@ export const expensesRouter = {
   }),
 
   /**
-   * Get unique merchants sorted by most recent expense date.
-   */
-  getUniqueMerchants: publicProcedure.query(async () => {
-    return frontendRuntime.runPromise(ExpenseRepo.getUniqueMerchants())
-  }),
-
-  /**
    * Get all user names for iOS shortcut.
    */
   getUsers: publicProcedure.query(async () => {
     const users = await frontendRuntime.runPromise(UserRepo.getAll())
     return users.map((u) => u.name)
+  }),
+
+  /**
+   * Get unique merchants for iOS shortcut (deprecated, use merchants.list instead).
+   * Returns merchant display names for backward compatibility.
+   */
+  getUniqueMerchants: publicProcedure.query(async () => {
+    const merchants = await frontendRuntime.runPromise(MerchantRepo.getAllByRecentUsage())
+    return merchants.map((m) => m.displayName)
   }),
 
   // ==========================================================================
@@ -70,7 +72,7 @@ export const expensesRouter = {
       const service = yield* ExpenseService
       return yield* service.create({
         userName: input.userName,
-        merchant: input.merchant,
+        merchantName: input.merchantName,
         currency: input.currency,
         amount: input.amount,
         image: input.image,

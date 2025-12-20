@@ -19,6 +19,19 @@ export const settingsTable = sqliteTable('settings', {
     .notNull(),
 })
 
+// Tally: Merchants table
+export const merchantsTable = sqliteTable('merchants', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text('name').notNull().unique(), // Normalized (lowercase) for lookups
+  displayName: text('display_name').notNull(), // Original casing for display
+  category: text('category'), // Nullable - assigned via settings
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .$defaultFn(() => new Date())
+    .notNull(),
+})
+
 // Tally: Expenses table (simplified - no state machine)
 export const expensesTable = sqliteTable('expenses', {
   id: text('id')
@@ -27,6 +40,9 @@ export const expensesTable = sqliteTable('expenses', {
   userId: text('user_id')
     .notNull()
     .references(() => usersTable.id),
+  merchantId: text('merchant_id')
+    .notNull()
+    .references(() => merchantsTable.id),
 
   // Receipt image (required)
   imageKey: text('image_key').notNull(),
@@ -36,11 +52,9 @@ export const expensesTable = sqliteTable('expenses', {
   currency: text('currency').notNull(), // e.g., "USD", "EUR"
   baseAmount: integer('base_amount').notNull(), // Converted to base currency
   baseCurrency: text('base_currency').notNull(),
-  merchant: text('merchant').notNull(),
 
   // Optional fields
   description: text('description'),
-  categories: text('categories', { mode: 'json' }).$type<string[]>(),
   expenseDate: integer('expense_date', { mode: 'timestamp' }).notNull(),
 
   // Timestamps
@@ -54,9 +68,17 @@ export const usersRelations = relations(usersTable, ({ many }) => ({
   expenses: many(expensesTable),
 }))
 
+export const merchantsRelations = relations(merchantsTable, ({ many }) => ({
+  expenses: many(expensesTable),
+}))
+
 export const expensesRelations = relations(expensesTable, ({ one }) => ({
   user: one(usersTable, {
     fields: [expensesTable.userId],
     references: [usersTable.id],
+  }),
+  merchant: one(merchantsTable, {
+    fields: [expensesTable.merchantId],
+    references: [merchantsTable.id],
   }),
 }))

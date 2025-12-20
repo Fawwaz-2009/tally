@@ -15,7 +15,7 @@ import { ExpenseSchema } from './schema'
  */
 export interface CreateExpenseInput {
   userName: string // Will be trimmed and lowercased to match user ID
-  merchant: string
+  merchantName: string // Display name, will be normalized for lookup/creation
   currency: string // Will be trimmed and uppercased (e.g., "USD", "IDR")
   amount: number // Amount in smallest unit (cents)
   image: File
@@ -29,8 +29,16 @@ export interface CreateExpenseInput {
 /**
  * Payload for updating an existing expense.
  * Picks editable fields from ExpenseSchema, makes them partial, + requires id.
+ * merchantName is optional - if provided, will create/link to merchant.
  */
-export const UpdateExpensePayload = ExpenseSchema.pick('amount', 'currency', 'merchant', 'description', 'categories', 'expenseDate')
+export const UpdateExpensePayload = ExpenseSchema.pick('amount', 'currency', 'description', 'expenseDate')
   .pipe(Schema.partial)
-  .pipe(Schema.extend(Schema.Struct({ id: Schema.String })))
+  .pipe(
+    Schema.extend(
+      Schema.Struct({
+        id: Schema.String,
+        merchantName: Schema.optional(Schema.String),
+      }),
+    ),
+  )
 export type UpdateExpenseInput = Schema.Schema.Type<typeof UpdateExpensePayload>

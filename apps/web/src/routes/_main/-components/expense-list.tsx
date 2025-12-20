@@ -1,12 +1,11 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { AnimatePresence } from 'motion/react'
 
-import { ExpenseCard  } from './expense-card'
+import { ExpenseCard } from './expense-card'
 import { ExpenseDrawer } from './expense-drawer'
-import type {ExpenseCardData} from './expense-card';
+import type { ExpenseCardData } from './expense-card'
 import { Button } from '@/components/ui/button'
 import { EmptyState, ErrorState, LoadingState } from '@/components/expense/states'
-
 
 interface User {
   id: string
@@ -25,11 +24,17 @@ interface ExpenseListProps {
 }
 
 export function ExpenseList({ expenses, baseCurrency, users, isLoading, isError, errorMessage, hasActiveFilters, onClearFilters }: ExpenseListProps) {
-  const [selectedExpense, setSelectedExpense] = useState<ExpenseCardData | null>(null)
+  const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
 
+  // Derive selectedExpense from fresh expenses data
+  const selectedExpense = useMemo(() => {
+    if (!selectedExpenseId) return null
+    return expenses.find((e) => e.id === selectedExpenseId) ?? null
+  }, [expenses, selectedExpenseId])
+
   const handleExpenseClick = (expense: ExpenseCardData) => {
-    setSelectedExpense(expense)
+    setSelectedExpenseId(expense.id)
     setDrawerOpen(true)
   }
 

@@ -1,6 +1,16 @@
 import { Layer } from 'effect'
 import { BucketClient, DbClient, RuntimeEnvs } from '../layers'
-import { UserRepo, UserService, SettingsRepo, SettingsService, ExpenseRepo, ExpenseService, CurrencyService } from '../domain'
+import {
+  UserRepo,
+  UserService,
+  SettingsRepo,
+  SettingsService,
+  ExpenseRepo,
+  ExpenseService,
+  CurrencyService,
+  MerchantRepo,
+  MerchantService,
+} from '../domain'
 
 /**
  * Base layer containing all core services for the application.
@@ -17,4 +27,6 @@ export const BaseLayer = Layer.mergeAll(
   ExpenseRepo.Default,
   ExpenseService.Default,
   CurrencyService.Default,
+  MerchantRepo.Default,
+  MerchantService.Default,
 )

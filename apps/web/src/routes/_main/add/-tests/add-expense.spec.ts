@@ -10,6 +10,19 @@ test.beforeEach(async () => {
   await resetTestDatabase()
 })
 
+// Helper to fill merchant using the MerchantPicker component
+async function fillMerchant(page: import('@playwright/test').Page, merchantName: string) {
+  // Click the merchant picker button (find by text content)
+  await page.getByRole('combobox').filter({ hasText: /select merchant/i }).click()
+
+  // Type the merchant name in the search input
+  await page.getByPlaceholder('Search or add merchant...').fill(merchantName)
+
+  // Click "Add [merchantName]" - could be a button or option depending on state
+  const addText = `Add "${merchantName}"`
+  await page.locator(`text=${addText}`).first().click()
+}
+
 test.describe('Add Expense Flow', () => {
   test('shows add expense form with all required fields', async ({ page }) => {
     await page.goto('/add')
@@ -20,7 +33,7 @@ test.describe('Add Expense Flow', () => {
     // Check that all form fields are present
     await expect(page.getByText('Receipt Image')).toBeVisible()
     await expect(page.getByText('Upload Receipt')).toBeVisible()
-    await expect(page.getByLabel('Merchant')).toBeVisible()
+    await expect(page.getByRole('combobox').filter({ hasText: /select merchant/i })).toBeVisible()
     await expect(page.getByLabel('Amount')).toBeVisible()
     await expect(page.getByText('Currency')).toBeVisible()
     await expect(page.getByText('Transaction Date')).toBeVisible()
@@ -30,8 +43,8 @@ test.describe('Add Expense Flow', () => {
   test('shows validation error when submitting without image', async ({ page }) => {
     await page.goto('/add')
 
-    // Fill in other fields
-    await page.getByLabel('Merchant').fill('Test Store')
+    // Fill in other fields using merchant picker
+    await fillMerchant(page, 'Test Store')
     await page.getByLabel('Amount').fill('25.99')
 
     // Submit without image
@@ -49,7 +62,7 @@ test.describe('Add Expense Flow', () => {
     await page.locator('input[type="file"]').setInputFiles(testImagePath)
 
     // Fill in other fields but not amount
-    await page.getByLabel('Merchant').fill('Test Store')
+    await fillMerchant(page, 'Test Store')
 
     // Submit without amount
     await page.getByRole('button', { name: /save expense/i }).click()
@@ -89,7 +102,7 @@ test.describe('Add Expense Flow', () => {
     await expect(page.locator('img[alt="Receipt preview"]')).toBeVisible()
 
     // Fill in all required fields
-    await page.getByLabel('Merchant').fill('Coffee Shop')
+    await fillMerchant(page, 'Coffee Shop')
     await page.getByLabel('Amount').fill('5.50')
 
     // Submit the form
@@ -121,7 +134,7 @@ test.describe('Add Expense Flow', () => {
     // Create first expense
     const testImagePath = path.join(__dirname, 'test-receipt.png')
     await page.locator('input[type="file"]').setInputFiles(testImagePath)
-    await page.getByLabel('Merchant').fill('Coffee Shop')
+    await fillMerchant(page, 'Coffee Shop')
     await page.getByLabel('Amount').fill('5.50')
     await page.getByRole('button', { name: /save expense/i }).click()
 
@@ -133,7 +146,8 @@ test.describe('Add Expense Flow', () => {
 
     // Should be back to form
     await expect(page.getByRole('heading', { name: 'Add Expense' })).toBeVisible()
-    await expect(page.getByLabel('Merchant')).toHaveValue('')
+    // Merchant picker should show placeholder
+    await expect(page.getByRole('combobox').filter({ hasText: /select merchant/i })).toBeVisible()
     await expect(page.getByLabel('Amount')).toHaveValue('')
   })
 
@@ -143,7 +157,7 @@ test.describe('Add Expense Flow', () => {
     // Create expense
     const testImagePath = path.join(__dirname, 'test-receipt.png')
     await page.locator('input[type="file"]').setInputFiles(testImagePath)
-    await page.getByLabel('Merchant').fill('Coffee Shop')
+    await fillMerchant(page, 'Coffee Shop')
     await page.getByLabel('Amount').fill('5.50')
     await page.getByRole('button', { name: /save expense/i }).click()
 
@@ -169,7 +183,7 @@ test.describe('Add Expense Flow', () => {
     await expect(page.locator('img[alt="Receipt preview"]')).toBeVisible()
 
     // Click remove button
-    await page.getByRole('button', { name: '' }).filter({ has: page.locator('svg') }).first().click()
+    await page.getByRole('button', { name: 'Remove image' }).click()
 
     // Should show upload prompt again
     await expect(page.getByText('Upload Receipt')).toBeVisible()

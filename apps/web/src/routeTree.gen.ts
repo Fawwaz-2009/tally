@@ -15,7 +15,6 @@ import { Route as MainIndexRouteImport } from './routes/_main/index'
 import { Route as MainSettingsRouteImport } from './routes/_main/settings'
 import { Route as MainAnalysisIndexRouteImport } from './routes/_main/analysis/index'
 import { Route as MainAddIndexRouteImport } from './routes/_main/add/index'
-import { Route as MainExpensesIdRouteImport } from './routes/_main/expenses/$id'
 
 const MainRouteRoute = MainRouteRouteImport.update({
   id: '/_main',
@@ -46,17 +45,11 @@ const MainAddIndexRoute = MainAddIndexRouteImport.update({
   path: '/add/',
   getParentRoute: () => MainRouteRoute,
 } as any)
-const MainExpensesIdRoute = MainExpensesIdRouteImport.update({
-  id: '/expenses/$id',
-  path: '/expenses/$id',
-  getParentRoute: () => MainRouteRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/settings': typeof MainSettingsRoute
   '/': typeof MainIndexRoute
   '/setup': typeof SetupIndexRoute
-  '/expenses/$id': typeof MainExpensesIdRoute
   '/add': typeof MainAddIndexRoute
   '/analysis': typeof MainAnalysisIndexRoute
 }
@@ -64,7 +57,6 @@ export interface FileRoutesByTo {
   '/settings': typeof MainSettingsRoute
   '/': typeof MainIndexRoute
   '/setup': typeof SetupIndexRoute
-  '/expenses/$id': typeof MainExpensesIdRoute
   '/add': typeof MainAddIndexRoute
   '/analysis': typeof MainAnalysisIndexRoute
 }
@@ -74,28 +66,20 @@ export interface FileRoutesById {
   '/_main/settings': typeof MainSettingsRoute
   '/_main/': typeof MainIndexRoute
   '/setup/': typeof SetupIndexRoute
-  '/_main/expenses/$id': typeof MainExpensesIdRoute
   '/_main/add/': typeof MainAddIndexRoute
   '/_main/analysis/': typeof MainAnalysisIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/settings'
-    | '/'
-    | '/setup'
-    | '/expenses/$id'
-    | '/add'
-    | '/analysis'
+  fullPaths: '/settings' | '/' | '/setup' | '/add' | '/analysis'
   fileRoutesByTo: FileRoutesByTo
-  to: '/settings' | '/' | '/setup' | '/expenses/$id' | '/add' | '/analysis'
+  to: '/settings' | '/' | '/setup' | '/add' | '/analysis'
   id:
     | '__root__'
     | '/_main'
     | '/_main/settings'
     | '/_main/'
     | '/setup/'
-    | '/_main/expenses/$id'
     | '/_main/add/'
     | '/_main/analysis/'
   fileRoutesById: FileRoutesById
@@ -149,20 +133,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainAddIndexRouteImport
       parentRoute: typeof MainRouteRoute
     }
-    '/_main/expenses/$id': {
-      id: '/_main/expenses/$id'
-      path: '/expenses/$id'
-      fullPath: '/expenses/$id'
-      preLoaderRoute: typeof MainExpensesIdRouteImport
-      parentRoute: typeof MainRouteRoute
-    }
   }
 }
 
 interface MainRouteRouteChildren {
   MainSettingsRoute: typeof MainSettingsRoute
   MainIndexRoute: typeof MainIndexRoute
-  MainExpensesIdRoute: typeof MainExpensesIdRoute
   MainAddIndexRoute: typeof MainAddIndexRoute
   MainAnalysisIndexRoute: typeof MainAnalysisIndexRoute
 }
@@ -170,7 +146,6 @@ interface MainRouteRouteChildren {
 const MainRouteRouteChildren: MainRouteRouteChildren = {
   MainSettingsRoute: MainSettingsRoute,
   MainIndexRoute: MainIndexRoute,
-  MainExpensesIdRoute: MainExpensesIdRoute,
   MainAddIndexRoute: MainAddIndexRoute,
   MainAnalysisIndexRoute: MainAnalysisIndexRoute,
 }

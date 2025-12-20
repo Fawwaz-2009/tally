@@ -1,10 +1,24 @@
 import { format } from 'date-fns'
 import { motion } from 'motion/react'
 
-import type { Expense } from '@repo/data-ops/schemas'
 import { AmountDisplay } from '@/components/expense/amount-display'
 
-export type ExpenseCardData = Expense
+// Expense data from list() query (includes merchant info)
+export interface ExpenseCardData {
+  id: string
+  userId: string
+  merchantId: string
+  imageKey: string
+  amount: number
+  currency: string
+  baseAmount: number
+  baseCurrency: string
+  description: string | null
+  expenseDate: Date
+  createdAt: Date
+  merchantName: string
+  category: string | null
+}
 
 interface ExpenseCardProps {
   expense: ExpenseCardData
@@ -50,7 +64,7 @@ export function ExpenseCard({ expense, baseCurrency, onClick, index = 0, userNam
             </span>
           </div>
 
-          <h3 className="text-lg font-bold leading-tight tracking-tight uppercase line-clamp-1">{expense.merchant}</h3>
+          <h3 className="text-lg font-bold leading-tight tracking-tight uppercase line-clamp-1">{expense.merchantName}</h3>
 
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             {userName && (
@@ -59,12 +73,11 @@ export function ExpenseCard({ expense, baseCurrency, onClick, index = 0, userNam
               </div>
             )}
 
-            {expense.categories.slice(0, 2).map((cat) => (
-              <span key={cat} className="text-[10px] font-mono text-muted-foreground uppercase">
-                #{cat}
+            {expense.category && (
+              <span className="text-[10px] font-mono text-muted-foreground uppercase">
+                #{expense.category}
               </span>
-            ))}
-            {expense.categories.length > 2 && <span className="text-[10px] font-mono text-muted-foreground">+{expense.categories.length - 2}</span>}
+            )}
           </div>
         </div>
 

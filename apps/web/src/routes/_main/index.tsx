@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { useMemo } from 'react'
 
 import { ExpenseList, FilterBar, OverviewHeader } from './-components'
-import type { Expense } from '@repo/data-ops/schemas'
+import type { ExpenseCardData } from './-components/expense-card'
 import type { DateRange } from '@/lib/date-utils'
 import { useTRPC } from '@/integrations/trpc-react'
 import { getDateRangeBounds } from '@/lib/date-utils'
@@ -59,7 +59,7 @@ function Dashboard() {
     })
   }
 
-  const filteredExpenses = useMemo((): Expense[] => {
+  const filteredExpenses = useMemo((): ExpenseCardData[] => {
     if (!expensesQuery.data) return []
 
     let result = [...expensesQuery.data]
@@ -77,14 +77,14 @@ function Dashboard() {
     }
 
     if (filters.category) {
-      result = result.filter((expense) => expense.categories.includes(filters.category!))
+      result = result.filter((expense) => expense.category === filters.category)
     }
 
     if (filters.search) {
       const searchLower = filters.search.toLowerCase()
       result = result.filter((expense) => {
-        const merchantMatch = expense.merchant?.toLowerCase().includes(searchLower)
-        const categoryMatch = expense.categories.some((cat) => cat.toLowerCase().includes(searchLower))
+        const merchantMatch = expense.merchantName?.toLowerCase().includes(searchLower)
+        const categoryMatch = expense.category?.toLowerCase().includes(searchLower)
         return merchantMatch || categoryMatch
       })
     }

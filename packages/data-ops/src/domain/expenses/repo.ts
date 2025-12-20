@@ -1,6 +1,6 @@
 import { Effect } from 'effect'
 import { eq, desc } from 'drizzle-orm'
-import { expensesTable } from '../../db'
+import { expensesTable, merchantsTable } from '../../db'
 import { DbClient } from '../../layers'
 import { type Expense } from './schema'
 import { fromRow, toRow } from './utils'
@@ -49,11 +49,69 @@ export class ExpenseRepo extends Effect.Service<ExpenseRepo>()('ExpenseRepo', {
       }),
 
       /**
+       * Get expense by ID with merchant info (for display)
+       */
+      getByIdWithMerchant: Effect.fn('expenseRepo.getByIdWithMerchant')(function* (id: string) {
+        const result = yield* withDbTryPromise(
+          db
+            .select({
+              id: expensesTable.id,
+              userId: expensesTable.userId,
+              merchantId: expensesTable.merchantId,
+              imageKey: expensesTable.imageKey,
+              amount: expensesTable.amount,
+              currency: expensesTable.currency,
+              baseAmount: expensesTable.baseAmount,
+              baseCurrency: expensesTable.baseCurrency,
+              description: expensesTable.description,
+              expenseDate: expensesTable.expenseDate,
+              createdAt: expensesTable.createdAt,
+              merchantName: merchantsTable.displayName,
+              category: merchantsTable.category,
+            })
+            .from(expensesTable)
+            .innerJoin(merchantsTable, eq(expensesTable.merchantId, merchantsTable.id))
+            .where(eq(expensesTable.id, id))
+            .get()
+        )
+        return result ?? undefined
+      }),
+
+      /**
        * Get all expenses ordered by expense date (most recent first)
        */
       getAll: Effect.fn('expenseRepo.getAll')(function* () {
         const results = yield* withDbTryPromise(db.select().from(expensesTable).orderBy(desc(expensesTable.expenseDate)).all())
         return results.map(fromRow)
+      }),
+
+      /**
+       * Get all expenses with merchant info (for display)
+       */
+      getAllWithMerchants: Effect.fn('expenseRepo.getAllWithMerchants')(function* () {
+        const results = yield* withDbTryPromise(
+          db
+            .select({
+              id: expensesTable.id,
+              userId: expensesTable.userId,
+              merchantId: expensesTable.merchantId,
+              imageKey: expensesTable.imageKey,
+              amount: expensesTable.amount,
+              currency: expensesTable.currency,
+              baseAmount: expensesTable.baseAmount,
+              baseCurrency: expensesTable.baseCurrency,
+              description: expensesTable.description,
+              expenseDate: expensesTable.expenseDate,
+              createdAt: expensesTable.createdAt,
+              merchantName: merchantsTable.displayName,
+              category: merchantsTable.category,
+            })
+            .from(expensesTable)
+            .innerJoin(merchantsTable, eq(expensesTable.merchantId, merchantsTable.id))
+            .orderBy(desc(expensesTable.expenseDate))
+            .all()
+        )
+        return results
       }),
 
       /**
@@ -70,23 +128,6 @@ export class ExpenseRepo extends Effect.Service<ExpenseRepo>()('ExpenseRepo', {
       delete: Effect.fn('expenseRepo.delete')(function* (id: string) {
         const result = yield* withDbTryPromise(db.delete(expensesTable).where(eq(expensesTable.id, id)).returning().get())
         return result ? fromRow(result) : undefined
-      }),
-
-      /**
-       * Get unique merchants sorted by most recent expense date
-       */
-      getUniqueMerchants: Effect.fn('expenseRepo.getUniqueMerchants')(function* () {
-        const results = yield* withDbTryPromise(
-          db
-            .selectDistinct({ merchant: expensesTable.merchant })
-            .from(expensesTable)
-            .orderBy(desc(expensesTable.expenseDate))
-            .all(),
-        )
-        // Filter out null/empty merchants and extract unique names
-        return results
-          .map((r) => r.merchant)
-          .filter((m): m is string => m !== null && m !== undefined && m.trim() !== '')
       }),
     } as const
   }),
