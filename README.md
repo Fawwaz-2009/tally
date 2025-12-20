@@ -1,4 +1,4 @@
-# Orange Starter (tally)
+# Orange Starter (tally.)
 
 A modern, full-stack TypeScript starter template for building applications with Cloudflare Workers, D1 (SQLite), R2 (Object Storage), and React.
 
