@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test } from '@playwright/test'
+import type { Page } from '@playwright/test'
 import { resetTestDatabase } from '@/test-utils/db-utils'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -11,7 +12,7 @@ test.beforeEach(async () => {
 })
 
 // Helper to fill merchant using the MerchantPicker component
-async function fillMerchant(page: import('@playwright/test').Page, merchantName: string) {
+async function fillMerchant(page: Page, merchantName: string) {
   // Click the merchant picker button (find by text content)
   await page.getByRole('combobox').filter({ hasText: /select merchant/i }).click()
 

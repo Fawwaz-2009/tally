@@ -83,7 +83,7 @@ function Dashboard() {
     if (filters.search) {
       const searchLower = filters.search.toLowerCase()
       result = result.filter((expense) => {
-        const merchantMatch = expense.merchantName?.toLowerCase().includes(searchLower)
+        const merchantMatch = expense.merchantName.toLowerCase().includes(searchLower)
         const categoryMatch = expense.category?.toLowerCase().includes(searchLower)
         return merchantMatch || categoryMatch
       })
