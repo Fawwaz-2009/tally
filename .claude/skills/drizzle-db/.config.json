@@ -1,0 +1,4 @@
+{
+  "drizzleConfigPath": "./packages/data-ops/drizzle.config.ts",
+  "readOnly": true
+}
