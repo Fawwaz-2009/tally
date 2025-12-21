@@ -62,6 +62,19 @@ Uses Domain-Driven Design with Effect.js:
 
 ## Conventions
 
+### Versioning
+
+When bumping the app version, update both:
+1. **Root package.json**: `"version": "x.y.z"`
+2. **apps/web/src/lib/version.ts**: `export const APP_VERSION = 'x.y.z'`
+
+After updating, create a git tag and GitHub release:
+```bash
+git tag -a vx.y.z -m "Version x.y.z release notes"
+git push origin vx.y.z
+gh release create vx.y.z --notes "Release notes" --prerelease
+```
+
 ### Adding shadcn Components
 ```bash
 pnpx shadcn@latest add [component]
