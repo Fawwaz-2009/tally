@@ -16,6 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { APP_NAME, APP_VERSION } from '@/lib/version'
 
 export const Route = createFileRoute('/_main/settings')({ component: Settings })
 
@@ -259,6 +260,13 @@ function Settings() {
 
         {/* Export Section */}
         <ExportSection />
+
+        {/* App Version */}
+        <div className="text-center pt-8 pb-4">
+          <p className="text-sm text-muted-foreground">
+            {APP_NAME} v{APP_VERSION}
+          </p>
+        </div>
       </div>
     </div>
   )
