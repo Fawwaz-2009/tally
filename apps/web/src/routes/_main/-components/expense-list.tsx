@@ -1,8 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { AnimatePresence } from 'motion/react'
 
 import { ExpenseCard } from './expense-card'
-import { ExpenseDrawer } from './expense-drawer'
 import type { ExpenseCardData } from './expense-card'
 import { Button } from '@/components/ui/button'
 import { EmptyState, ErrorState, LoadingState } from '@/components/expense/states'
@@ -24,18 +23,10 @@ interface ExpenseListProps {
 }
 
 export function ExpenseList({ expenses, baseCurrency, users, isLoading, isError, errorMessage, hasActiveFilters, onClearFilters }: ExpenseListProps) {
-  const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null)
-  const [drawerOpen, setDrawerOpen] = useState(false)
-
-  // Derive selectedExpense from fresh expenses data
-  const selectedExpense = useMemo(() => {
-    if (!selectedExpenseId) return null
-    return expenses.find((e) => e.id === selectedExpenseId) ?? null
-  }, [expenses, selectedExpenseId])
+  const navigate = useNavigate()
 
   const handleExpenseClick = (expense: ExpenseCardData) => {
-    setSelectedExpenseId(expense.id)
-    setDrawerOpen(true)
+    navigate({ to: '/expense/$id', params: { id: expense.id } })
   }
 
   const getUserName = (userId: string | null): string | undefined => {
@@ -82,14 +73,6 @@ export function ExpenseList({ expenses, baseCurrency, users, isLoading, isError,
           </AnimatePresence>
         </div>
       )}
-
-      <ExpenseDrawer
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
-        expense={selectedExpense}
-        baseCurrency={baseCurrency}
-        userName={selectedExpense ? getUserName(selectedExpense.userId) : undefined}
-      />
     </div>
   )
 }

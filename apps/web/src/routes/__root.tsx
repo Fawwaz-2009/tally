@@ -3,6 +3,7 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 
 import { ThemeProvider } from '../components/theme-provider'
+import { VisualViewportProvider } from '../components/visual-viewport-provider'
 
 import TanStackQueryDevtools from '../integrations/tanstack-query-devtools'
 
@@ -27,7 +28,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
       {
         name: 'viewport',
-        content: 'width=device-width, initial-scale=1',
+        content: 'width=device-width, initial-scale=1, interactive-widget=resizes-content',
       },
       {
         title: 'Tally',
@@ -100,6 +101,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         style={{ fontFamily: '"Red Hat Mono", monospace' }}
       >
         <ThemeProvider defaultTheme="system" storageKey="tally-theme">
+          <VisualViewportProvider />
           <style>{`
             h1, h2, h3, h4, h5, h6, .font-heading {
               font-family: 'Oswald', sans-serif;

@@ -14,6 +14,7 @@ import { getScreenshotUrl } from '@/lib/expense-utils'
 import { ExpenseForm } from '@/components/expense/expense-form'
 import { AmountDisplay } from '@/components/expense/amount-display'
 import { ReceiptPreview } from '@/components/expense/receipt-preview'
+import { useDrawerInputFocus } from '@/hooks/use-drawer-input-focus'
 
 interface ExpenseDrawerProps {
   open: boolean
@@ -29,6 +30,9 @@ export function ExpenseDrawer({ open, onOpenChange, expense, baseCurrency, userN
   const [error, setError] = useState<string | null>(null)
   const trpc = useTRPC()
   const queryClient = useQueryClient()
+
+  // iOS keyboard handling - only active when drawer is open and editing
+  const drawerContentRef = useDrawerInputFocus(open && isEditing)
 
   // Reset state when drawer opens with a new expense
   useEffect(() => {
@@ -88,7 +92,7 @@ export function ExpenseDrawer({ open, onOpenChange, expense, baseCurrency, userN
     <>
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent className="bg-background border-border text-foreground max-h-[95vh] flex flex-col">
-          <div className="mx-auto w-full max-w-sm flex-1 overflow-auto">
+          <div ref={drawerContentRef} className="mx-auto w-full max-w-sm flex-1 overflow-auto">
             {isEditing ? (
               // Edit mode - full form
               <div className="p-4 pt-6">
