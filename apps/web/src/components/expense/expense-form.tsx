@@ -14,7 +14,7 @@ import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 export interface ExpenseFormData {
-  amount: number // in smallest unit (cents for USD, yen for JPY, etc.)
+  amount: number // display amount (e.g., 300 for 300 SAR, 19.99 for 19.99 USD)
   currency: string
   merchantName: string
   expenseDate: string
@@ -136,10 +136,11 @@ export function ExpenseForm({
       return
     }
 
-    const amountInSmallestUnit = displayToSmallestUnit(amount, currency)
+    // Parse amount as a display value (the API will convert to smallest units)
+    const displayAmount = parseFloat(amount)
 
     onSubmit({
-      amount: amountInSmallestUnit,
+      amount: displayAmount,
       currency,
       merchantName: merchantName.trim(),
       expenseDate,

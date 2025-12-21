@@ -3,6 +3,7 @@ import { zfd } from 'zod-form-data'
 
 import { frontendRuntime } from '@repo/data-ops/runtimes'
 import { ExpenseRepo, ExpenseService, MerchantRepo, UpdateExpensePayload, UserRepo } from '@repo/data-ops/domain'
+import { toSmallestUnit } from '@repo/isomorphic/money'
 import { publicProcedure } from '../init'
 import type { TRPCRouterRecord } from '@trpc/server'
 
@@ -12,7 +13,7 @@ const createFormDataSchema = zfd.formData({
   userName: zfd.text(),
   merchantName: zfd.text(),
   currency: zfd.text(),
-  amount: zfd.numeric(),
+  amount: zfd.numeric(), // Display amount (e.g., 300 for 300 SAR)
   expenseDate: zfd.text().optional(), // ISO date string, optional
 })
 
@@ -66,15 +67,19 @@ export const expensesRouter = {
   /**
    * Create a new expense.
    * Accepts FormData with image file + expense details.
+   * Amount is expected as a display value (e.g., 300 for 300 SAR) and will be converted to smallest units.
    */
   create: publicProcedure.input(createFormDataSchema).mutation(async ({ input }) => {
+    // Convert display amount to smallest unit based on currency
+    const amountInSmallestUnit = toSmallestUnit(input.amount, input.currency.trim().toUpperCase())
+
     const program = Effect.gen(function* () {
       const service = yield* ExpenseService
       return yield* service.create({
         userName: input.userName,
         merchantName: input.merchantName,
         currency: input.currency,
-        amount: input.amount,
+        amount: amountInSmallestUnit,
         image: input.image,
         expenseDate: input.expenseDate ? new Date(input.expenseDate) : undefined,
       })
