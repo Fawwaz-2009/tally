@@ -4,15 +4,14 @@ import { z } from 'zod'
 import { Store, Tag, Users } from 'lucide-react'
 
 import { BreakdownCard, CategoryBreakdownCard, TotalSpendingCard, merchantColors, useAnalytics, userColors } from './-components'
-import type {DateRange} from '@/lib/date-utils';
 import { useTRPC } from '@/integrations/trpc-react'
 import { PageHeader } from '@/components/layout/page-header'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { MonthNavigator } from '@/components/ui/month-navigator'
 import { AnalyticsEmptyState, ErrorState, LoadingState } from '@/components/expense/states'
 
-
 const analysisSearchSchema = z.object({
-  dateRange: z.enum(['last-7-days', 'this-month', 'last-month', 'all-time']).default('this-month'),
+  month: z.number().optional(),
+  year: z.number().optional(),
 })
 
 export const Route = createFileRoute('/_main/analysis/')({
@@ -23,18 +22,23 @@ export const Route = createFileRoute('/_main/analysis/')({
 function Analysis() {
   const trpc = useTRPC()
   const navigate = useNavigate({ from: '/analysis' })
-  const { dateRange } = Route.useSearch()
+  const filters = Route.useSearch()
+
+  // Default to current month if not specified
+  const now = new Date()
+  const currentMonth = filters.month ?? now.getMonth()
+  const currentYear = filters.year ?? now.getFullYear()
 
   const expensesQuery = useQuery(trpc.expenses.list.queryOptions())
   const usersQuery = useQuery(trpc.users.list.queryOptions())
   const baseCurrencyQuery = useQuery(trpc.settings.getBaseCurrency.queryOptions())
 
   const baseCurrency = baseCurrencyQuery.data ?? 'USD'
-  const analytics = useAnalytics(expensesQuery.data, usersQuery.data, dateRange as DateRange)
+  const analytics = useAnalytics(expensesQuery.data, usersQuery.data, currentMonth, currentYear)
 
-  const handleDateRangeChange = (value: string) => {
+  const handleMonthChange = (month: number, year: number) => {
     navigate({
-      search: { dateRange: value as DateRange },
+      search: { month, year },
       replace: true,
     })
   }
@@ -46,17 +50,11 @@ function Analysis() {
   return (
     <div className="px-4 pt-12 pb-24">
       <PageHeader title="Analysis">
-        <Select value={dateRange} onValueChange={handleDateRangeChange}>
-          <SelectTrigger className="h-8 w-auto border-border bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full text-xs font-mono uppercase tracking-wider px-3">
-            <SelectValue placeholder="Date range" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="last-7-days">Last 7 Days</SelectItem>
-            <SelectItem value="this-month">This Month</SelectItem>
-            <SelectItem value="last-month">Last Month</SelectItem>
-            <SelectItem value="all-time">All Time</SelectItem>
-          </SelectContent>
-        </Select>
+        <MonthNavigator
+          month={currentMonth}
+          year={currentYear}
+          onMonthChange={handleMonthChange}
+        />
       </PageHeader>
 
       {isLoading ? (
@@ -67,7 +65,7 @@ function Analysis() {
         <AnalyticsEmptyState />
       ) : (
         <div className="space-y-6">
-          <TotalSpendingCard totalSpending={analytics.totalSpending} expenseCount={analytics.expenseCount} dateRange={dateRange as DateRange} currency={baseCurrency} />
+          <TotalSpendingCard totalSpending={analytics.totalSpending} expenseCount={analytics.expenseCount} month={currentMonth} year={currentYear} currency={baseCurrency} />
 
           <CategoryBreakdownCard
             icon={Tag}
