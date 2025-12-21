@@ -5,12 +5,12 @@ import { useMemo } from 'react'
 
 import { ExpenseList, FilterBar, OverviewHeader } from './-components'
 import type { ExpenseCardData } from './-components/expense-card'
-import type { DateRange } from '@/lib/date-utils'
 import { useTRPC } from '@/integrations/trpc-react'
-import { getDateRangeBounds } from '@/lib/date-utils'
+import { getMonthBounds } from '@/lib/date-utils'
 
 const dashboardSearchSchema = z.object({
-  dateRange: z.enum(['last-7-days', 'this-month', 'last-month', 'all-time']).default('this-month'),
+  month: z.number().optional(),
+  year: z.number().optional(),
   userId: z.string().optional(),
   category: z.string().optional(),
   search: z.string().optional(),
@@ -32,15 +32,21 @@ function Dashboard() {
   const navigate = useNavigate({ from: '/' })
   const filters = Route.useSearch()
 
+  // Default to current month if not specified
+  const now = new Date()
+  const currentMonth = filters.month ?? now.getMonth()
+  const currentYear = filters.year ?? now.getFullYear()
+
   const expensesQuery = useQuery(trpc.expenses.list.queryOptions())
   const usersQuery = useQuery(trpc.users.list.queryOptions())
   const baseCurrencyQuery = useQuery(trpc.settings.getBaseCurrency.queryOptions())
 
-  const hasActiveFilters = Boolean(filters.dateRange !== 'this-month' || filters.userId || filters.category || filters.search)
+  const isCurrentMonth = currentMonth === now.getMonth() && currentYear === now.getFullYear()
+  const hasActiveFilters = Boolean(!isCurrentMonth || filters.userId || filters.category || filters.search)
 
-  const handleDateRangeChange = (dateRange: DateRange) => {
+  const handleMonthChange = (month: number, year: number) => {
     navigate({
-      search: (prev) => ({ ...prev, dateRange }),
+      search: (prev) => ({ ...prev, month, year }),
       replace: true,
     })
   }
@@ -53,8 +59,9 @@ function Dashboard() {
   }
 
   const handleClearFilters = () => {
+    const now = new Date()
     navigate({
-      search: { dateRange: 'this-month' },
+      search: { month: now.getMonth(), year: now.getFullYear() },
       replace: true,
     })
   }
@@ -64,13 +71,12 @@ function Dashboard() {
 
     let result = [...expensesQuery.data]
 
-    const dateRange = getDateRangeBounds(filters.dateRange)
-    if (dateRange) {
-      result = result.filter((expense) => {
-        const dateToCheck = new Date(expense.expenseDate)
-        return dateToCheck >= dateRange.start && dateToCheck <= dateRange.end
-      })
-    }
+    // Filter by selected month/year
+    const dateRange = getMonthBounds(currentMonth, currentYear)
+    result = result.filter((expense) => {
+      const dateToCheck = new Date(expense.expenseDate)
+      return dateToCheck >= dateRange.start && dateToCheck <= dateRange.end
+    })
 
     if (filters.userId) {
       result = result.filter((expense) => expense.userId === filters.userId)
@@ -94,7 +100,7 @@ function Dashboard() {
       const dateB = new Date(b.expenseDate).getTime()
       return dateB - dateA
     })
-  }, [expensesQuery.data, filters.dateRange, filters.userId, filters.category, filters.search])
+  }, [expensesQuery.data, currentMonth, currentYear, filters.userId, filters.category, filters.search])
 
   const totalSpent = useMemo(() => {
     return filteredExpenses.reduce((sum, expense) => sum + expense.baseAmount, 0)
@@ -108,8 +114,9 @@ function Dashboard() {
         totalSpent={totalSpent}
         baseCurrency={baseCurrency}
         expenseCount={filteredExpenses.length}
-        dateRange={filters.dateRange}
-        onDateRangeChange={handleDateRangeChange}
+        month={currentMonth}
+        year={currentYear}
+        onMonthChange={handleMonthChange}
         isLoading={expensesQuery.isLoading}
       />
 

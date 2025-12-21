@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
 
 import { percentage as calcPercentage, sum } from '@repo/isomorphic/money'
-import type { DateRange } from '@/lib/date-utils'
-import { getDateRangeBounds } from '@/lib/date-utils'
+import { getMonthBounds } from '@/lib/date-utils'
 
 interface User {
   id: string
@@ -41,20 +40,18 @@ interface Analytics {
   }>
 }
 
-export function useAnalytics(expenses: ExpenseWithMerchant[] | undefined, users: User[] | undefined, dateRange: DateRange): Analytics | null {
+export function useAnalytics(expenses: ExpenseWithMerchant[] | undefined, users: User[] | undefined, month: number, year: number): Analytics | null {
   return useMemo(() => {
     if (!expenses || expenses.length === 0) return null
 
-    // Filter by date range
+    // Filter by month/year
     let filteredExpenses = [...expenses]
 
-    const bounds = getDateRangeBounds(dateRange)
-    if (bounds) {
-      filteredExpenses = filteredExpenses.filter((expense) => {
-        const dateToCheck = new Date(expense.expenseDate)
-        return dateToCheck >= bounds.start && dateToCheck <= bounds.end
-      })
-    }
+    const bounds = getMonthBounds(month, year)
+    filteredExpenses = filteredExpenses.filter((expense) => {
+      const dateToCheck = new Date(expense.expenseDate)
+      return dateToCheck >= bounds.start && dateToCheck <= bounds.end
+    })
 
     if (filteredExpenses.length === 0) return null
 
@@ -135,5 +132,5 @@ export function useAnalytics(expenses: ExpenseWithMerchant[] | undefined, users:
       userBreakdown,
       merchantBreakdown,
     }
-  }, [expenses, users, dateRange])
+  }, [expenses, users, month, year])
 }

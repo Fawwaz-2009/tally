@@ -33,8 +33,11 @@ interface CategoryBreakdownItemProps extends BreakdownItemProps {
 }
 
 export function CategoryBreakdownItem({ label, amount, count, percentage, maxAmount, color = 'bg-primary', currency = 'USD' }: CategoryBreakdownItemProps) {
+  // Get current month/year from the current route
+  const now = new Date()
+
   return (
-    <Link to="/" search={{ dateRange: 'all-time', category: label }} className="block space-y-2 -mx-2 px-2 py-2 rounded-md hover:bg-muted/50 transition-colors">
+    <Link to="/" search={{ month: now.getMonth(), year: now.getFullYear(), category: label }} className="block space-y-2 -mx-2 px-2 py-2 rounded-md hover:bg-muted/50 transition-colors">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <span className="font-medium truncate">{label}</span>

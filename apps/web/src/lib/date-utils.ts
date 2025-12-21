@@ -1,7 +1,15 @@
 /**
  * Date range type for filtering
  */
-export type DateRange = 'last-7-days' | 'this-month' | 'last-month' | 'all-time'
+export type DateRange = 'last-7-days' | 'this-month' | 'last-month' | 'all-time' | 'specific-month'
+
+/**
+ * Specific month/year selection
+ */
+export interface SpecificMonth {
+  month: number // 0-11
+  year: number
+}
 
 /**
  * Format date to a relative or short date string
@@ -39,14 +47,31 @@ export function formatDateForInput(date: Date | string | null | undefined): stri
 }
 
 /**
+ * Get date range boundaries for a specific month/year
+ */
+export function getMonthBounds(month: number, year: number): { start: Date; end: Date } {
+  return {
+    start: new Date(year, month, 1),
+    end: new Date(year, month + 1, 0, 23, 59, 59, 999),
+  }
+}
+
+/**
  * Get date range boundaries for filtering
  */
-export function getDateRangeBounds(dateRange: DateRange | undefined): { start: Date; end: Date } | null {
+export function getDateRangeBounds(
+  dateRange: DateRange | undefined,
+  specificMonth?: SpecificMonth
+): { start: Date; end: Date } | null {
   if (!dateRange || dateRange === 'all-time') return null
 
   const now = new Date()
   const year = now.getFullYear()
   const month = now.getMonth()
+
+  if (dateRange === 'specific-month' && specificMonth) {
+    return getMonthBounds(specificMonth.month, specificMonth.year)
+  }
 
   if (dateRange === 'last-7-days') {
     const start = new Date(now)
@@ -59,17 +84,11 @@ export function getDateRangeBounds(dateRange: DateRange | undefined): { start: D
   }
 
   if (dateRange === 'this-month') {
-    return {
-      start: new Date(year, month, 1),
-      end: new Date(year, month + 1, 0, 23, 59, 59, 999),
-    }
+    return getMonthBounds(month, year)
   }
 
   // dateRange === 'last-month'
-  return {
-    start: new Date(year, month - 1, 1),
-    end: new Date(year, month, 0, 23, 59, 59, 999),
-  }
+  return getMonthBounds(month - 1, year)
 }
 
 /**
