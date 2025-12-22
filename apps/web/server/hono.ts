@@ -148,6 +148,81 @@ app.get('/api/shortcut/session/:sessionId', async (c) => {
 })
 
 /**
+ * List all pending sessions.
+ * Used by PWA to check if there are sessions to process on app launch.
+ * Returns sessions sorted by creation time (newest first).
+ */
+app.get('/api/shortcut/sessions', async (c) => {
+  const now = Date.now()
+  const sessions: Array<{
+    sessionId: string
+    imageUrl: string
+    contentType: string
+    createdAt: number
+    expiresIn: number
+  }> = []
+
+  for (const [sessionId, session] of shortcutSessions.entries()) {
+    // Skip expired sessions
+    if (now - session.createdAt > SESSION_TTL_MS) {
+      continue
+    }
+
+    sessions.push({
+      sessionId,
+      imageUrl: `/api/files/${session.imageKey}`,
+      contentType: session.contentType,
+      createdAt: session.createdAt,
+      expiresIn: Math.max(0, SESSION_TTL_MS - (now - session.createdAt)),
+    })
+  }
+
+  // Sort by creation time, newest first
+  sessions.sort((a, b) => b.createdAt - a.createdAt)
+
+  return c.json({
+    success: true,
+    sessions,
+    count: sessions.length,
+  })
+})
+
+/**
+ * Delete/dismiss a session without completing it.
+ * Used when user wants to cancel a pending quick-add.
+ */
+app.delete('/api/shortcut/session/:sessionId', async (c) => {
+  const sessionId = c.req.param('sessionId')
+
+  if (!sessionId) {
+    return c.json({ error: 'Session ID required' }, 400)
+  }
+
+  const session = shortcutSessions.get(sessionId)
+
+  if (!session) {
+    return c.json({ error: 'Session not found' }, 404)
+  }
+
+  // Clean up the temporary file
+  const filePath = path.join(env.BUCKET_STORAGE_PATH, session.imageKey)
+  try {
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath)
+    }
+    const metaPath = `${filePath}.meta.json`
+    if (fs.existsSync(metaPath)) {
+      fs.unlinkSync(metaPath)
+    }
+  } catch {
+    // Ignore cleanup errors
+  }
+  shortcutSessions.delete(sessionId)
+
+  return c.json({ success: true })
+})
+
+/**
  * Mark session as used (after expense is created).
  * This allows early cleanup of the temporary image.
  */

@@ -6,8 +6,13 @@ This document explains how to set up an iOS Shortcut that provides a streamlined
 
 1. **Share Image**: User shares a receipt image (from Photos, Camera, or Share Sheet)
 2. **Shortcut Uploads**: The shortcut uploads the image to the server
-3. **Opens PWA**: The shortcut opens Safari with the quick-add URL
-4. **Complete in PWA**: User selects user, merchant, and enters amount in a mobile-optimized UI
+3. **Opens PWA**: The shortcut opens the PWA (as a launcher - iOS limitation)
+4. **Auto-Detect Session**: PWA checks for pending sessions on launch
+   - If 1 session: Auto-redirects to quick-add flow
+   - If multiple sessions: Shows a picker with receipt thumbnails
+5. **Complete in PWA**: User selects user, merchant, and enters amount in a mobile-optimized UI
+
+> **Note**: Due to iOS limitations, PWAs opened from Shortcuts cannot receive URL parameters. The app works around this by checking for pending sessions on every launch.
 
 ## Benefits Over Native Shortcut Flow
 
