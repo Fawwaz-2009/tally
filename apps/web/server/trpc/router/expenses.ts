@@ -60,6 +60,14 @@ export const expensesRouter = {
     return merchants.map((m) => m.displayName)
   }),
 
+  /**
+   * Get recently used currencies (last 3 months, ordered by usage count).
+   * Used for smart currency picker sorting.
+   */
+  getRecentCurrencies: publicProcedure.query(async () => {
+    return frontendRuntime.runPromise(ExpenseRepo.getRecentCurrencies())
+  }),
+
   // ==========================================================================
   // Mutations
   // ==========================================================================

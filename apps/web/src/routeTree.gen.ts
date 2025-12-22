@@ -9,14 +9,25 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as QuickAddRouteRouteImport } from './routes/quick-add/route'
 import { Route as MainRouteRouteImport } from './routes/_main/route'
 import { Route as SetupIndexRouteImport } from './routes/setup/index'
+import { Route as QuickAddIndexRouteImport } from './routes/quick-add/index'
 import { Route as MainIndexRouteImport } from './routes/_main/index'
 import { Route as MainSettingsRouteImport } from './routes/_main/settings'
+import { Route as QuickAddSessionIdRouteRouteImport } from './routes/quick-add/$sessionId/route'
+import { Route as QuickAddSessionIdIndexRouteImport } from './routes/quick-add/$sessionId/index'
 import { Route as MainAnalysisIndexRouteImport } from './routes/_main/analysis/index'
 import { Route as MainAddIndexRouteImport } from './routes/_main/add/index'
+import { Route as QuickAddSessionIdMerchantRouteImport } from './routes/quick-add/$sessionId/merchant'
+import { Route as QuickAddSessionIdDetailsRouteImport } from './routes/quick-add/$sessionId/details'
 import { Route as MainExpenseIdRouteImport } from './routes/_main/expense/$id'
 
+const QuickAddRouteRoute = QuickAddRouteRouteImport.update({
+  id: '/quick-add',
+  path: '/quick-add',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MainRouteRoute = MainRouteRouteImport.update({
   id: '/_main',
   getParentRoute: () => rootRouteImport,
@@ -25,6 +36,11 @@ const SetupIndexRoute = SetupIndexRouteImport.update({
   id: '/setup/',
   path: '/setup/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const QuickAddIndexRoute = QuickAddIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => QuickAddRouteRoute,
 } as any)
 const MainIndexRoute = MainIndexRouteImport.update({
   id: '/',
@@ -36,6 +52,16 @@ const MainSettingsRoute = MainSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => MainRouteRoute,
 } as any)
+const QuickAddSessionIdRouteRoute = QuickAddSessionIdRouteRouteImport.update({
+  id: '/$sessionId',
+  path: '/$sessionId',
+  getParentRoute: () => QuickAddRouteRoute,
+} as any)
+const QuickAddSessionIdIndexRoute = QuickAddSessionIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => QuickAddSessionIdRouteRoute,
+} as any)
 const MainAnalysisIndexRoute = MainAnalysisIndexRouteImport.update({
   id: '/analysis/',
   path: '/analysis/',
@@ -46,6 +72,18 @@ const MainAddIndexRoute = MainAddIndexRouteImport.update({
   path: '/add/',
   getParentRoute: () => MainRouteRoute,
 } as any)
+const QuickAddSessionIdMerchantRoute =
+  QuickAddSessionIdMerchantRouteImport.update({
+    id: '/merchant',
+    path: '/merchant',
+    getParentRoute: () => QuickAddSessionIdRouteRoute,
+  } as any)
+const QuickAddSessionIdDetailsRoute =
+  QuickAddSessionIdDetailsRouteImport.update({
+    id: '/details',
+    path: '/details',
+    getParentRoute: () => QuickAddSessionIdRouteRoute,
+  } as any)
 const MainExpenseIdRoute = MainExpenseIdRouteImport.update({
   id: '/expense/$id',
   path: '/expense/$id',
@@ -53,60 +91,106 @@ const MainExpenseIdRoute = MainExpenseIdRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/quick-add': typeof QuickAddRouteRouteWithChildren
+  '/quick-add/$sessionId': typeof QuickAddSessionIdRouteRouteWithChildren
   '/settings': typeof MainSettingsRoute
   '/': typeof MainIndexRoute
+  '/quick-add/': typeof QuickAddIndexRoute
   '/setup': typeof SetupIndexRoute
   '/expense/$id': typeof MainExpenseIdRoute
+  '/quick-add/$sessionId/details': typeof QuickAddSessionIdDetailsRoute
+  '/quick-add/$sessionId/merchant': typeof QuickAddSessionIdMerchantRoute
   '/add': typeof MainAddIndexRoute
   '/analysis': typeof MainAnalysisIndexRoute
+  '/quick-add/$sessionId/': typeof QuickAddSessionIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/settings': typeof MainSettingsRoute
   '/': typeof MainIndexRoute
+  '/quick-add': typeof QuickAddIndexRoute
   '/setup': typeof SetupIndexRoute
   '/expense/$id': typeof MainExpenseIdRoute
+  '/quick-add/$sessionId/details': typeof QuickAddSessionIdDetailsRoute
+  '/quick-add/$sessionId/merchant': typeof QuickAddSessionIdMerchantRoute
   '/add': typeof MainAddIndexRoute
   '/analysis': typeof MainAnalysisIndexRoute
+  '/quick-add/$sessionId': typeof QuickAddSessionIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_main': typeof MainRouteRouteWithChildren
+  '/quick-add': typeof QuickAddRouteRouteWithChildren
+  '/quick-add/$sessionId': typeof QuickAddSessionIdRouteRouteWithChildren
   '/_main/settings': typeof MainSettingsRoute
   '/_main/': typeof MainIndexRoute
+  '/quick-add/': typeof QuickAddIndexRoute
   '/setup/': typeof SetupIndexRoute
   '/_main/expense/$id': typeof MainExpenseIdRoute
+  '/quick-add/$sessionId/details': typeof QuickAddSessionIdDetailsRoute
+  '/quick-add/$sessionId/merchant': typeof QuickAddSessionIdMerchantRoute
   '/_main/add/': typeof MainAddIndexRoute
   '/_main/analysis/': typeof MainAnalysisIndexRoute
+  '/quick-add/$sessionId/': typeof QuickAddSessionIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/quick-add'
+    | '/quick-add/$sessionId'
     | '/settings'
     | '/'
+    | '/quick-add/'
     | '/setup'
     | '/expense/$id'
+    | '/quick-add/$sessionId/details'
+    | '/quick-add/$sessionId/merchant'
     | '/add'
     | '/analysis'
+    | '/quick-add/$sessionId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/settings' | '/' | '/setup' | '/expense/$id' | '/add' | '/analysis'
+  to:
+    | '/settings'
+    | '/'
+    | '/quick-add'
+    | '/setup'
+    | '/expense/$id'
+    | '/quick-add/$sessionId/details'
+    | '/quick-add/$sessionId/merchant'
+    | '/add'
+    | '/analysis'
+    | '/quick-add/$sessionId'
   id:
     | '__root__'
     | '/_main'
+    | '/quick-add'
+    | '/quick-add/$sessionId'
     | '/_main/settings'
     | '/_main/'
+    | '/quick-add/'
     | '/setup/'
     | '/_main/expense/$id'
+    | '/quick-add/$sessionId/details'
+    | '/quick-add/$sessionId/merchant'
     | '/_main/add/'
     | '/_main/analysis/'
+    | '/quick-add/$sessionId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   MainRouteRoute: typeof MainRouteRouteWithChildren
+  QuickAddRouteRoute: typeof QuickAddRouteRouteWithChildren
   SetupIndexRoute: typeof SetupIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/quick-add': {
+      id: '/quick-add'
+      path: '/quick-add'
+      fullPath: '/quick-add'
+      preLoaderRoute: typeof QuickAddRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_main': {
       id: '/_main'
       path: ''
@@ -120,6 +204,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/setup'
       preLoaderRoute: typeof SetupIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/quick-add/': {
+      id: '/quick-add/'
+      path: '/'
+      fullPath: '/quick-add/'
+      preLoaderRoute: typeof QuickAddIndexRouteImport
+      parentRoute: typeof QuickAddRouteRoute
     }
     '/_main/': {
       id: '/_main/'
@@ -135,6 +226,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainSettingsRouteImport
       parentRoute: typeof MainRouteRoute
     }
+    '/quick-add/$sessionId': {
+      id: '/quick-add/$sessionId'
+      path: '/$sessionId'
+      fullPath: '/quick-add/$sessionId'
+      preLoaderRoute: typeof QuickAddSessionIdRouteRouteImport
+      parentRoute: typeof QuickAddRouteRoute
+    }
+    '/quick-add/$sessionId/': {
+      id: '/quick-add/$sessionId/'
+      path: '/'
+      fullPath: '/quick-add/$sessionId/'
+      preLoaderRoute: typeof QuickAddSessionIdIndexRouteImport
+      parentRoute: typeof QuickAddSessionIdRouteRoute
+    }
     '/_main/analysis/': {
       id: '/_main/analysis/'
       path: '/analysis'
@@ -148,6 +253,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/add'
       preLoaderRoute: typeof MainAddIndexRouteImport
       parentRoute: typeof MainRouteRoute
+    }
+    '/quick-add/$sessionId/merchant': {
+      id: '/quick-add/$sessionId/merchant'
+      path: '/merchant'
+      fullPath: '/quick-add/$sessionId/merchant'
+      preLoaderRoute: typeof QuickAddSessionIdMerchantRouteImport
+      parentRoute: typeof QuickAddSessionIdRouteRoute
+    }
+    '/quick-add/$sessionId/details': {
+      id: '/quick-add/$sessionId/details'
+      path: '/details'
+      fullPath: '/quick-add/$sessionId/details'
+      preLoaderRoute: typeof QuickAddSessionIdDetailsRouteImport
+      parentRoute: typeof QuickAddSessionIdRouteRoute
     }
     '/_main/expense/$id': {
       id: '/_main/expense/$id'
@@ -179,8 +298,41 @@ const MainRouteRouteWithChildren = MainRouteRoute._addFileChildren(
   MainRouteRouteChildren,
 )
 
+interface QuickAddSessionIdRouteRouteChildren {
+  QuickAddSessionIdDetailsRoute: typeof QuickAddSessionIdDetailsRoute
+  QuickAddSessionIdMerchantRoute: typeof QuickAddSessionIdMerchantRoute
+  QuickAddSessionIdIndexRoute: typeof QuickAddSessionIdIndexRoute
+}
+
+const QuickAddSessionIdRouteRouteChildren: QuickAddSessionIdRouteRouteChildren =
+  {
+    QuickAddSessionIdDetailsRoute: QuickAddSessionIdDetailsRoute,
+    QuickAddSessionIdMerchantRoute: QuickAddSessionIdMerchantRoute,
+    QuickAddSessionIdIndexRoute: QuickAddSessionIdIndexRoute,
+  }
+
+const QuickAddSessionIdRouteRouteWithChildren =
+  QuickAddSessionIdRouteRoute._addFileChildren(
+    QuickAddSessionIdRouteRouteChildren,
+  )
+
+interface QuickAddRouteRouteChildren {
+  QuickAddSessionIdRouteRoute: typeof QuickAddSessionIdRouteRouteWithChildren
+  QuickAddIndexRoute: typeof QuickAddIndexRoute
+}
+
+const QuickAddRouteRouteChildren: QuickAddRouteRouteChildren = {
+  QuickAddSessionIdRouteRoute: QuickAddSessionIdRouteRouteWithChildren,
+  QuickAddIndexRoute: QuickAddIndexRoute,
+}
+
+const QuickAddRouteRouteWithChildren = QuickAddRouteRoute._addFileChildren(
+  QuickAddRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   MainRouteRoute: MainRouteRouteWithChildren,
+  QuickAddRouteRoute: QuickAddRouteRouteWithChildren,
   SetupIndexRoute: SetupIndexRoute,
 }
 export const routeTree = rootRouteImport

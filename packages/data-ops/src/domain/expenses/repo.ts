@@ -1,5 +1,5 @@
 import { Effect } from 'effect'
-import { eq, desc } from 'drizzle-orm'
+import { eq, desc, gte, sql, count } from 'drizzle-orm'
 import { expensesTable, merchantsTable } from '../../db'
 import { DbClient } from '../../layers'
 import { type Expense } from './schema'
@@ -128,6 +128,30 @@ export class ExpenseRepo extends Effect.Service<ExpenseRepo>()('ExpenseRepo', {
       delete: Effect.fn('expenseRepo.delete')(function* (id: string) {
         const result = yield* withDbTryPromise(db.delete(expensesTable).where(eq(expensesTable.id, id)).returning().get())
         return result ? fromRow(result) : undefined
+      }),
+
+      /**
+       * Get recently used currencies (last 3 months, ordered by usage count).
+       * Returns array of currency codes like ['SAR', 'USD', 'EUR']
+       */
+      getRecentCurrencies: Effect.fn('expenseRepo.getRecentCurrencies')(function* () {
+        // Calculate date 3 months ago
+        const threeMonthsAgo = new Date()
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
+
+        const results = yield* withDbTryPromise(
+          db
+            .select({
+              currency: expensesTable.currency,
+              usageCount: count(expensesTable.id),
+            })
+            .from(expensesTable)
+            .where(gte(expensesTable.expenseDate, threeMonthsAgo))
+            .groupBy(expensesTable.currency)
+            .orderBy(desc(sql`count(${expensesTable.id})`))
+            .all()
+        )
+        return results.map((r) => r.currency)
       }),
     } as const
   }),
