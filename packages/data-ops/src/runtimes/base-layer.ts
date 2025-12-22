@@ -10,6 +10,7 @@ import {
   CurrencyService,
   MerchantRepo,
   MerchantService,
+  ShortcutSessionService,
 } from '../domain'
 
 /**
@@ -29,4 +30,5 @@ export const BaseLayer = Layer.mergeAll(
   CurrencyService.Default,
   MerchantRepo.Default,
   MerchantService.Default,
+  ShortcutSessionService.Default,
 )
