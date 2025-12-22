@@ -74,7 +74,7 @@ app.post('/api/shortcut/upload', async (c) => {
 
     // Generate session ID and file key
     const sessionId = crypto.randomUUID()
-    const extension = image.name?.split('.').pop() || 'jpg'
+    const extension = image.name.split('.').pop() || 'jpg'
     const imageKey = `shortcut-sessions/${sessionId}.${extension}`
 
     // Save the image temporarily
