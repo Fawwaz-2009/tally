@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
-import { CheckCircle, Loader2, AlertCircle, Receipt, ChevronRight, Plus, ArrowLeft } from 'lucide-react'
+import { AlertCircle, ArrowLeft, CheckCircle, ChevronRight, Loader2, Plus, Receipt } from 'lucide-react'
 
 import { useTRPC } from '@/integrations/trpc-react'
 import { Button } from '@/components/ui/button'
@@ -253,7 +253,7 @@ function QuickAdd() {
             <button
               onClick={() => {
                 if (stage === 'details') setStage('merchant')
-                else if (stage === 'merchant') setStage('user')
+                else setStage('user')
               }}
               className="p-2 -ml-2 hover:bg-muted rounded-full transition-colors"
             >
