@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from '@tanstack/react-router'
+import { Outlet, createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/quick-add')({
   // NO beforeLoad redirects here - parent beforeLoad runs on EVERY child navigation!
