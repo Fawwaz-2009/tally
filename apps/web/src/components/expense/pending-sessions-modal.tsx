@@ -25,11 +25,7 @@ interface PendingSessionsModalProps {
  *
  * Delete is handled by the parent component via tRPC mutation.
  */
-export function PendingSessionsModal({
-  sessions,
-  onSessionSelected,
-  onSessionDeleted,
-}: PendingSessionsModalProps) {
+export function PendingSessionsModal({ sessions, onSessionSelected, onSessionDeleted }: PendingSessionsModalProps) {
   const handleDeleteSession = (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation()
     onSessionDeleted(sessionId)
@@ -54,9 +50,7 @@ export function PendingSessionsModal({
         <div className="p-4 border-b">
           <h2 className="text-lg font-semibold">Pending Receipts</h2>
           <p className="text-sm text-muted-foreground">
-            {sessions.length === 1
-              ? 'You have 1 receipt waiting to be added'
-              : `You have ${sessions.length} receipts waiting to be added`}
+            {sessions.length === 1 ? 'You have 1 receipt waiting to be added' : `You have ${sessions.length} receipts waiting to be added`}
           </p>
         </div>
 
@@ -92,10 +86,7 @@ export function PendingSessionsModal({
               {/* Delete/Discard button */}
               <button
                 onClick={(e) => handleDeleteSession(session.sessionId, e)}
-                className={cn(
-                  'p-2 rounded-full hover:bg-destructive/10 transition-colors',
-                  'text-muted-foreground hover:text-destructive',
-                )}
+                className={cn('p-2 rounded-full hover:bg-destructive/10 transition-colors', 'text-muted-foreground hover:text-destructive')}
                 title="Discard this receipt"
               >
                 <Trash2 className="w-5 h-5" />
@@ -106,9 +97,7 @@ export function PendingSessionsModal({
 
         {/* Footer - helpful hint instead of close button */}
         <div className="p-4 border-t bg-muted/30">
-          <p className="text-xs text-muted-foreground text-center">
-            Tap a receipt to add it as an expense, or use the trash icon to discard it.
-          </p>
+          <p className="text-xs text-muted-foreground text-center">Tap a receipt to add it as an expense, or use the trash icon to discard it.</p>
         </div>
       </div>
     </div>
