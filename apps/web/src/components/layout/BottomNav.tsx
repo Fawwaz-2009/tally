@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { Home, PieChart, Plus, Settings } from 'lucide-react'
+import { Home, PieChart, Plus, Settings, Zap } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 
@@ -25,6 +25,10 @@ export function BottomNav() {
             </Button>
           </Link>
         </div>
+
+        <Link to="/quick-add" className="text-zinc-500 dark:text-zinc-400 hover:text-orange-500 transition-colors [&.active]:text-orange-500 p-2">
+          <Zap size={24} strokeWidth={2.5} />
+        </Link>
 
         <Link to="/settings" className="text-zinc-500 dark:text-zinc-400 hover:text-orange-500 transition-colors [&.active]:text-orange-500 p-2">
           <Settings size={24} strokeWidth={2.5} />

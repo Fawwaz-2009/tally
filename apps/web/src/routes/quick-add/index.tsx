@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Receipt } from 'lucide-react'
 
@@ -6,22 +6,6 @@ import { useTRPC } from '@/integrations/trpc-react'
 import { Button } from '@/components/ui/button'
 
 export const Route = createFileRoute('/quick-add/')({
-  beforeLoad: async ({ context }) => {
-    // This only runs when at exactly /quick-add/ - safe to redirect!
-    // Use fetchQuery (not ensureQueryData) to force fresh data after session completion
-    const sessions = await context.queryClient.fetchQuery(
-      context.trpc.shortcut.listSessions.queryOptions()
-    )
-
-    // If exactly 1 session, go directly to that session's user selection
-    if (sessions.length === 1) {
-      throw redirect({
-        to: '/quick-add/$sessionId',
-        params: { sessionId: sessions[0].sessionId },
-      })
-    }
-    // Otherwise render this page (0 or multiple sessions)
-  },
   component: QuickAddIndex,
 })
 
