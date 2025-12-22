@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as MainRouteRouteImport } from './routes/_main/route'
 import { Route as SetupIndexRouteImport } from './routes/setup/index'
+import { Route as QuickAddIndexRouteImport } from './routes/quick-add/index'
 import { Route as MainIndexRouteImport } from './routes/_main/index'
 import { Route as MainSettingsRouteImport } from './routes/_main/settings'
 import { Route as MainAnalysisIndexRouteImport } from './routes/_main/analysis/index'
@@ -24,6 +25,11 @@ const MainRouteRoute = MainRouteRouteImport.update({
 const SetupIndexRoute = SetupIndexRouteImport.update({
   id: '/setup/',
   path: '/setup/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuickAddIndexRoute = QuickAddIndexRouteImport.update({
+  id: '/quick-add/',
+  path: '/quick-add/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MainIndexRoute = MainIndexRouteImport.update({
@@ -55,6 +61,7 @@ const MainExpenseIdRoute = MainExpenseIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/settings': typeof MainSettingsRoute
   '/': typeof MainIndexRoute
+  '/quick-add': typeof QuickAddIndexRoute
   '/setup': typeof SetupIndexRoute
   '/expense/$id': typeof MainExpenseIdRoute
   '/add': typeof MainAddIndexRoute
@@ -63,6 +70,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/settings': typeof MainSettingsRoute
   '/': typeof MainIndexRoute
+  '/quick-add': typeof QuickAddIndexRoute
   '/setup': typeof SetupIndexRoute
   '/expense/$id': typeof MainExpenseIdRoute
   '/add': typeof MainAddIndexRoute
@@ -73,6 +81,7 @@ export interface FileRoutesById {
   '/_main': typeof MainRouteRouteWithChildren
   '/_main/settings': typeof MainSettingsRoute
   '/_main/': typeof MainIndexRoute
+  '/quick-add/': typeof QuickAddIndexRoute
   '/setup/': typeof SetupIndexRoute
   '/_main/expense/$id': typeof MainExpenseIdRoute
   '/_main/add/': typeof MainAddIndexRoute
@@ -83,17 +92,26 @@ export interface FileRouteTypes {
   fullPaths:
     | '/settings'
     | '/'
+    | '/quick-add'
     | '/setup'
     | '/expense/$id'
     | '/add'
     | '/analysis'
   fileRoutesByTo: FileRoutesByTo
-  to: '/settings' | '/' | '/setup' | '/expense/$id' | '/add' | '/analysis'
+  to:
+    | '/settings'
+    | '/'
+    | '/quick-add'
+    | '/setup'
+    | '/expense/$id'
+    | '/add'
+    | '/analysis'
   id:
     | '__root__'
     | '/_main'
     | '/_main/settings'
     | '/_main/'
+    | '/quick-add/'
     | '/setup/'
     | '/_main/expense/$id'
     | '/_main/add/'
@@ -102,6 +120,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   MainRouteRoute: typeof MainRouteRouteWithChildren
+  QuickAddIndexRoute: typeof QuickAddIndexRoute
   SetupIndexRoute: typeof SetupIndexRoute
 }
 
@@ -119,6 +138,13 @@ declare module '@tanstack/react-router' {
       path: '/setup'
       fullPath: '/setup'
       preLoaderRoute: typeof SetupIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quick-add/': {
+      id: '/quick-add/'
+      path: '/quick-add'
+      fullPath: '/quick-add'
+      preLoaderRoute: typeof QuickAddIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_main/': {
@@ -181,6 +207,7 @@ const MainRouteRouteWithChildren = MainRouteRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   MainRouteRoute: MainRouteRouteWithChildren,
+  QuickAddIndexRoute: QuickAddIndexRoute,
   SetupIndexRoute: SetupIndexRoute,
 }
 export const routeTree = rootRouteImport
