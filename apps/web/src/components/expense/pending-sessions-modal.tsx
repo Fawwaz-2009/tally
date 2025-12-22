@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Clock, Receipt, Trash2 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -23,31 +22,17 @@ interface PendingSessionsModalProps {
  *
  * This modal is NON-DISMISSIBLE - user must resolve all pending sessions
  * by either selecting them to process or deleting (discarding) them.
+ *
+ * Delete is handled by the parent component via tRPC mutation.
  */
 export function PendingSessionsModal({
   sessions,
   onSessionSelected,
   onSessionDeleted,
 }: PendingSessionsModalProps) {
-  const [deletingSession, setDeletingSession] = useState<string | null>(null)
-
-  const handleDeleteSession = async (sessionId: string, e: React.MouseEvent) => {
+  const handleDeleteSession = (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    setDeletingSession(sessionId)
-
-    try {
-      const response = await fetch(`/api/shortcut/session/${sessionId}`, {
-        method: 'DELETE',
-      })
-
-      if (response.ok) {
-        onSessionDeleted(sessionId)
-      }
-    } catch {
-      // Ignore errors
-    } finally {
-      setDeletingSession(null)
-    }
+    onSessionDeleted(sessionId)
   }
 
   const formatTimeAgo = (createdAt: number) => {
@@ -107,11 +92,9 @@ export function PendingSessionsModal({
               {/* Delete/Discard button */}
               <button
                 onClick={(e) => handleDeleteSession(session.sessionId, e)}
-                disabled={deletingSession === session.sessionId}
                 className={cn(
                   'p-2 rounded-full hover:bg-destructive/10 transition-colors',
                   'text-muted-foreground hover:text-destructive',
-                  deletingSession === session.sessionId && 'opacity-50',
                 )}
                 title="Discard this receipt"
               >
