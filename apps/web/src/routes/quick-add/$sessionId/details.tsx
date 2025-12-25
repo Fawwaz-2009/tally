@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
-import { AlertCircle, Receipt } from 'lucide-react'
+import { AlertCircle, Receipt, X, ZoomIn } from 'lucide-react'
 
 import { useTRPC } from '@/integrations/trpc-react'
 import { Button } from '@/components/ui/button'
@@ -85,6 +85,7 @@ function DetailsForm() {
 
   const [amount, setAmount] = useState('')
   const [currency, setCurrency] = useState<string | null>(null) // null = use baseCurrency
+  const [showReceiptPreview, setShowReceiptPreview] = useState(false)
 
   // Prefetched data
   const { data: baseCurrency = 'USD' } = useQuery(trpc.settings.getBaseCurrency.queryOptions())
@@ -156,20 +157,59 @@ function DetailsForm() {
 
   return (
     <div className="p-4 space-y-6">
-      {/* Selected merchant summary */}
-      <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-        <Receipt className="w-5 h-5 text-muted-foreground" />
-        <span className="font-medium">{merchantName}</span>
-      </div>
+      {/* Receipt preview - tappable thumbnail that expands */}
+      {sessionData && (
+        <button
+          type="button"
+          onClick={() => setShowReceiptPreview(true)}
+          className="w-full flex items-center gap-3 p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
+        >
+          <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0 border">
+            <img src={sessionData.imageUrl} alt="Receipt" className="w-full h-full object-cover" />
+          </div>
+          <div className="flex-1 text-left">
+            <div className="flex items-center gap-2">
+              <Receipt className="w-4 h-4 text-muted-foreground" />
+              <span className="font-medium">{merchantName}</span>
+            </div>
+            <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+              <ZoomIn className="w-3 h-3" />
+              Tap to view receipt
+            </p>
+          </div>
+        </button>
+      )}
+
+      {/* Fullscreen receipt preview modal */}
+      {showReceiptPreview && sessionData && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setShowReceiptPreview(false)}
+        >
+          <button
+            type="button"
+            onClick={() => setShowReceiptPreview(false)}
+            className="absolute top-4 right-4 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
+          >
+            <X className="w-6 h-6 text-white" />
+          </button>
+          <img 
+            src={sessionData.imageUrl} 
+            alt="Receipt" 
+            className="max-w-full max-h-full object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
 
       {/* Amount input - large and prominent */}
       <div className="space-y-2">
         <label className="text-sm font-medium">Amount</label>
         <div className="flex gap-2">
           <Input
-            type="number"
-            step="0.01"
-            min="0"
+            type="text"
+            inputMode="decimal"
+            pattern="[0-9]*\.?[0-9]*"
             placeholder="0.00"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
